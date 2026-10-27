@@ -77,7 +77,7 @@ return function(props: any)
 					Stroke = false,
 					Text = Text.XpIcon,
 					TextSize = badge * UIConfig.Shape.IconFill,
-					Transparency = UIConfig.Shape.GlossTransparency,
+					Transparency = UIConfig.Shape.BadgeStarTransparency,
 				}),
 				Number = Primitives.text({
 					Text = tostring(data.Level),

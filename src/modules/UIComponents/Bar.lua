@@ -2,7 +2,7 @@
 
 --[[
 	Bar
-	Chunky progress bar: recessed track, glossy gradient fill that tweens to its new
+	Chunky progress bar: recessed track, gradient fill that tweens to its new
 	value, and an outlined label drawn on top.
 
 	Props: ratio (0 to 1), swatch (UIConfig.Swatches key), text, textSize,
@@ -58,7 +58,6 @@ return function(props: any)
 		}, {
 			Corner = Primitives.corner("Round"),
 			Gradient = Primitives.gradient(swatch.Top, swatch.Bottom),
-			Gloss = Primitives.gloss("Round"),
 		}),
 		Label = if props.text ~= nil
 			then Primitives.text({

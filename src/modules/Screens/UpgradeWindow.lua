@@ -65,7 +65,6 @@ local function UpgradeCard(props: any)
 	local cost = if maxed then 0 else ConfigLookup.GetUpgradeCost(id, level)
 
 	return e(ChunkyButton, {
-		gloss = false,
 		layoutOrder = upgrade.Order,
 		swatch = props.swatch,
 	}, {

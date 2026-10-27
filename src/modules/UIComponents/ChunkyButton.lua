@@ -2,7 +2,7 @@
 
 --[[
 	ChunkyButton
-	Cartoon button: drop shadow, dark 3D lip, gradient face with a gloss highlight,
+	Cartoon button: drop shadow, dark 3D lip, gradient face,
 	outlined label and a springy hover/press animation. Also used as a non-clickable
 	coloured block (cards, icon circles) by leaving out onActivated.
 
@@ -17,7 +17,6 @@
 		enabled: false greys the button out and ignores clicks
 		children: extra content drawn on the face instead of text/icon
 		overlay: element drawn above the whole button, outside its layout (selection rings)
-		gloss: false hides the top shine (large static cards)
 
 	Hover grows the button by HoverScale but never by more than Animation.HoverGrowMax design
 	pixels, and press shrinks it by PressScale but never by more than Animation.PressShrinkMax,
@@ -136,7 +135,6 @@ return function(props: any)
 	local faceChildren = {
 		Corner = Primitives.corner(radius),
 		Gradient = Primitives.gradient(swatch.Top, swatch.Bottom),
-		Gloss = if props.gloss ~= false then Primitives.gloss(radius) else nil,
 		Content = e("Frame", {
 			BackgroundTransparency = 1,
 			Size = UDim2.fromScale(1, 1),

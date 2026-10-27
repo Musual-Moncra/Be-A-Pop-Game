@@ -45,9 +45,7 @@
 		OverlayTransparency: transparency of the window dimmer (0 to 1)
 		LockedTransparency: transparency of lock overlays (0 to 1)
 		DisabledTransparency: extra transparency on disabled buttons (0 to 1)
-		GlossTransparency: transparency of the white shine at its top edge; it fades to clear below (0 to 1)
-		GlossHeight: height of the shine as a fraction of the button face (0 to 1)
-		GlossMaxHeight: tallest the shine may get on big buttons and cards (design pixels)
+		BadgeStarTransparency: transparency of the faint star behind the level number (0 to 1)
 		IconFill: emoji size as a fraction of its round icon (0 to 1)
 		GradientRotation: direction of every gradient, 90 = top to bottom (degrees)
 		LineHeight: height of one line of wrapped text as a multiple of its text size (multiplier)
@@ -323,9 +321,7 @@ UIConfig.Shape = {
 	OverlayTransparency = 0.45,
 	LockedTransparency = 0.35,
 	DisabledTransparency = 0.25,
-	GlossTransparency = 0.6,
-	GlossHeight = 0.42,
-	GlossMaxHeight = 18,
+	BadgeStarTransparency = 0.78,
 	IconFill = 0.55,
 	GradientRotation = 90,
 	LineHeight = 1.25,

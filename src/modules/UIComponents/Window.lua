@@ -2,7 +2,7 @@
 
 --[[
 	Window
-	Modal window: drop shadow, purple rim around a navy gradient body, a glossy ribbon header
+	Modal window: drop shadow, purple rim around a navy gradient body, a ribbon header
 	that straddles the top edge with twinkling sparkles, and a red close button on the corner.
 	Pops in when it mounts. The full-screen dimmer behind it is drawn by App.
 
