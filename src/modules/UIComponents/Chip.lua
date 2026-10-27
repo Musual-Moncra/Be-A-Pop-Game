@@ -34,7 +34,7 @@ return function(props: any)
 		Corner = Primitives.corner("Round"),
 		Gradient = Primitives.gradient(swatch.Top, swatch.Bottom),
 		Stroke = Primitives.stroke(swatch.Stroke, Shape.Stroke),
-		Padding = Primitives.paddingXY(height / 2, 0),
+		Padding = Primitives.paddingXY(height * Shape.ChipPadding, 0),
 		Label = Primitives.text({
 			AutomaticSize = Enum.AutomaticSize.X,
 			NoTruncate = true,

@@ -27,10 +27,16 @@
 		EdgeProbeDistance: down-forward raycast length used to wrap over convex edges (studs)
 		EdgeProbeUpOffset: height above the body center where the edge ray starts (studs)
 		EdgeProbeDownBias: how much the edge ray tilts downward instead of forward (0 to 1)
-		MinWallAngleDegrees: smallest tilt from world up at which a surface walked into counts as a wall (degrees)
+		MinWallAngleDegrees: while on a floor, smallest tilt from world up at which a surface walked into counts as a wall (degrees)
 		MaxClimbAngleDegrees: largest angle from GravityUp the poop will climb onto (degrees)
 		ProbeMinInput: smallest movement input strength that makes the poop probe ahead for walls and edges (0 to 1)
 		CharacterWaitTimeout: how long to wait for the character's parts and PlayerScripts to load (seconds)
+		BodyFriction: friction of the poop's root ball; 0 stops it locking against floors and walls while pressed into them (0 to 2)
+		BodyFrictionWeight: how strongly BodyFriction wins over the touched surface's friction (weight)
+		BodyElasticity: bounciness of the poop's root ball (0 to 1)
+		BodyElasticityWeight: how strongly BodyElasticity wins over the touched surface's elasticity (weight)
+	All probe distances above are for a normal-size poop and are multiplied by the character's
+	current scale, so a poop grown by food still sticks and climbs.
 
 	Camera fields:
 		CameraDistance: distance from the poop to the camera (studs)
@@ -79,6 +85,10 @@ MovementConfig.MinWallAngleDegrees = 35
 MovementConfig.MaxClimbAngleDegrees = 110
 MovementConfig.ProbeMinInput = 0.5
 MovementConfig.CharacterWaitTimeout = 10
+MovementConfig.BodyFriction = 0
+MovementConfig.BodyFrictionWeight = 100
+MovementConfig.BodyElasticity = 0
+MovementConfig.BodyElasticityWeight = 100
 
 MovementConfig.CameraDistance = 14
 MovementConfig.CameraMinDistance = 2.5

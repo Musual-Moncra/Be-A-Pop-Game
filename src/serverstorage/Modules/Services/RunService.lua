@@ -3,7 +3,12 @@
 --[[
 	RunService
 	Owns active runs: lifespan, staining, area scoring, object soiling, NPC catches,
-	timed bonuses, rewards and the run result packet.
+	timed bonuses, rewards and the run result packet. Also drives the lobby portal and
+	the NPC patrols.
+
+	Every active run and every NPC patrol is advanced by one shared Heartbeat stepper at
+	RunConfig.RunLoopStepInterval, instead of one thread per run and per NPC. The remotes
+	are bound in Remotes.RunRemotes.
 
 	API:
 		RunService.StartRun(plr: Player): boolean
@@ -12,20 +17,25 @@
 		RunService.GetRun(plr: Player): ActiveRun?
 
 	Dependencies:
-		DataService, UpgradeService, MapService, RunEvents, PowerupService?, QuestService?,
-		ConfigLookup, GameConfig, MapConfig, ModeConfig, ObjectConfig, RunConfig, MessageConfig, DataConfig, Net, Trove
+		DataService, UpgradeService, MapService, PowerupService, QuestService, RunEvents, Outbound,
+		ConfigLookup, GameConfig, MapConfig, ModeConfig, ObjectConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
+local Heartbeat = game:GetService("RunService").Heartbeat
 
 local Services = ServerStorage.Modules.Services
 local DataService = require(Services.DataService)
 local UpgradeService = require(Services.UpgradeService)
 local MapService = require(Services.MapService)
+local PowerupService = require(Services.PowerupService)
+local QuestService = require(Services.QuestService)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
+local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
+local DataConfig = require(ServerStorage.Modules.Config.DataConfig)
 
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
@@ -34,10 +44,7 @@ local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
 local ObjectConfig = require(ReplicatedStorage.Modules.Config.ObjectConfig)
 local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
-local Net = require(ReplicatedStorage.Modules.Shared.Net)
 local Trove = require(ReplicatedStorage.Packages.Trove)
-
-local DataConfig = require(script.Parent.Parent.Config.DataConfig)
 
 export type ActiveRun = {
 	player: Player,
@@ -45,6 +52,8 @@ export type ActiveRun = {
 	mapDef: ConfigLookup.MapDefinition,
 	modeDef: ConfigLookup.ModeDefinition,
 	mapModel: Model?,
+	npcsFolder: Instance?,
+	rayParams: RaycastParams,
 	hasTimer: boolean,
 	timeLeft: number,
 	elapsedTime: number,
@@ -58,112 +67,38 @@ export type ActiveRun = {
 	syncTimer: number,
 	npcCooldown: number,
 	targetReached: boolean,
-	powerupsStarted: boolean,
-	questsStarted: boolean,
 	active: boolean,
+}
+
+type Patrol = {
+	model: Model,
+	fromPos: Vector3,
+	toPos: Vector3,
+	travelTime: number,
+	startedAt: number,
+	pausedUntil: number,
 }
 
 local RunService = {}
 
 local activeRuns: { [Player]: ActiveRun } = {}
 local portalDebounce: { [Player]: number } = {}
-
-local function optionalRequire(name: string): any
-	local module = Services:FindFirstChild(name)
-	if module == nil or not module:IsA("ModuleScript") then
-		return nil
-	end
-	local ok, result = pcall(require, module)
-	if not ok then
-		warn(`{name} failed to load: {result}`)
-		return nil
-	end
-	return result
-end
-
-local PowerupService = optionalRequire("PowerupService")
-local QuestService = optionalRequire("QuestService")
+local patrols: { [Model]: Patrol } = {}
+local stepAccumulator = 0
 
 local function getUpgradeValue(plr: Player, id: string): number
 	local data = DataService.Get(plr)
-	local level = 0
-	if data ~= nil and data.Upgrades ~= nil then
-		level = data.Upgrades[id] or 0
-	end
+	local level = if data ~= nil and data.Upgrades ~= nil then data.Upgrades[id] or 0 else 0
 	return ConfigLookup.GetUpgradeValue(id, level)
-end
-
-local function getMultipliers(plr: Player): { Speed: number, StainSize: number, Points: number }
-	local defaults = { Speed = 1, StainSize = 1, Points = 1 }
-	if PowerupService == nil then
-		return defaults
-	end
-	local ok, result = pcall(PowerupService.GetMultipliers, plr)
-	if not ok or type(result) ~= "table" then
-		return defaults
-	end
-	return {
-		Speed = tonumber(result.Speed) or 1,
-		StainSize = tonumber(result.StainSize) or 1,
-		Points = tonumber(result.Points) or 1,
-	}
-end
-
-local function startPowerups(run: ActiveRun): boolean
-	if PowerupService == nil or not run.modeDef.PowerupsEnabled or run.mapModel == nil then
-		return false
-	end
-	local ok = pcall(PowerupService.StartRun, run.player, run.mapModel, run.modeDef)
-	return ok
-end
-
-local function stopPowerups(plr: Player)
-	if PowerupService == nil then
-		return
-	end
-	pcall(PowerupService.StopRun, plr)
-end
-
-local function startQuests(run: ActiveRun): boolean
-	if QuestService == nil then
-		return false
-	end
-	local ok = pcall(QuestService.StartRun, run.player, run.mapDef, run.modeDef)
-	return ok
-end
-
-local function finishQuests(plr: Player): any
-	if QuestService == nil then
-		return nil
-	end
-	local ok, result = pcall(QuestService.FinishRun, plr)
-	if not ok or type(result) ~= "table" then
-		return nil
-	end
-	return result
-end
-
-local function getGravityUp(character: Model): Vector3
-	local hrp = character:FindFirstChild("HumanoidRootPart")
-	if hrp ~= nil and hrp:IsA("BasePart") then
-		return hrp.CFrame.UpVector
-	end
-	local attr = character:GetAttribute("GravityUp")
-	if typeof(attr) == "Vector3" and attr.Magnitude > 0.001 then
-		return attr.Unit
-	end
-	return Vector3.yAxis
 end
 
 local function getSurfaceCFrame(position: Vector3, normal: Vector3): CFrame
 	if math.abs(normal.Y) > 0.999 then
-		local sign = math.sign(normal.Y)
-		return CFrame.new(position) * CFrame.Angles(if sign < 0 then math.pi else 0, 0, 0)
-	else
-		local right = normal:Cross(Vector3.yAxis).Unit
-		local forward = right:Cross(normal).Unit
-		return CFrame.fromMatrix(position, right, normal, forward)
+		return CFrame.new(position) * CFrame.Angles(if normal.Y < 0 then math.pi else 0, 0, 0)
 	end
+	local right = normal:Cross(Vector3.yAxis).Unit
+	local forward = right:Cross(normal).Unit
+	return CFrame.fromMatrix(position, right, normal, forward)
 end
 
 local function findObjectType(hit: BasePart, mapModel: Model): (Model?, string?)
@@ -188,7 +123,7 @@ end
 local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stainSize: number)
 	if #run.stainParts >= GameConfig.MaxStainParts then
 		local oldest = table.remove(run.stainParts, 1)
-		if oldest ~= nil and oldest.Parent ~= nil then
+		if oldest ~= nil then
 			oldest:Destroy()
 		end
 	end
@@ -211,8 +146,7 @@ local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stai
 	table.insert(run.stainParts, stain)
 end
 
-local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number)
-	local multipliers = getMultipliers(run.player)
+local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, pointsMultiplier: number)
 	local objectModel, objectType = nil, nil
 	if run.mapModel ~= nil then
 		objectModel, objectType = findObjectType(hitPart, run.mapModel)
@@ -221,8 +155,7 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number)
 	local objectDef = if objectType ~= nil then ConfigLookup.GetObject(objectType) else nil
 	local multiplier = if objectDef ~= nil then objectDef.PointsMultiplier else ObjectConfig.SurfacePointsMultiplier
 
-	local area = stainSize * stainSize
-	local points = area * GameConfig.PointsPerStud * multiplier * multipliers.Points
+	local points = stainSize * stainSize * GameConfig.PointsPerStud * multiplier * pointsMultiplier
 	run.score += points
 	RunEvents.Stained:Fire(run.player, points, objectType)
 
@@ -233,80 +166,142 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number)
 	local count = (run.objectStains[objectModel] or 0) + 1
 	run.objectStains[objectModel] = count
 
-	local step =
+	local tintStep =
 		math.clamp(math.ceil(count / objectDef.StainsToSoil * ObjectConfig.TintSteps), 1, ObjectConfig.TintSteps)
-	Net.ObjectStained:FireClient(run.player, objectModel, step)
+	Outbound.ObjectStained(run.player, objectModel, tintStep)
 
 	if count == objectDef.StainsToSoil then
 		run.score += objectDef.SoilBonus
 		run.objectsSoiled += 1
-		Net.ObjectSoiled:FireClient(run.player, objectModel, objectDef.SoilBonus)
+		Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
 		RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 	end
 end
 
-local function dropSurfaceStain(run: ActiveRun, character: Model, hrp: BasePart)
-	if run.mapModel == nil then
-		return
-	end
+local function cellKey(hitPos: Vector3, normal: Vector3): string
+	local cellSize = GameConfig.StainCellSize
+	return string.format(
+		"%d:%d:%d|%d:%d:%d",
+		math.floor(hitPos.X / cellSize + 0.5),
+		math.floor(hitPos.Y / cellSize + 0.5),
+		math.floor(hitPos.Z / cellSize + 0.5),
+		math.round(normal.X * 10),
+		math.round(normal.Y * 10),
+		math.round(normal.Z * 10)
+	)
+end
 
-	local gravityUp = getGravityUp(character)
-	local rayOrigin = hrp.Position + gravityUp * RunConfig.StainRayUpOffset
-	local rayDirection = -gravityUp * RunConfig.StainRayLength
-
-	local rayParams = RaycastParams.new()
-	rayParams.FilterType = Enum.RaycastFilterType.Include
-	rayParams.FilterDescendantsInstances = { run.mapModel }
-
-	local rayResult = Workspace:Raycast(rayOrigin, rayDirection, rayParams)
+local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: PowerupService.Multipliers)
+	local gravityUp = hrp.CFrame.UpVector
+	local rayResult = Workspace:Raycast(
+		hrp.Position + gravityUp * RunConfig.StainRayUpOffset,
+		-gravityUp * RunConfig.StainRayLength,
+		run.rayParams
+	)
 	if rayResult == nil then
 		return
 	end
 
-	local normal = rayResult.Normal.Unit
-	local hitPos = rayResult.Position
-	local cellSize = GameConfig.StainCellSize
-
-	local qx = math.floor((hitPos.X + cellSize * 0.5) / cellSize)
-	local qy = math.floor((hitPos.Y + cellSize * 0.5) / cellSize)
-	local qz = math.floor((hitPos.Z + cellSize * 0.5) / cellSize)
-	local nx = math.round(normal.X * 10) / 10
-	local ny = math.round(normal.Y * 10) / 10
-	local nz = math.round(normal.Z * 10) / 10
-	local cellKey = `{qx}:{qy}:{qz}|{nx}:{ny}:{nz}`
-
-	if run.visitedCells[cellKey] then
+	local normal = rayResult.Normal
+	local key = cellKey(rayResult.Position, normal)
+	if run.visitedCells[key] then
 		return
 	end
-	run.visitedCells[cellKey] = true
+	run.visitedCells[key] = true
 
-	local multipliers = getMultipliers(run.player)
 	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize
-	addStain(run, hitPos, normal, stainSize)
-	scoreStain(run, rayResult.Instance, stainSize)
+	addStain(run, rayResult.Position, normal, stainSize)
+	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points)
 end
 
 local function checkNpcCatch(run: ActiveRun, hrp: BasePart)
-	if not run.modeDef.NpcsEnabled or run.npcCooldown > 0 or run.mapModel == nil then
-		return
-	end
-	local npcsFolder = run.mapModel:FindFirstChild("NPCs")
-	if npcsFolder == nil then
+	local npcsFolder = run.npcsFolder
+	if not run.modeDef.NpcsEnabled or run.npcCooldown > 0 or npcsFolder == nil then
 		return
 	end
 
+	local position = hrp.Position
 	for _, npc in npcsFolder:GetChildren() do
-		if npc:IsA("Model") then
-			local offset = npc:GetPivot().Position - hrp.Position
-			if offset.Magnitude <= RunConfig.NpcCatchRadius then
-				run.npcCooldown = RunConfig.NpcCatchCooldown
-				if run.hasTimer then
-					run.timeLeft = math.max(0, run.timeLeft - RunConfig.NpcCatchTimePenalty)
-				end
-				Net.NpcCaught:FireClient(run.player, RunConfig.NpcCatchTimePenalty)
-				return
+		if npc:IsA("Model") and (npc:GetPivot().Position - position).Magnitude <= RunConfig.NpcCatchRadius then
+			run.npcCooldown = RunConfig.NpcCatchCooldown
+			if run.hasTimer then
+				run.timeLeft = math.max(0, run.timeLeft - RunConfig.NpcCatchTimePenalty)
 			end
+			Outbound.NpcCaught(run.player, RunConfig.NpcCatchTimePenalty)
+			return
 		end
+	end
+end
+
+local function stepRun(run: ActiveRun, dt: number)
+	local plr = run.player
+	local modeDef = run.modeDef
+
+	run.elapsedTime += dt
+	run.npcCooldown = math.max(0, run.npcCooldown - dt)
+	if run.hasTimer then
+		run.timeLeft = math.max(0, run.timeLeft - dt)
+	end
+	run.stainTimer += dt
+	run.syncTimer += dt
+
+	local character = plr.Character
+	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
+	local hum = if character ~= nil then character:FindFirstChildOfClass("Humanoid") else nil
+	if hrp == nil or hum == nil or hum.Health <= 0 then
+		RunService.EndRun(plr, false)
+		return
+	end
+
+	local multipliers = PowerupService.GetMultipliers(plr)
+	local walkSpeed = getUpgradeValue(plr, "Speed") * multipliers.Speed
+	if hum.WalkSpeed ~= walkSpeed then
+		hum.WalkSpeed = walkSpeed
+	end
+
+	if run.stainTimer >= GameConfig.StainInterval then
+		run.stainTimer -= GameConfig.StainInterval
+		dropSurfaceStain(run, hrp, multipliers)
+	end
+
+	checkNpcCatch(run, hrp)
+
+	if not run.targetReached and modeDef.TargetScore > 0 and run.score >= modeDef.TargetScore then
+		run.targetReached = true
+		Outbound.Notify(plr, "Success", MessageConfig.TargetReached)
+	end
+
+	if run.syncTimer >= RunConfig.RunStateSyncInterval then
+		run.syncTimer = 0
+		local reportedTime = if run.hasTimer then run.timeLeft else RunConfig.PracticeTimeLeft
+		Outbound.RunState(plr, GameConfig.RunStates.Running, reportedTime, run.score)
+	end
+
+	local timedOut = (run.hasTimer and run.timeLeft <= 0)
+		or (not run.hasTimer and modeDef.MaxDuration > 0 and run.elapsedTime >= modeDef.MaxDuration)
+	if timedOut then
+		RunService.EndRun(plr, true)
+	end
+end
+
+local function stepPatrol(patrol: Patrol, now: number)
+	if patrol.model.Parent == nil then
+		patrols[patrol.model] = nil
+		return
+	end
+	if now < patrol.pausedUntil then
+		return
+	end
+
+	local alpha = math.clamp((now - patrol.startedAt) / patrol.travelTime, 0, 1)
+	local position = patrol.fromPos:Lerp(patrol.toPos, alpha)
+	local heading = patrol.toPos - patrol.fromPos
+	patrol.model:PivotTo(CFrame.lookAt(position, position + Vector3.new(heading.X, 0, heading.Z)))
+
+	if alpha >= 1 then
+		patrol.fromPos, patrol.toPos = patrol.toPos, patrol.fromPos
+		patrol.pausedUntil = now + RunConfig.NpcTurnaroundPause
+		patrol.startedAt = patrol.pausedUntil
 	end
 end
 
@@ -323,36 +318,27 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 	if run == nil or not run.active then
 		return
 	end
-
 	run.active = false
 	activeRuns[plr] = nil
 
-	if run.powerupsStarted then
-		stopPowerups(plr)
-	end
-
-	local questResult = if run.questsStarted then finishQuests(plr) else nil
-	local questCoins = if type(questResult) == "table" then tonumber(questResult.Coins) or 0 else 0
-	local questGems = if type(questResult) == "table" then tonumber(questResult.Gems) or 0 else 0
-	local questsCompleted = if type(questResult) == "table" then tonumber(questResult.Completed) or 0 else 0
+	PowerupService.StopRun(plr)
+	local questResult = QuestService.FinishRun(plr)
 
 	local modeDef = run.modeDef
 	local mapDef = run.mapDef
 	local score = math.floor(run.score)
 	local baseCoins = 0
 	local xp = 0
-	local targetReached = run.targetReached
 
 	if modeDef.RewardMultiplier > 0 then
+		local rewardScale = mapDef.RewardMultiplier * modeDef.RewardMultiplier
 		local coinBonus = getUpgradeValue(plr, "CoinBonus")
-		baseCoins = math.floor(
-			score * GameConfig.CoinsPerPoint * mapDef.RewardMultiplier * modeDef.RewardMultiplier * (1 + coinBonus / 100)
-		)
-		xp = math.floor(score * GameConfig.XpPerPoint * mapDef.RewardMultiplier * modeDef.RewardMultiplier)
+		baseCoins = math.floor(score * GameConfig.CoinsPerPoint * rewardScale * (1 + coinBonus / 100))
+		xp = math.floor(score * GameConfig.XpPerPoint * rewardScale)
 	end
 
-	local bonusCoins = if targetReached then modeDef.TargetBonusCoins else 0
-	local bonusGems = if targetReached then modeDef.TargetBonusGems else 0
+	local bonusCoins = if run.targetReached then modeDef.TargetBonusCoins else 0
+	local bonusGems = if run.targetReached then modeDef.TargetBonusGems else 0
 
 	DataService.RecordRun(plr, score)
 	if run.objectsSoiled > 0 then
@@ -361,54 +347,62 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 	if baseCoins + bonusCoins > 0 then
 		DataService.AddCoins(plr, baseCoins + bonusCoins)
 	end
-
-	local levelsGained = if xp > 0 then DataService.AddXp(plr, xp) else 0
-	local levelGems = levelsGained * GameConfig.GemsPerLevelUp
-	if levelGems + bonusGems > 0 then
-		DataService.AddGems(plr, levelGems + bonusGems)
+	if bonusGems > 0 then
+		DataService.AddGems(plr, bonusGems)
 	end
 
+	local levelsGained = DataService.AddXp(plr, xp)
 	local data = DataService.Get(plr)
 	local newLevel = if data ~= nil then data.Level else DataConfig.Template.Level
-	if levelsGained > 0 and plr.Parent == Players then
-		Net.Notify:FireClient(plr, "Success", string.format(MessageConfig.LevelUp, newLevel))
+	if levelsGained > 0 then
+		Outbound.Notify(plr, "Success", string.format(MessageConfig.LevelUp, newLevel))
 	end
 
 	local summary = {
 		Score = score,
-		Coins = baseCoins + bonusCoins + questCoins,
-		Gems = levelGems + bonusGems + questGems,
+		Coins = baseCoins + bonusCoins + questResult.Coins,
+		Gems = levelsGained * GameConfig.GemsPerLevelUp + bonusGems + questResult.Gems,
 		Xp = xp,
 		MapId = mapDef.Id,
 		ModeId = modeDef.Id,
 		ObjectsSoiled = run.objectsSoiled,
-		TargetReached = targetReached,
-		QuestsCompleted = questsCompleted,
+		TargetReached = run.targetReached,
+		QuestsCompleted = questResult.Completed,
+		QuestCoins = questResult.Coins,
+		QuestGems = questResult.Gems,
+		BonusCoins = bonusCoins,
+		BonusGems = bonusGems,
 		LeveledUp = levelsGained,
 		NewLevel = newLevel,
 		OutOfTime = outOfTime,
-		QuestCoins = questCoins,
-		QuestGems = questGems,
-		BonusCoins = bonusCoins,
-		BonusGems = bonusGems,
 	}
 
 	RunEvents.RunEnded:Fire(plr, summary)
-	if plr.Parent == Players then
-		Net.RunEnded:FireClient(plr, summary)
-	end
+	Outbound.RunEnded(plr, summary)
 
-	if plr.Parent == Players and plr.Character ~= nil then
-		local hrp = plr.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-		local hum = plr.Character:FindFirstChildOfClass("Humanoid")
-		if hrp ~= nil and hum ~= nil and hum.Health > 0 then
-			plr.Character:PivotTo(CFrame.new(GameConfig.LobbySpawn))
+	local character = plr.Character
+	if plr.Parent == Players and character ~= nil then
+		local hum = character:FindFirstChildOfClass("Humanoid")
+		if hum ~= nil and hum.Health > 0 then
+			character:PivotTo(CFrame.new(GameConfig.LobbySpawn))
 		end
-		UpgradeService.ApplyStats(plr, plr.Character)
+		UpgradeService.ApplyStats(plr, character)
 	end
 
-	run.trove:Clean()
 	run.trove:Destroy()
+end
+
+local function resolveSelection(plr: Player): (ConfigLookup.MapDefinition?, ConfigLookup.ModeDefinition?)
+	local selection = MapService.GetSelection(plr)
+	local mapDef = ConfigLookup.GetMap(selection.mapId)
+	if mapDef == nil or not mapDef.Enabled or not DataService.IsMapUnlocked(plr, selection.mapId) then
+		mapDef = ConfigLookup.GetMap(MapConfig.DefaultMapId)
+	end
+	local modeDef = ConfigLookup.GetMode(selection.modeId) or ConfigLookup.GetMode(ModeConfig.DefaultModeId)
+	if mapDef == nil or not mapDef.Enabled then
+		return nil, nil
+	end
+	return mapDef, modeDef
 end
 
 function RunService.StartRun(plr: Player): boolean
@@ -417,30 +411,16 @@ function RunService.StartRun(plr: Player): boolean
 	end
 
 	local character = plr.Character
-	if character == nil then
+	local humanoid = if character ~= nil then character:FindFirstChildOfClass("Humanoid") else nil
+	if character == nil or humanoid == nil or humanoid.Health <= 0 then
+		return false
+	end
+	if character:FindFirstChild("HumanoidRootPart") == nil then
 		return false
 	end
 
-	local rootPart = character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if rootPart == nil or humanoid == nil or humanoid.Health <= 0 then
-		return false
-	end
-
-	local selection = MapService.GetSelection(plr)
-	local mapDef = ConfigLookup.GetMap(selection.mapId)
-	if mapDef == nil or not mapDef.Enabled or not DataService.IsMapUnlocked(plr, selection.mapId) then
-		mapDef = ConfigLookup.GetMap(MapConfig.DefaultMapId)
-	end
-	if mapDef == nil or not mapDef.Enabled then
-		return false
-	end
-
-	local modeDef = ConfigLookup.GetMode(selection.modeId)
-	if modeDef == nil then
-		modeDef = ConfigLookup.GetMode(ModeConfig.DefaultModeId)
-	end
-	if modeDef == nil then
+	local mapDef, modeDef = resolveSelection(plr)
+	if mapDef == nil or modeDef == nil then
 		return false
 	end
 
@@ -454,12 +434,15 @@ function RunService.StartRun(plr: Player): boolean
 	character:PivotTo(CFrame.new(mapDef.Spawn))
 
 	local mapModel = Workspace:FindFirstChild(mapDef.ModelName) :: Model?
-
 	local runTrove = Trove.new()
-	local stainFolder = Instance.new("Folder")
+
+	local stainFolder = runTrove:Add(Instance.new("Folder"))
 	stainFolder.Name = RunConfig.StainFolderPrefix .. plr.Name
 	stainFolder.Parent = Workspace
-	runTrove:Add(stainFolder)
+
+	local rayParams = RaycastParams.new()
+	rayParams.FilterType = Enum.RaycastFilterType.Include
+	rayParams.FilterDescendantsInstances = if mapModel ~= nil then { mapModel } else {}
 
 	local run: ActiveRun = {
 		player = plr,
@@ -467,6 +450,8 @@ function RunService.StartRun(plr: Player): boolean
 		mapDef = mapDef,
 		modeDef = modeDef,
 		mapModel = mapModel,
+		npcsFolder = if mapModel ~= nil then mapModel:FindFirstChild("NPCs") else nil,
+		rayParams = rayParams,
 		hasTimer = hasTimer,
 		timeLeft = initialTimeLeft,
 		elapsedTime = 0,
@@ -480,216 +465,109 @@ function RunService.StartRun(plr: Player): boolean
 		syncTimer = 0,
 		npcCooldown = 0,
 		targetReached = false,
-		powerupsStarted = false,
-		questsStarted = false,
 		active = true,
 	}
 	activeRuns[plr] = run
 
-	run.powerupsStarted = startPowerups(run)
-	run.questsStarted = startQuests(run)
+	if mapModel ~= nil then
+		PowerupService.StartRun(plr, mapModel, modeDef)
+	end
+	QuestService.StartRun(plr, mapDef, modeDef)
 
 	RunEvents.RunStarted:Fire(plr, mapDef.Id, modeDef.Id)
-	Net.RunState:FireClient(plr, GameConfig.RunStates.Running, initialTimeLeft, 0)
+	Outbound.RunState(plr, GameConfig.RunStates.Running, initialTimeLeft, 0)
 
 	runTrove:Connect(humanoid.Died, function()
-		if activeRuns[plr] == run then
-			RunService.EndRun(plr, false)
-		end
-	end)
-
-	task.spawn(function()
-		while run.active do
-			local dt = task.wait(RunConfig.RunLoopStepInterval)
-			if not run.active then
-				break
-			end
-
-			run.elapsedTime += dt
-			run.npcCooldown = math.max(0, run.npcCooldown - dt)
-			if run.hasTimer then
-				run.timeLeft = math.max(0, run.timeLeft - dt)
-			end
-
-			run.stainTimer += dt
-			run.syncTimer += dt
-
-			local currentChar = plr.Character
-			local hrp = if currentChar ~= nil then currentChar:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
-			local hum = if currentChar ~= nil then currentChar:FindFirstChildOfClass("Humanoid") else nil
-
-			if currentChar == nil or hrp == nil or hum == nil or hum.Health <= 0 then
-				RunService.EndRun(plr, false)
-				break
-			end
-
-			local multipliers = getMultipliers(plr)
-			local walkSpeed = getUpgradeValue(plr, "Speed") * multipliers.Speed
-			if hum.WalkSpeed ~= walkSpeed then
-				hum.WalkSpeed = walkSpeed
-			end
-
-			if run.stainTimer >= GameConfig.StainInterval then
-				run.stainTimer -= GameConfig.StainInterval
-				dropSurfaceStain(run, currentChar, hrp)
-			end
-
-			checkNpcCatch(run, hrp)
-
-			if not run.targetReached and modeDef.TargetScore > 0 and run.score >= modeDef.TargetScore then
-				run.targetReached = true
-				Net.Notify:FireClient(plr, "Success", MessageConfig.TargetReached)
-			end
-
-			if run.syncTimer >= RunConfig.RunStateSyncInterval then
-				run.syncTimer = 0
-				local reportedTime = if run.hasTimer then run.timeLeft else RunConfig.PracticeTimeLeft
-				Net.RunState:FireClient(plr, GameConfig.RunStates.Running, reportedTime, math.floor(run.score))
-			end
-
-			local isTimedOut = (run.hasTimer and run.timeLeft <= 0)
-				or (not run.hasTimer and modeDef.MaxDuration > 0 and run.elapsedTime >= modeDef.MaxDuration)
-			if isTimedOut then
-				RunService.EndRun(plr, true)
-				break
-			end
-		end
+		RunService.EndRun(plr, false)
 	end)
 
 	return true
 end
 
-local function startNpcPatrol(npcModel: Model, patrolDef: any)
-	local startPos = patrolDef.startPos
-	local endPos = patrolDef.endPos
-	local totalDist = (endPos - startPos).Magnitude
-	if totalDist == 0 then
-		return
-	end
-	local travelTime = totalDist / patrolDef.speed
-
-	task.spawn(function()
-		local forward = true
-		while npcModel.Parent ~= nil do
-			local fromPos = if forward then startPos else endPos
-			local toPos = if forward then endPos else startPos
-			local lookTarget = toPos + (toPos - fromPos).Unit
-
-			local startTime = os.clock()
-			while npcModel.Parent ~= nil do
-				local elapsed = os.clock() - startTime
-				local alpha = math.clamp(elapsed / travelTime, 0, 1)
-				local currentPos = fromPos:Lerp(toPos, alpha)
-				local rotCFrame = CFrame.lookAt(currentPos, Vector3.new(lookTarget.X, currentPos.Y, lookTarget.Z))
-				npcModel:PivotTo(rotCFrame)
-
-				if alpha >= 1 then
-					break
-				end
-				task.wait(RunConfig.RunLoopStepInterval)
-			end
-
-			forward = not forward
-			task.wait(RunConfig.NpcTurnaroundPause)
-		end
-	end)
-end
-
 local function setupNpcsForMap(mapDef: ConfigLookup.MapDefinition)
-	local mapModel = Workspace:WaitForChild(mapDef.ModelName, RunConfig.InstanceWaitTimeout)
-	if mapModel == nil then
-		return
-	end
-	local npcsFolder = mapModel:WaitForChild("NPCs", RunConfig.InstanceWaitTimeout)
+	local patrolDefs = RunConfig.NpcPatrols[mapDef.Id]
+	local mapModel = if patrolDefs ~= nil
+		then Workspace:WaitForChild(mapDef.ModelName, RunConfig.InstanceWaitTimeout)
+		else nil
+	local npcsFolder = if mapModel ~= nil then mapModel:WaitForChild("NPCs", RunConfig.InstanceWaitTimeout) else nil
 	if npcsFolder == nil then
 		return
 	end
 
-	local patrols = RunConfig.NpcPatrols[mapDef.Id]
-	if patrols == nil then
-		return
-	end
-
-	for _, patrolDef in patrols do
-		local npcModel = npcsFolder:FindFirstChild(patrolDef.name) :: Model?
-		if npcModel ~= nil and npcModel:IsA("Model") then
-			startNpcPatrol(npcModel, patrolDef)
-		end
-	end
-end
-
-local function setupAllNpcs()
-	for _, mapDef in ConfigLookup.GetSortedMaps() do
-		if mapDef.Enabled then
-			task.spawn(setupNpcsForMap, mapDef)
+	local now = os.clock()
+	for _, patrolDef in patrolDefs do
+		local model = npcsFolder:FindFirstChild(patrolDef.name)
+		local distance = (patrolDef.endPos - patrolDef.startPos).Magnitude
+		if model ~= nil and model:IsA("Model") and distance > 0 and patrols[model] == nil then
+			patrols[model] = {
+				model = model,
+				fromPos = patrolDef.startPos,
+				toPos = patrolDef.endPos,
+				travelTime = distance / patrolDef.speed,
+				startedAt = now,
+				pausedUntil = 0,
+			}
 		end
 	end
 end
 
 local function setupPortal()
 	local lobby = Workspace:WaitForChild("Lobby", RunConfig.InstanceWaitTimeout)
-	if lobby == nil then
-		return
-	end
-	local portal = lobby:WaitForChild("Portal", RunConfig.InstanceWaitTimeout) :: BasePart?
-	if portal == nil then
+	local portal = if lobby ~= nil then lobby:WaitForChild("Portal", RunConfig.InstanceWaitTimeout) else nil
+	if portal == nil or not portal:IsA("BasePart") then
 		return
 	end
 
 	portal.Touched:Connect(function(hit)
 		local character = hit.Parent
-		if character == nil then
-			return
-		end
-		local player = Players:GetPlayerFromCharacter(character)
+		local player = if character ~= nil then Players:GetPlayerFromCharacter(character) else nil
 		if player == nil then
 			return
 		end
-
 		local now = os.clock()
-		local lastTouch = portalDebounce[player] or 0
-		if now - lastTouch < RunConfig.PortalTouchDebounce then
+		if now - (portalDebounce[player] or 0) < RunConfig.PortalTouchDebounce then
 			return
 		end
 		portalDebounce[player] = now
-
-		if activeRuns[player] == nil then
-			RunService.StartRun(player)
-		end
+		RunService.StartRun(player)
 	end)
 end
 
 RunEvents.TimeBonus:Connect(function(plr: Player, seconds: number)
 	local run = activeRuns[plr]
-	if run == nil or not run.active or not run.hasTimer then
-		return
+	if run ~= nil and run.active and run.hasTimer then
+		run.timeLeft += seconds
 	end
-	run.timeLeft += seconds
 end)
 
-task.spawn(setupPortal)
-task.spawn(setupAllNpcs)
+Heartbeat:Connect(function(dt)
+	stepAccumulator += dt
+	if stepAccumulator < RunConfig.RunLoopStepInterval then
+		return
+	end
+	local step = stepAccumulator
+	stepAccumulator = 0
+
+	for _, run in activeRuns do
+		stepRun(run, step)
+	end
+
+	local now = os.clock()
+	for _, patrol in patrols do
+		stepPatrol(patrol, now)
+	end
+end)
 
 Workspace.ChildAdded:Connect(function(child)
 	if child.Name == "Lobby" then
 		task.spawn(setupPortal)
-	else
-		for _, mapDef in ConfigLookup.GetSortedMaps() do
-			if mapDef.Enabled and child.Name == mapDef.ModelName then
-				task.spawn(setupNpcsForMap, mapDef)
-			end
+		return
+	end
+	for _, mapDef in ConfigLookup.GetSortedMaps() do
+		if mapDef.Enabled and child.Name == mapDef.ModelName then
+			task.spawn(setupNpcsForMap, mapDef)
 		end
 	end
-end)
-
-Net.StartRun.OnServerEvent:Connect(function(plr)
-	if activeRuns[plr] == nil then
-		RunService.StartRun(plr)
-	end
-end)
-
-Net.LeaveRun.OnServerEvent:Connect(function(plr)
-	RunService.EndRun(plr, false)
 end)
 
 Players.PlayerRemoving:Connect(function(plr)
@@ -698,12 +576,17 @@ Players.PlayerRemoving:Connect(function(plr)
 	if run ~= nil then
 		run.active = false
 		activeRuns[plr] = nil
-		if run.powerupsStarted then
-			stopPowerups(plr)
-		end
-		run.trove:Clean()
+		PowerupService.StopRun(plr)
+		QuestService.FinishRun(plr)
 		run.trove:Destroy()
 	end
 end)
+
+task.spawn(setupPortal)
+for _, mapDef in ConfigLookup.GetSortedMaps() do
+	if mapDef.Enabled then
+		task.spawn(setupNpcsForMap, mapDef)
+	end
+end
 
 return RunService

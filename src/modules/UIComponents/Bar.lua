@@ -58,15 +58,7 @@ return function(props: any)
 		}, {
 			Corner = Primitives.corner("Round"),
 			Gradient = Primitives.gradient(swatch.Top, swatch.Bottom),
-			Gloss = e("Frame", {
-				BackgroundColor3 = Palette.Text,
-				BackgroundTransparency = Shape.GlossTransparency,
-				BorderSizePixel = 0,
-				Position = UDim2.new(0, Shape.Stroke * 2, 0, Shape.Stroke),
-				Size = UDim2.new(1, -Shape.Stroke * 4, Shape.GlossHeight, 0),
-			}, {
-				Corner = Primitives.corner("Round"),
-			}),
+			Gloss = Primitives.gloss("Round"),
 		}),
 		Label = if props.text ~= nil
 			then Primitives.text({

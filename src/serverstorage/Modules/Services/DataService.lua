@@ -21,7 +21,11 @@
 		DataService.MarkChanged(plr)            re-publish after an external mutation
 		DataService.Changed                     -> Signal (plr, data)
 
-	Dependencies: ProfileStore, Signal, Net, ConfigLookup, GameConfig, DataConfig
+	Every mutation marks the player dirty; one deferred publish per frame then fires Changed,
+	updates leaderstats and queues a single DataSync, so a run ending (coins + xp + gems +
+	stats) costs one packet instead of five.
+
+	Dependencies: ProfileStore, Signal, Outbound, ConfigLookup, GameConfig, DataConfig
 ]]
 
 local Players = game:GetService("Players")
@@ -30,10 +34,10 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local ProfileStore = require(ServerStorage.Packages.ProfileStore)
 local Signal = require(ReplicatedStorage.Packages.Signal)
-local Net = require(ReplicatedStorage.Modules.Shared.Net)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local DataConfig = require(script.Parent.Parent.Config.DataConfig)
+local Outbound = require(script.Parent.Parent.Remotes.Outbound)
 
 local PlayerStore = ProfileStore.New(DataConfig.StoreName, DataConfig.Template)
 
@@ -45,6 +49,8 @@ local Profiles: { [Player]: any } = {}
 local CoinsValues: { [Player]: IntValue } = {}
 local LevelValues: { [Player]: IntValue } = {}
 local Leaving: { [Player]: boolean } = {}
+local Dirty: { [Player]: boolean } = {}
+local flushScheduled = false
 
 function DataService.Get(plr: Player)
 	local profile = Profiles[plr]
@@ -65,11 +71,24 @@ local function updateLeaderstats(plr: Player, data)
 	end
 end
 
-local function publish(plr: Player, data)
-	DataService.Changed:Fire(plr, data)
-	updateLeaderstats(plr, data)
-	if plr.Parent == Players then
-		Net.DataSync:FireClient(plr, data)
+local function flush()
+	flushScheduled = false
+	for plr in Dirty do
+		local data = DataService.Get(plr)
+		if data ~= nil then
+			DataService.Changed:Fire(plr, data)
+			updateLeaderstats(plr, data)
+			Outbound.DataSync(plr, data)
+		end
+	end
+	table.clear(Dirty)
+end
+
+local function publish(plr: Player)
+	Dirty[plr] = true
+	if not flushScheduled then
+		flushScheduled = true
+		task.defer(flush)
 	end
 end
 
@@ -79,7 +98,7 @@ function DataService.AddCoins(plr: Player, amount: number)
 		return
 	end
 	data.Coins += amount
-	publish(plr, data)
+	publish(plr)
 end
 
 function DataService.AddGems(plr: Player, amount: number)
@@ -88,7 +107,7 @@ function DataService.AddGems(plr: Player, amount: number)
 		return
 	end
 	data.Gems += amount
-	publish(plr, data)
+	publish(plr)
 end
 
 function DataService.AddXp(plr: Player, xp: number): number
@@ -114,7 +133,7 @@ function DataService.AddXp(plr: Player, xp: number): number
 	if levelsGained > 0 then
 		data.Gems += levelsGained * GameConfig.GemsPerLevelUp
 	end
-	publish(plr, data)
+	publish(plr)
 	return levelsGained
 end
 
@@ -127,7 +146,7 @@ function DataService.SpendCoins(plr: Player, amount: number): boolean
 		return false
 	end
 	data.Coins -= amount
-	publish(plr, data)
+	publish(plr)
 	return true
 end
 
@@ -138,7 +157,7 @@ function DataService.RecordRun(plr: Player, score: number)
 	end
 	data.Stats.TotalRuns += 1
 	data.Stats.BestScore = math.max(data.Stats.BestScore, score)
-	publish(plr, data)
+	publish(plr)
 end
 
 function DataService.UnlockMap(plr: Player, mapId: string): (boolean, string?)
@@ -167,7 +186,7 @@ function DataService.UnlockMap(plr: Player, mapId: string): (boolean, string?)
 	end
 
 	data.UnlockedMaps[mapId] = true
-	publish(plr, data)
+	publish(plr)
 	return true, nil
 end
 
@@ -185,7 +204,7 @@ function DataService.IncrementStat(plr: Player, key: string, amount: number)
 		return
 	end
 	data.Stats[key] = (data.Stats[key] or 0) + amount
-	publish(plr, data)
+	publish(plr)
 end
 
 function DataService.MarkChanged(plr: Player)
@@ -193,7 +212,7 @@ function DataService.MarkChanged(plr: Player)
 	if data == nil then
 		return
 	end
-	publish(plr, data)
+	publish(plr)
 end
 
 local function setupLeaderstats(plr: Player, data)
@@ -263,13 +282,14 @@ local function onPlayerAdded(plr: Player)
 
 	Profiles[plr] = profile
 	setupLeaderstats(plr, profile.Data)
-	publish(plr, profile.Data)
+	publish(plr)
 end
 
 local function onPlayerRemoving(plr: Player)
 	local profile = Profiles[plr]
 
 	Leaving[plr] = true
+	Dirty[plr] = nil
 	Profiles[plr] = nil
 	CoinsValues[plr] = nil
 	LevelValues[plr] = nil

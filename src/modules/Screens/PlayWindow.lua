@@ -10,7 +10,7 @@
 
 	Props: data (DataController state), ui (useUIScale result), onClose
 	Dependencies: React, UIConfig, ConfigLookup, Net, Primitives, ChunkyButton,
-	              Chip, Inset, Window, Format
+	              Chip, Inset, Window, WindowSize, Format
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -26,6 +26,7 @@ local Format = require(Components.Format)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
 local Window = require(Components.Window)
+local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
 local Palette = UIConfig.Palette
@@ -83,16 +84,17 @@ local function MapCard(props: any)
 	local visual = UIConfig.MapVisuals[map.Id] or {}
 	local status, reason = mapStatus(data, map)
 	local locked = status ~= "Owned"
+	local chipHeight = Sizes.ActionButtonHeight - Shape.Lip
 
 	local action
 	if status == "Owned" then
 		action = e(Chip, {
+			height = chipHeight,
 			swatch = "Green",
 			text = string.format(Text.IconLabel, Text.CheckIcon, Text.Owned),
-			height = Sizes.ChipHeight,
 		})
 	elseif status == "Soon" then
-		action = e(Chip, { swatch = "Grey", text = Text.ComingSoon, height = Sizes.ChipHeight })
+		action = e(Chip, { height = chipHeight, swatch = "Grey", text = Text.ComingSoon })
 	elseif status == "Buyable" then
 		action = e(ChunkyButton, {
 			enabled = data.Coins >= map.UnlockCost,
@@ -106,11 +108,14 @@ local function MapCard(props: any)
 		})
 	else
 		action = e(Chip, {
+			height = chipHeight,
 			swatch = "Red",
-			text = string.format(Text.IconLabel, Text.LockIcon, reason or ""),
-			height = Sizes.ChipHeight,
+			text = string.format(Text.IconLabel, Text.LockIcon, Text.MapLocked),
 		})
 	end
+
+	local infoLeft = Sizes.MapIconSize + Gap
+	local descriptionHeight = math.ceil(TextSizes.Small * 2 * Shape.LineHeight)
 
 	return e(ChunkyButton, {
 		layoutOrder = map.Order,
@@ -134,69 +139,67 @@ local function MapCard(props: any)
 				TextSize = Sizes.MapIconSize * Shape.IconFill,
 			}),
 		}),
-		Info = e("Frame", {
+		Name = Primitives.text({
+			Fit = true,
+			Position = UDim2.fromOffset(infoLeft, 0),
+			Size = UDim2.new(1, -infoLeft, 0, TextSizes.Header),
+			Text = map.DisplayName,
+			TextSize = TextSizes.Header,
+			XAlign = Enum.TextXAlignment.Left,
+		}),
+		Description = Primitives.text({
+			Color = if reason ~= nil then Palette.Sparkle else Palette.Text,
+			Fit = true,
+			Font = "Body",
+			Position = UDim2.fromOffset(infoLeft, TextSizes.Header + Shape.Stroke),
+			Size = UDim2.new(1, -infoLeft, 0, descriptionHeight),
+			StrokeSize = Shape.SmallTextStroke,
+			Text = if reason ~= nil then string.format(Text.IconLabel, Text.LockIcon, reason) else map.Description,
+			TextSize = TextSizes.Small,
+			Wrapped = true,
+			XAlign = Enum.TextXAlignment.Left,
+			YAlign = Enum.TextYAlignment.Top,
+		}),
+		Chips = e("Frame", {
+			AnchorPoint = Vector2.new(0, 1),
 			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(Sizes.MapIconSize + Gap, 0),
-			Size = UDim2.new(1, -(Sizes.MapIconSize + Gap), 1, 0),
+			Position = UDim2.new(0, infoLeft, 1, -Shape.Lip),
+			Size = UDim2.fromOffset(0, chipHeight),
+			AutomaticSize = Enum.AutomaticSize.X,
 		}, {
 			Layout = Primitives.list(
-				Enum.FillDirection.Vertical,
-				Shape.Stroke,
+				Enum.FillDirection.Horizontal,
+				Shape.Stroke * 2,
 				Enum.HorizontalAlignment.Left,
 				Enum.VerticalAlignment.Center
 			),
-			Name = Primitives.text({
-				LayoutOrder = 1,
-				Size = UDim2.new(1, 0, 0, TextSizes.Header),
-				Text = map.DisplayName,
-				TextSize = TextSizes.Header,
-				XAlign = Enum.TextXAlignment.Left,
+			Size = e(Chip, {
+				height = chipHeight,
+				layoutOrder = 1,
+				swatch = "Blue",
+				text = string.format(Text.SizeChip, map.SizeLabel),
 			}),
-			Description = Primitives.text({
-				Font = "Body",
-				LayoutOrder = 2,
-				Size = UDim2.new(1, 0, 0, TextSizes.Small * 2 + Shape.Stroke),
-				StrokeSize = Shape.SmallTextStroke,
-				Text = map.Description,
-				TextSize = TextSizes.Small,
-				Wrapped = true,
-				XAlign = Enum.TextXAlignment.Left,
+			Reward = e(Chip, {
+				height = chipHeight,
+				layoutOrder = 2,
+				swatch = "Gold",
+				text = string.format(Text.RewardChip, Format.multiplier(map.RewardMultiplier)),
 			}),
-			Row = e("Frame", {
-				BackgroundTransparency = 1,
-				LayoutOrder = 3,
-				Size = UDim2.new(1, 0, 0, Sizes.ActionButtonHeight),
-			}, {
-				Layout = Primitives.list(
-					Enum.FillDirection.Horizontal,
-					Shape.Stroke * 2,
-					Enum.HorizontalAlignment.Left,
-					Enum.VerticalAlignment.Center
-				),
-				Size = e(
-					Chip,
-					{ layoutOrder = 1, swatch = "Blue", text = string.format(Text.SizeChip, map.SizeLabel) }
-				),
-				Reward = e(Chip, {
-					layoutOrder = 2,
-					swatch = "Gold",
-					text = string.format(Text.RewardChip, Format.multiplier(map.RewardMultiplier)),
-				}),
-				Action = e("Frame", {
-					AutomaticSize = Enum.AutomaticSize.X,
-					BackgroundTransparency = 1,
-					LayoutOrder = 3,
-					Size = UDim2.fromScale(0, 1),
-				}, {
-					Layout = Primitives.list(
-						Enum.FillDirection.Horizontal,
-						0,
-						Enum.HorizontalAlignment.Left,
-						Enum.VerticalAlignment.Center
-					),
-					Content = action,
-				}),
-			}),
+		}),
+		Action = e("Frame", {
+			AnchorPoint = Vector2.new(1, 1),
+			AutomaticSize = Enum.AutomaticSize.X,
+			BackgroundTransparency = 1,
+			Position = UDim2.fromScale(1, 1),
+			Size = UDim2.fromOffset(0, Sizes.ActionButtonHeight),
+		}, {
+			Layout = Primitives.list(
+				Enum.FillDirection.Horizontal,
+				0,
+				Enum.HorizontalAlignment.Right,
+				Enum.VerticalAlignment.Top
+			),
+			Content = action,
 		}),
 	})
 end
@@ -206,36 +209,19 @@ local function ModeTile(props: any)
 	local visual = UIConfig.ModeVisuals[mode.Id] or {}
 	local locked = props.level < mode.RequiredLevel
 	return e(ChunkyButton, {
+		icon = if locked then Text.LockIcon else visual.Icon,
+		iconSize = Sizes.ModeIconSize,
 		layoutOrder = mode.Order,
 		onActivated = function()
 			props.onSelect(mode.Id)
 		end,
 		overlay = selectionRing(props.selected),
+		stacked = true,
 		swatch = if locked then "Grey" else visual.Swatch,
-	}, {
-		Layout = Primitives.list(
-			Enum.FillDirection.Horizontal,
-			Shape.Stroke * 2,
-			Enum.HorizontalAlignment.Center,
-			Enum.VerticalAlignment.Center
-		),
-		Icon = Primitives.text({
-			AutomaticSize = Enum.AutomaticSize.XY,
-			LayoutOrder = 1,
-			Size = UDim2.new(),
-			Stroke = false,
-			Text = if locked then Text.LockIcon else visual.Icon,
-			TextSize = TextSizes.Icon,
-		}),
-		Name = Primitives.text({
-			AutomaticSize = Enum.AutomaticSize.XY,
-			LayoutOrder = 2,
-			Size = UDim2.new(),
-			Text = if locked
-				then string.format(Text.LockedModeFormat, mode.DisplayName, mode.RequiredLevel)
-				else mode.DisplayName,
-			TextSize = if locked then TextSizes.Body else TextSizes.Large,
-		}),
+		text = if locked
+			then string.format(Text.LockedModeFormat, mode.DisplayName, mode.RequiredLevel)
+			else mode.DisplayName,
+		textSize = if locked then TextSizes.Body else TextSizes.Large,
 	})
 end
 
@@ -277,9 +263,7 @@ end
 return function(props: any)
 	local data = props.data
 	local ui = props.ui
-	local margin = UIConfig.Layouts[if ui.mobile then "Mobile" else "PC"].WindowMargin
-	local width = math.min(Sizes.Width, ui.width - margin * 2)
-	local height = math.min(Sizes.Height, ui.height - margin * 2 - UIConfig.Sizes.Window.HeaderHeight / 2)
+	local width, height = WindowSize.fit(ui, Sizes.Width, Sizes.Height)
 
 	local selectedMapId, setSelectedMapId = React.useState(data.MapId)
 	local selectedModeId, setSelectedModeId = React.useState(data.ModeId)
@@ -368,16 +352,7 @@ return function(props: any)
 				size = UDim2.new(1, 0, 1, -(TextSizes.Large + Gap)),
 				clip = true,
 			}, {
-				Scroll = e("ScrollingFrame", {
-					AutomaticCanvasSize = Enum.AutomaticSize.Y,
-					BackgroundTransparency = 1,
-					BorderSizePixel = 0,
-					CanvasSize = UDim2.new(),
-					ScrollBarImageColor3 = Palette.PanelRim,
-					ScrollBarThickness = Shape.RimStroke * 2,
-					ScrollingDirection = Enum.ScrollingDirection.Y,
-					Size = UDim2.fromScale(1, 1),
-				}, mapCards),
+				Scroll = Primitives.scroll({}, mapCards),
 			}),
 		}),
 		Side = e("Frame", {
@@ -385,14 +360,7 @@ return function(props: any)
 			Position = UDim2.fromOffset(mapColumnWidth + Gap, 0),
 			Size = UDim2.new(1, -(mapColumnWidth + Gap), 1, 0),
 		}, {
-			Scroll = e("ScrollingFrame", {
-				AutomaticCanvasSize = Enum.AutomaticSize.Y,
-				BackgroundTransparency = 1,
-				BorderSizePixel = 0,
-				CanvasSize = UDim2.new(),
-				ScrollBarImageColor3 = Palette.PanelRim,
-				ScrollBarThickness = Shape.RimStroke,
-				ScrollingDirection = Enum.ScrollingDirection.Y,
+			Scroll = Primitives.scroll({
 				Size = UDim2.new(1, 0, 1, -(Sizes.PlayButtonHeight + Gap)),
 			}, {
 				Layout = Primitives.list(Enum.FillDirection.Vertical, Gap),
@@ -415,9 +383,10 @@ return function(props: any)
 				}, {
 					Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2),
 					Description = Primitives.text({
+						Fit = true,
 						Font = "Body",
 						LayoutOrder = 1,
-						Size = UDim2.new(1, 0, 0, TextSizes.Body * 2 + Shape.Stroke),
+						Size = UDim2.new(1, 0, 0, math.ceil(TextSizes.Body * 2 * Shape.LineHeight)),
 						StrokeSize = Shape.SmallTextStroke,
 						Text = mode.Description,
 						TextSize = TextSizes.Body,
@@ -434,8 +403,9 @@ return function(props: any)
 				RewardTitle = sectionTitle(Text.RewardHeader, 4),
 				Reward = Primitives.text({
 					Color = if mode.RewardMultiplier > 0 then Palette.Sparkle else Palette.TextSoft,
+					Fit = true,
 					LayoutOrder = 5,
-					Size = UDim2.new(1, 0, 0, TextSizes.Body * 2 + Shape.Stroke * 2),
+					Size = UDim2.new(1, 0, 0, math.ceil(TextSizes.Body * 2 * Shape.LineHeight)),
 					Text = rewardText,
 					TextSize = TextSizes.Body,
 					Wrapped = true,

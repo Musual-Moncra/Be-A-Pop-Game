@@ -8,6 +8,8 @@
 		StoreName: name of the OrderedDataStore used for best scores (text)
 		TopCount: maximum number of top players displayed on the board (count)
 		RefreshInterval: how often the leaderboard fetches and renders top entries (seconds)
+		FirstRefreshDelay: wait after server start before the first fetch (seconds)
+		BoardWaitTimeout: how long to wait for the lobby board instances to load (seconds)
 		TitleText: heading shown at the top of the board (text)
 		TitleTextColor: color of the header title text (Color3)
 		TitleTextSize: font size of the title text (pixels)
@@ -29,6 +31,8 @@ local LeaderboardConfig = {}
 LeaderboardConfig.StoreName = "BestScoreLeaderboard_v1"
 LeaderboardConfig.TopCount = 10
 LeaderboardConfig.RefreshInterval = 60
+LeaderboardConfig.FirstRefreshDelay = 1
+LeaderboardConfig.BoardWaitTimeout = 5
 LeaderboardConfig.TitleText = "TOP POOPERS"
 LeaderboardConfig.TitleTextColor = Color3.fromRGB(255, 230, 100)
 LeaderboardConfig.TitleTextSize = 42

@@ -6,11 +6,11 @@
 	Sizes are "design pixels" on a screen ReferenceHeight pixels tall; the whole UI is scaled to the
 	real screen, so a value of 100 is always the same share of the screen on every device.
 
-	Scale:
-		ReferenceHeight: screen height the design pixels are drawn for on PC (pixels)
-		MobileReferenceHeight: same for phones/tablets, smaller = bigger UI on phones (pixels)
+	Scale (the UI scale is the smaller of safe height / ReferenceHeight and safe width / ReferenceWidth):
+		ReferenceHeight / ReferenceWidth: safe-area size the design pixels are drawn for on PC (pixels)
+		MobileReferenceHeight / MobileReferenceWidth: same for phones/tablets, smaller = bigger UI (pixels)
 		Min / Max: smallest / largest UI scale allowed (multiplier)
-		MobileMaxWidth: screens narrower than this, or touch-only devices, use the Mobile layout (pixels)
+		MobileMaxWidth: safe areas narrower than this, or touch-only devices, use the Mobile layout (pixels)
 
 	Fonts:
 		Display / DisplayWeight: chunky font (asset path) and weight for titles, numbers and buttons
@@ -45,18 +45,26 @@
 		OverlayTransparency: transparency of the window dimmer (0 to 1)
 		LockedTransparency: transparency of lock overlays (0 to 1)
 		DisabledTransparency: extra transparency on disabled buttons (0 to 1)
-		GlossTransparency: transparency of the white shine on buttons and bars (0 to 1)
+		GlossTransparency: transparency of the white shine at its top edge; it fades to clear below (0 to 1)
 		GlossHeight: height of the shine as a fraction of the button face (0 to 1)
+		GlossMaxHeight: tallest the shine may get on big buttons and cards (design pixels)
 		IconFill: emoji size as a fraction of its round icon (0 to 1)
 		GradientRotation: direction of every gradient, 90 = top to bottom (degrees)
+		LineHeight: height of one line of wrapped text as a multiple of its text size (multiplier)
+		ContentPadding: space between a button's edge and its label (design pixels)
+		ChipPadding: space on each side of a chip's text, as a fraction of the chip height (0 to 1)
+		ScrollBar: thickness of list scrollbars, kept beside the content (design pixels)
 
 	TextSizes (design pixels): Huge (scores), Title (window titles, big buttons), Header (card names,
 		currency), Large (section titles, button labels), Body, Small, Tiny (chips, bar labels),
-		Icon (emoji in tiles), BigIcon (emoji on the MENU button)
+		Icon (emoji in tiles), BigIcon (emoji on the MENU button),
+		Min (smallest size a shrink-to-fit label may reach)
 
 	Animation (seconds unless noted):
 		Press: button hover/press tween time
 		PressScale / HoverScale: button size while pressed / hovered (multiplier)
+		HoverGrowMax / PressShrinkMax: most a button may grow on hover / shrink on press, so large
+			cards in lists never spill out of them (design pixels)
 		Open: window, toast and menu pop-in time
 		OpenFromScale: size a window or toast starts at when it opens (multiplier)
 		MenuStagger: delay between menu wheel buttons popping out
@@ -95,12 +103,14 @@
 		Play.MapCardHeight: height of a map card
 		Play.MapIconSize: round icon diameter on map cards
 		Play.ModeTileHeight: height of a mode tile
+		Play.ModeIconSize: emoji size above the mode name on a mode tile
 		Play.ChipHeight: height of info chips (size, rewards, rules)
 		Play.PlayButtonHeight: height of the PLAY and CONTINUE buttons
-		Play.ActionButtonWidth / ActionButtonHeight: size of the UNLOCK price button
+		Play.ActionButtonWidth / ActionButtonHeight: size of the UNLOCK price button; map card chips match its face height
 		Upgrade.Width / Upgrade.Height: upgrade window size (shrinks to fit small screens)
-		Upgrade.Columns: upgrade cards per row (count)
-		Upgrade.CardHeight: height of an upgrade card
+		Upgrade.Columns: most upgrade cards per row (count); fewer when the window is narrow
+		Upgrade.MinCardWidth: narrowest an upgrade card may get before a column is dropped
+		Upgrade.DescriptionLines: lines of description text each card makes room for (count)
 		Upgrade.IconSize: round icon diameter on upgrade cards
 		Upgrade.BuyButtonHeight: height of the price button
 		Upgrade.LevelBarHeight: height of the level bar
@@ -113,7 +123,8 @@
 		Run.QuestRowHeight: height of a quest row
 		Run.PowerupSize: power-up icon diameter
 		Run.LeaveWidth / Run.LeaveHeight: LEAVE button size
-		Result.Width / Result.Height: result window size
+		Result.Width: result window width; its height follows its content
+		Result.BadgesPerRow: badges that fit on one row, used to size the window (count)
 		Result.RowHeight: height of a reward row
 		Result.BadgeHeight: height of the level-up / target / quest badges
 		Toast.Width / Toast.Height / Toast.Gap: toast size and the gap between stacked toasts
@@ -139,7 +150,8 @@
 	PowerupSwatch: colour of power-up icons in the run HUD (Swatches key)
 	ToastSwatches: per toast kind (Info, Success, Error), the Swatches key used
 
-	Layers: drawing order, higher = on top (number): Wallet, RunHud, LobbyMenu, Window, Result, Toasts
+	Layers: drawing order, higher = on top (number): Wallet, RunHud, LobbyMenu, Backdrop (full-screen
+		dimmer behind open windows), Window, Result, Toasts
 
 	Text (every word the UI shows; %s = text, %d = whole number, %.1f = one decimal):
 		Icons: MenuIcon, CloseIcon, SparkleIcon, CoinIcon, GemIcon, XpIcon, LockIcon, CheckIcon (emoji/text)
@@ -152,7 +164,7 @@
 		SizeChip: map size chip (format: SizeLabel)
 		RewardChip: map reward chip (format: multiplier)
 		LockedModeFormat: locked mode tile (format: mode name, required level)
-		Owned / ComingSoon: map state chips
+		Owned / ComingSoon / MapLocked: map state chips
 		NeedMapFirst: requirement chip when the previous map is not owned (format: map name)
 		NeedLevel: requirement chip when the level is too low (format: level)
 		DurationLifespan / DurationSeconds / DurationNone: mode timer chip (DurationSeconds format: seconds)
@@ -204,7 +216,9 @@ local UIConfig = {}
 
 UIConfig.Scale = {
 	ReferenceHeight = 900,
+	ReferenceWidth = 1400,
 	MobileReferenceHeight = 640,
+	MobileReferenceWidth = 1100,
 	Min = 0.4,
 	Max = 1.5,
 	MobileMaxWidth = 900,
@@ -309,10 +323,15 @@ UIConfig.Shape = {
 	OverlayTransparency = 0.45,
 	LockedTransparency = 0.35,
 	DisabledTransparency = 0.25,
-	GlossTransparency = 0.78,
+	GlossTransparency = 0.6,
 	GlossHeight = 0.42,
+	GlossMaxHeight = 18,
 	IconFill = 0.55,
 	GradientRotation = 90,
+	LineHeight = 1.25,
+	ContentPadding = 10,
+	ChipPadding = 0.38,
+	ScrollBar = 8,
 }
 
 UIConfig.TextSizes = {
@@ -322,15 +341,18 @@ UIConfig.TextSizes = {
 	Large = 26,
 	Body = 20,
 	Small = 17,
-	Tiny = 14,
+	Tiny = 16,
 	Icon = 34,
 	BigIcon = 56,
+	Min = 11,
 }
 
 UIConfig.Animation = {
 	Press = 0.08,
 	PressScale = 0.9,
 	HoverScale = 1.05,
+	HoverGrowMax = 8,
+	PressShrinkMax = 10,
 	Open = 0.22,
 	OpenFromScale = 0.82,
 	MenuStagger = 0.04,
@@ -383,20 +405,22 @@ UIConfig.Sizes = {
 		Height = 720,
 		MapColumnWidth = 560,
 		MapCardHeight = 150,
-		MapIconSize = 112,
+		MapIconSize = 96,
 		ModeTileHeight = 104,
+		ModeIconSize = 42,
 		ChipHeight = 34,
 		PlayButtonHeight = 92,
-		ActionButtonWidth = 150,
-		ActionButtonHeight = 50,
+		ActionButtonWidth = 130,
+		ActionButtonHeight = 44,
 	},
 	Upgrade = {
 		Width = 1100,
-		Height = 720,
+		Height = 760,
 		Columns = 3,
-		CardHeight = 300,
-		IconSize = 92,
-		BuyButtonHeight = 56,
+		MinCardWidth = 300,
+		DescriptionLines = 2,
+		IconSize = 76,
+		BuyButtonHeight = 50,
 		LevelBarHeight = 18,
 	},
 	Stats = {
@@ -416,7 +440,7 @@ UIConfig.Sizes = {
 	},
 	Result = {
 		Width = 620,
-		Height = 560,
+		BadgesPerRow = 2,
 		RowHeight = 64,
 		BadgeHeight = 44,
 	},
@@ -491,9 +515,10 @@ UIConfig.Layers = {
 	Wallet = 1,
 	RunHud = 2,
 	LobbyMenu = 3,
-	Window = 4,
-	Result = 5,
-	Toasts = 6,
+	Backdrop = 4,
+	Window = 5,
+	Result = 6,
+	Toasts = 7,
 }
 
 UIConfig.Text = {
@@ -520,6 +545,7 @@ UIConfig.Text = {
 	LockedModeFormat = "%s\nLVL %d",
 	Owned = "OWNED",
 	ComingSoon = "COMING SOON",
+	MapLocked = "LOCKED",
 	NeedMapFirst = "Unlock %s first",
 	NeedLevel = "Reach level %d",
 	DurationLifespan = "⏰ Lifespan",

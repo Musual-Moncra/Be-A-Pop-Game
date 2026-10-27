@@ -16,7 +16,15 @@
 		Primitives.text(props) -> outlined TextLabel element
 			props: Text, TextSize, Color?, Font? ("Display" | "Body"), Size?, Position?, AnchorPoint?,
 			       XAlign?, YAlign?, Stroke? (false to disable), StrokeSize?, LayoutOrder?, Wrapped?,
-			       RichText?, Transparency?, ZIndex?, AutomaticSize?, NoTruncate?, StrokeColor?
+			       RichText?, Transparency?, ZIndex?, AutomaticSize?, NoTruncate?, StrokeColor?, Fit?
+			Fit = true shrinks the text to fit its box (never larger than TextSize, never smaller
+			than UIConfig.TextSizes.Min), so a label can never spill out of a narrow button or card.
+		Primitives.gloss(radius) -> soft white shine for the top of a button or bar face; fades out
+			downward and is never taller than Shape.GlossMaxHeight, so big cards get a thin highlight
+			instead of a white slab
+		Primitives.scroll(props, children) -> vertical ScrollingFrame element that keeps its scrollbar
+			beside the content instead of over it
+			props: Size?, Position?, LayoutOrder?, Thickness? (design pixels)
 
 	Dependencies: React, UIConfig
 ]]
@@ -107,6 +115,12 @@ end
 
 function Primitives.text(props: any)
 	local children = {}
+	if props.Fit then
+		children.Fit = e("UITextSizeConstraint", {
+			MaxTextSize = props.TextSize,
+			MinTextSize = math.min(UIConfig.TextSizes.Min, props.TextSize),
+		})
+	end
 	if props.Stroke ~= false then
 		children.Stroke = e("UIStroke", {
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual,
@@ -127,6 +141,7 @@ function Primitives.text(props: any)
 		Size = props.Size or UDim2.fromScale(1, 1),
 		Text = props.Text or "",
 		TextColor3 = props.Color or Palette.Text,
+		TextScaled = props.Fit == true,
 		TextSize = props.TextSize,
 		TextTransparency = props.Transparency or 0,
 		TextTruncate = if props.Wrapped or props.NoTruncate then Enum.TextTruncate.None else Enum.TextTruncate.AtEnd,
@@ -134,6 +149,38 @@ function Primitives.text(props: any)
 		TextXAlignment = props.XAlign or Enum.TextXAlignment.Center,
 		TextYAlignment = props.YAlign or Enum.TextYAlignment.Center,
 		ZIndex = props.ZIndex,
+	}, children)
+end
+
+function Primitives.gloss(radius: number | string)
+	return e("Frame", {
+		BackgroundColor3 = Palette.Text,
+		BorderSizePixel = 0,
+		Position = UDim2.fromOffset(Shape.Stroke * 2, Shape.Stroke),
+		Size = UDim2.new(1, -Shape.Stroke * 4, Shape.GlossHeight, 0),
+	}, {
+		Corner = Primitives.corner(radius),
+		Limit = e("UISizeConstraint", { MaxSize = Vector2.new(math.huge, Shape.GlossMaxHeight) }),
+		Fade = e("UIGradient", {
+			Rotation = Shape.GradientRotation,
+			Transparency = NumberSequence.new(Shape.GlossTransparency, 1),
+		}),
+	})
+end
+
+function Primitives.scroll(props: any, children: any)
+	return e("ScrollingFrame", {
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		CanvasSize = UDim2.new(),
+		LayoutOrder = props.LayoutOrder,
+		Position = props.Position,
+		ScrollBarImageColor3 = Palette.PanelRim,
+		ScrollBarThickness = props.Thickness or Shape.ScrollBar,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		Size = props.Size or UDim2.fromScale(1, 1),
+		VerticalScrollBarInset = Enum.ScrollBarInset.Always,
 	}, children)
 end
 

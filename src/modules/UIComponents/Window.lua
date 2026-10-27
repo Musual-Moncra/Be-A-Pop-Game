@@ -2,12 +2,14 @@
 
 --[[
 	Window
-	Modal window: dimmed backdrop (click to close), drop shadow, purple rim around a navy
-	gradient body, a glossy ribbon header that straddles the top edge with twinkling
-	sparkles, and a red close button on the corner. Pops in when it mounts.
+	Modal window: drop shadow, purple rim around a navy gradient body, a glossy ribbon header
+	that straddles the top edge with twinkling sparkles, and a red close button on the corner.
+	Pops in when it mounts. The full-screen dimmer behind it is drawn by App.
 
 	Props: title, swatch (header colour, UIConfig.Swatches key), width, height (design pixels),
-	       onClose (nil hides the close button and backdrop click), children (body content)
+	       onClose (nil hides the close button), children (body content)
+
+	Sizing helpers live in WindowSize.
 
 	Dependencies: React, UIConfig, Primitives, ChunkyButton, Sparkle
 ]]
@@ -28,7 +30,7 @@ local Shape = UIConfig.Shape
 local Sizes = UIConfig.Sizes.Window
 local TextSizes = UIConfig.TextSizes
 
-return function(props: any)
+local function Window(props: any)
 	local scaleRef = React.useRef(nil)
 	local headerHeight = Sizes.HeaderHeight
 	local closeSize = Sizes.CloseSize
@@ -59,16 +61,6 @@ return function(props: any)
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
 	}, {
-		Backdrop = e("TextButton", {
-			AutoButtonColor = false,
-			BackgroundColor3 = Palette.Overlay,
-			BackgroundTransparency = Shape.OverlayTransparency,
-			BorderSizePixel = 0,
-			Size = UDim2.fromScale(1, 1),
-			Text = "",
-			ZIndex = 1,
-			[React.Event.Activated] = props.onClose,
-		}),
 		Window = e("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundTransparency = 1,
@@ -139,3 +131,5 @@ return function(props: any)
 		}),
 	})
 end
+
+return Window

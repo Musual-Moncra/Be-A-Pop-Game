@@ -11,13 +11,19 @@
 		size, position, anchorPoint, layoutOrder, zIndex
 		round: true for a circle
 		text, textSize, icon, iconSize: label and emoji; icon sits left of the text,
-			or above it when stacked = true
+			or above it when stacked = true. Text-only and stacked labels shrink to fit the
+			face (TextSizes.Min at the smallest), so a label never spills out of the button.
 		onActivated: click handler; nil = static block (no hover/press)
 		enabled: false greys the button out and ignores clicks
 		children: extra content drawn on the face instead of text/icon
 		overlay: element drawn above the whole button, outside its layout (selection rings)
+		gloss: false hides the top shine (large static cards)
 
-	Dependencies: React, UIConfig, Primitives
+	Hover grows the button by HoverScale but never by more than Animation.HoverGrowMax design
+	pixels, and press shrinks it by PressScale but never by more than Animation.PressShrinkMax,
+	so big cards inside clipped lists stay inside their list.
+
+	Dependencies: React, UIConfig, Primitives, UIScaleContext
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -26,6 +32,7 @@ local TweenService = game:GetService("TweenService")
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local Primitives = require(ReplicatedStorage.Modules.UIComponents.Primitives)
+local UIScaleContext = require(ReplicatedStorage.Modules.UIComponents.UIScaleContext)
 
 local e = React.createElement
 local Shape = UIConfig.Shape
@@ -39,6 +46,7 @@ return function(props: any)
 	local swatch = Primitives.swatch(if enabled then props.swatch else "Grey")
 	local radius = if props.round then "Round" else (props.radius or Shape.Radius)
 	local scaleRef = React.useRef(nil)
+	local rootScale = React.useContext(UIScaleContext)
 
 	local function tweenTo(target: number, time: number)
 		local scale = scaleRef.current
@@ -50,11 +58,41 @@ return function(props: any)
 		}):Play()
 	end
 
+	local function designSize(): number
+		local scale = scaleRef.current
+		local holder = if scale ~= nil then scale.Parent else nil
+		if holder == nil or not holder:IsA("GuiObject") then
+			return 0
+		end
+		local size = holder.AbsoluteSize
+		return math.max(size.X, size.Y) / (rootScale * scale.Scale)
+	end
+
+	local function hoverScale(): number
+		local size = designSize()
+		if size <= 0 then
+			return Animation.HoverScale
+		end
+		return 1 + math.min(Animation.HoverScale - 1, Animation.HoverGrowMax / size)
+	end
+
+	local function pressScale(): number
+		local size = designSize()
+		if size <= 0 then
+			return Animation.PressScale
+		end
+		return 1 - math.min(1 - Animation.PressScale, Animation.PressShrinkMax / size)
+	end
+
 	local content = props.children
 	if content == nil then
+		local hasIcon = props.icon ~= nil and props.icon ~= ""
+		local hasText = props.text ~= nil and props.text ~= ""
 		local stacked = props.stacked == true
 		local iconSize = props.iconSize or TextSizes.Icon
+		local textSize = props.textSize or TextSizes.Large
 		local items: { [string]: any } = {
+			Padding = Primitives.paddingXY(Shape.ContentPadding, 0),
 			Layout = Primitives.list(
 				if stacked then Enum.FillDirection.Vertical else Enum.FillDirection.Horizontal,
 				if stacked then 0 else Shape.Stroke * 2,
@@ -62,7 +100,7 @@ return function(props: any)
 				Enum.VerticalAlignment.Center
 			),
 		}
-		if props.icon ~= nil and props.icon ~= "" then
+		if hasIcon then
 			items.Icon = Primitives.text({
 				AutomaticSize = Enum.AutomaticSize.XY,
 				LayoutOrder = 1,
@@ -72,13 +110,24 @@ return function(props: any)
 				TextSize = iconSize,
 			})
 		end
-		if props.text ~= nil and props.text ~= "" then
+		if hasText and (stacked or not hasIcon) then
+			local lines = #string.split(props.text, "\n")
+			items.Label = Primitives.text({
+				Fit = true,
+				LayoutOrder = 2,
+				Size = if stacked
+					then UDim2.new(1, 0, 0, math.ceil(textSize * lines * Shape.LineHeight))
+					else UDim2.fromScale(1, 1),
+				Text = props.text,
+				TextSize = textSize,
+			})
+		elseif hasText then
 			items.Label = Primitives.text({
 				AutomaticSize = Enum.AutomaticSize.XY,
 				LayoutOrder = 2,
 				Size = UDim2.new(),
 				Text = props.text,
-				TextSize = props.textSize or TextSizes.Large,
+				TextSize = textSize,
 			})
 		end
 		content = items
@@ -87,15 +136,7 @@ return function(props: any)
 	local faceChildren = {
 		Corner = Primitives.corner(radius),
 		Gradient = Primitives.gradient(swatch.Top, swatch.Bottom),
-		Gloss = e("Frame", {
-			BackgroundColor3 = Palette.Text,
-			BackgroundTransparency = Shape.GlossTransparency,
-			BorderSizePixel = 0,
-			Position = UDim2.new(0, Shape.Stroke * 2, 0, Shape.Stroke),
-			Size = UDim2.new(1, -Shape.Stroke * 4, Shape.GlossHeight, 0),
-		}, {
-			Corner = Primitives.corner(radius),
-		}),
+		Gloss = if props.gloss ~= false then Primitives.gloss(radius) else nil,
 		Content = e("Frame", {
 			BackgroundTransparency = 1,
 			Size = UDim2.fromScale(1, 1),
@@ -117,7 +158,7 @@ return function(props: any)
 		[React.Event.Activated] = if clickable and enabled then props.onActivated else nil,
 		[React.Event.MouseEnter] = if clickable and enabled
 			then function()
-				tweenTo(Animation.HoverScale, Animation.Press)
+				tweenTo(hoverScale(), Animation.Press)
 			end
 			else nil,
 		[React.Event.MouseLeave] = if clickable
@@ -127,12 +168,12 @@ return function(props: any)
 			else nil,
 		[React.Event.MouseButton1Down] = if clickable and enabled
 			then function()
-				tweenTo(Animation.PressScale, Animation.Press)
+				tweenTo(pressScale(), Animation.Press)
 			end
 			else nil,
 		[React.Event.MouseButton1Up] = if clickable and enabled
 			then function()
-				tweenTo(Animation.HoverScale, Animation.Press)
+				tweenTo(hoverScale(), Animation.Press)
 			end
 			else nil,
 	}

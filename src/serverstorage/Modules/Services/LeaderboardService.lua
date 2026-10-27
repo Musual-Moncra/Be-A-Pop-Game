@@ -94,15 +94,15 @@ local function getNameFromUserId(userId: number): string
 end
 
 local function getSurfaceGui(): SurfaceGui?
-	local lobby = Workspace:FindFirstChild("Lobby") or Workspace:WaitForChild("Lobby", 5)
+	local lobby = Workspace:WaitForChild("Lobby", LeaderboardConfig.BoardWaitTimeout)
 	if lobby == nil then
 		return nil
 	end
-	local boardModel = lobby:FindFirstChild("LeaderboardBoard") or lobby:WaitForChild("LeaderboardBoard", 5)
+	local boardModel = lobby:WaitForChild("LeaderboardBoard", LeaderboardConfig.BoardWaitTimeout)
 	if boardModel == nil then
 		return nil
 	end
-	local board = boardModel:FindFirstChild("Board") or boardModel:WaitForChild("Board", 5)
+	local board = boardModel:WaitForChild("Board", LeaderboardConfig.BoardWaitTimeout)
 	if board == nil then
 		return nil
 	end
@@ -291,7 +291,7 @@ Players.PlayerRemoving:Connect(function(plr: Player)
 end)
 
 task.spawn(function()
-	task.wait(1)
+	task.wait(LeaderboardConfig.FirstRefreshDelay)
 	LeaderboardService.Refresh()
 	while true do
 		task.wait(LeaderboardConfig.RefreshInterval)

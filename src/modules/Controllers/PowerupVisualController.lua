@@ -53,7 +53,10 @@ local function trackPart(instance: Instance)
 end
 
 local function trackFolder(folder: Instance)
-	if not folder:IsA("Folder") or string.sub(folder.Name, 1, #PowerupConfig.FolderPrefix) ~= PowerupConfig.FolderPrefix then
+	if
+		not folder:IsA("Folder")
+		or string.sub(folder.Name, 1, #PowerupConfig.FolderPrefix) ~= PowerupConfig.FolderPrefix
+	then
 		return
 	end
 	for _, child in folder:GetChildren() do

@@ -9,7 +9,7 @@
 		QuestService.StartRun(plr, map, mode)
 		QuestService.FinishRun(plr) -> { Completed, Coins, Gems }
 
-	Dependencies: DataService, RunEvents, ConfigLookup, QuestConfig, MessageConfig, Net
+	Dependencies: DataService, RunEvents, Outbound, ConfigLookup, QuestConfig, MessageConfig
 ]]
 
 local Players = game:GetService("Players")
@@ -17,9 +17,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DataService = require(script.Parent.DataService)
 local RunEvents = require(script.Parent.Parent.Shared.RunEvents)
+local Outbound = require(script.Parent.Parent.Remotes.Outbound)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
-local Net = require(ReplicatedStorage.Modules.Shared.Net)
 local QuestConfig = require(ReplicatedStorage.Modules.Config.QuestConfig)
 
 export type ActiveQuest = {
@@ -111,9 +111,7 @@ local function buildState(run: QuestRun): { any }
 end
 
 local function publish(plr: Player, run: QuestRun)
-	if plr.Parent == Players then
-		Net.QuestState:FireClient(plr, buildState(run))
-	end
+	Outbound.QuestState(plr, buildState(run))
 end
 
 local function completeQuest(plr: Player, run: QuestRun, quest: ActiveQuest)
@@ -131,10 +129,8 @@ local function completeQuest(plr: Player, run: QuestRun, quest: ActiveQuest)
 	end
 	DataService.IncrementStat(plr, "QuestsCompleted", 1)
 
-	if plr.Parent == Players then
-		local text = ConfigLookup.FormatQuest(quest.Definition)
-		Net.Notify:FireClient(plr, "Success", string.format(MessageConfig.QuestCompleted, text))
-	end
+	local text = ConfigLookup.FormatQuest(quest.Definition)
+	Outbound.Notify(plr, "Success", string.format(MessageConfig.QuestCompleted, text))
 end
 
 local function applyProgress(plr: Player, run: QuestRun, quest: ActiveQuest, amount: number): boolean
@@ -164,9 +160,7 @@ function QuestService.FinishRun(plr: Player): FinishResult
 	local run = runs[plr]
 	runs[plr] = nil
 
-	if plr.Parent == Players then
-		Net.QuestState:FireClient(plr, {})
-	end
+	Outbound.QuestState(plr, {})
 
 	if run == nil then
 		return { Completed = 0, Coins = 0, Gems = 0 }

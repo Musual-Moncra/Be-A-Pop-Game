@@ -5,14 +5,18 @@
 	Spawns food items during active runs, checks server-side pickups, manages active
 	power-up boosts and multipliers, and synchronizes power-up state to the client.
 
+	One shared Heartbeat drives every session at PowerupConfig.TickInterval. Character
+	scaling is applied only when the target scale actually changes, because every server
+	ScaleTo rewrites the client-owned body and stalls its movement for a moment.
+	RunService owns the session lifetime: it calls StartRun when a run begins and StopRun
+	when it ends (death and leaving included).
+
 	API:
 		PowerupService.StartRun(plr: Player, mapModel: Model, mode: ConfigLookup.ModeDefinition)
 		PowerupService.StopRun(plr: Player)
-		PowerupService.GetMultipliers(plr: Player) -> { Speed: number, StainSize: number, Points: number }
+		PowerupService.GetMultipliers(plr: Player) -> Multipliers { Speed, StainSize, Points }
 
-	Dependencies:
-		Players, Workspace, RunService, ReplicatedStorage, ServerStorage,
-		PowerupConfig, ConfigLookup, Net, RunEvents, DataService
+	Dependencies: PowerupConfig, ConfigLookup, RunEvents, DataService, Outbound
 ]]
 
 local Players = game:GetService("Players")
@@ -23,9 +27,15 @@ local Workspace = game:GetService("Workspace")
 
 local PowerupConfig = require(ReplicatedStorage.Modules.Config.PowerupConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
-local Net = require(ReplicatedStorage.Modules.Shared.Net)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
+local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataService = require(script.Parent.DataService)
+
+export type Multipliers = {
+	Speed: number,
+	StainSize: number,
+	Points: number,
+}
 
 type ActiveBoost = {
 	Duration: number,
@@ -33,189 +43,205 @@ type ActiveBoost = {
 }
 
 type SpawnedFood = {
-	part: BasePart,
 	powerupId: string,
-	spawnedAt: number,
+	expiresAt: number,
 }
 
 type PowerupSession = {
 	player: Player,
-	mapModel: Model,
 	playArea: BasePart?,
 	folder: Folder,
-	spawnedFoods: { [BasePart]: SpawnedFood },
-	activeBoosts: { [string]: ActiveBoost },
+	rayParams: RaycastParams,
+	foods: { [BasePart]: SpawnedFood },
+	foodCount: number,
+	boosts: { [string]: ActiveBoost },
+	multipliers: Multipliers,
+	appliedScale: number,
 	nextSpawnTime: number,
 	nextSyncTime: number,
-	heartbeatConn: RBXScriptConnection?,
-	characterConn: RBXScriptConnection?,
-	diedConn: RBXScriptConnection?,
 }
 
 local PowerupService = {}
 
-local sessions: { [Player]: PowerupSession } = {}
+local NEUTRAL: Multipliers = table.freeze({ Speed = 1, StainSize = 1, Points = 1 })
 
-local function getDurationMultiplier(plr: Player): number
-	local data = DataService.Get(plr)
-	local level = 0
-	if data ~= nil and data.Upgrades ~= nil then
-		level = data.Upgrades.PowerupDuration or 0
-	end
-	return ConfigLookup.GetUpgradeValue("PowerupDuration", level)
+local sessions: { [Player]: PowerupSession } = {}
+local tickAccumulator = 0
+local totalWeight = 0
+for _, def in PowerupConfig.Powerups do
+	totalWeight += def.Weight
 end
 
 local function pickRandomPowerupId(): string?
-	local totalWeight = 0
-	for _, def in PowerupConfig.Powerups do
-		totalWeight += def.Weight
-	end
 	if totalWeight <= 0 then
 		return nil
 	end
 	local roll = math.random() * totalWeight
+	local last: string? = nil
 	for id, def in PowerupConfig.Powerups do
 		roll -= def.Weight
+		last = id
 		if roll <= 0 then
 			return id
 		end
 	end
-	for id in PowerupConfig.Powerups do
-		return id
-	end
-	return nil
+	return last
 end
 
-local function syncState(plr: Player, session: PowerupSession)
-	if plr.Parent ~= Players then
-		return
-	end
-	local now = os.clock()
-	local payload = {}
-	for id, boost in session.activeBoosts do
-		local timeLeft = math.max(0, boost.ExpiresAt - now)
-		if timeLeft > 0 then
-			table.insert(payload, {
-				Id = id,
-				TimeLeft = timeLeft,
-				Duration = boost.Duration,
-			})
-		end
-	end
-	Net.PowerupState:FireClient(plr, payload)
+local function getDurationMultiplier(plr: Player): number
+	local data = DataService.Get(plr)
+	local level = if data ~= nil and data.Upgrades ~= nil then data.Upgrades.PowerupDuration or 0 else 0
+	return ConfigLookup.GetUpgradeValue("PowerupDuration", level)
 end
 
-local function applyScale(plr: Player, session: PowerupSession)
+local function setCharacterScale(plr: Player, scale: number): boolean
 	local character = plr.Character
 	if character == nil or character.Parent == nil then
-		return
+		return false
 	end
-	local now = os.clock()
-	local scale = 1
-	for id, boost in session.activeBoosts do
-		if boost.ExpiresAt > now then
-			local def = ConfigLookup.GetPowerup(id)
-			if def ~= nil and def.CharacterScale > 1 then
-				scale = math.max(scale, def.CharacterScale)
-			end
-		end
+	if math.abs(character:GetScale() - scale) < 1e-3 then
+		return true
 	end
-	pcall(function()
-		character:ScaleTo(scale)
-	end)
+	return (pcall(character.ScaleTo, character, scale))
 end
 
-local function spawnFood(session: PowerupSession)
+local function recompute(session: PowerupSession)
+	local speed, stainSize, points, scale = 1, 1, 1, 1
+	for id in session.boosts do
+		local def = ConfigLookup.GetPowerup(id)
+		if def ~= nil then
+			speed *= def.SpeedMultiplier
+			stainSize *= def.StainSizeMultiplier
+			points *= def.PointsMultiplier
+			scale = math.max(scale, def.CharacterScale)
+		end
+	end
+	session.multipliers = { Speed = speed, StainSize = stainSize, Points = points }
+
+	if scale ~= session.appliedScale and setCharacterScale(session.player, scale) then
+		session.appliedScale = scale
+	end
+end
+
+local function syncState(session: PowerupSession, now: number)
+	local payload = {}
+	for id, boost in session.boosts do
+		local timeLeft = boost.ExpiresAt - now
+		if timeLeft > 0 then
+			table.insert(payload, { Id = id, TimeLeft = timeLeft, Duration = boost.Duration })
+		end
+	end
+	Outbound.PowerupState(session.player, payload)
+end
+
+local function spawnFood(session: PowerupSession, now: number)
 	local playArea = session.playArea
-	if playArea == nil then
-		return
-	end
 	local powerupId = pickRandomPowerupId()
-	if powerupId == nil then
-		return
-	end
-	local def = ConfigLookup.GetPowerup(powerupId)
-	if def == nil then
+	local def = if powerupId ~= nil then ConfigLookup.GetPowerup(powerupId) else nil
+	if playArea == nil or powerupId == nil or def == nil then
 		return
 	end
 
-	local topY = playArea.Position.Y + playArea.Size.Y * 0.5 - PowerupConfig.SpawnRayTopInset
-	local halfX = playArea.Size.X * 0.5
-	local halfZ = playArea.Size.Z * 0.5
-	local rx = (math.random() * 2 - 1) * halfX
-	local rz = (math.random() * 2 - 1) * halfZ
-	local rayOrigin = Vector3.new(playArea.Position.X + rx, topY, playArea.Position.Z + rz)
-	local rayDirection = Vector3.new(0, -playArea.Size.Y, 0)
-
-	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Include
-	params.FilterDescendantsInstances = { session.mapModel }
-	local result = Workspace:Raycast(rayOrigin, rayDirection, params)
-
+	local areaPos, areaSize = playArea.Position, playArea.Size
+	local rayOrigin = Vector3.new(
+		areaPos.X + (math.random() * 2 - 1) * areaSize.X * 0.5,
+		areaPos.Y + areaSize.Y * 0.5 - PowerupConfig.SpawnRayTopInset,
+		areaPos.Z + (math.random() * 2 - 1) * areaSize.Z * 0.5
+	)
+	local result = Workspace:Raycast(rayOrigin, Vector3.new(0, -areaSize.Y, 0), session.rayParams)
 	if result == nil then
 		return
 	end
-
-	local spawnPos = result.Position + Vector3.new(0, PowerupConfig.SpawnHeight, 0)
 
 	local part = Instance.new("Part")
 	part.Name = powerupId
 	part:SetAttribute("PowerupId", powerupId)
 	part.Shape = PowerupConfig.ItemShape
-	part.Size = Vector3.new(PowerupConfig.ItemSize, PowerupConfig.ItemSize, PowerupConfig.ItemSize)
+	part.Size = Vector3.one * PowerupConfig.ItemSize
 	part.Color = def.Color
 	part.Material = PowerupConfig.ItemMaterial
 	part.Anchored = true
 	part.CanCollide = false
 	part.CanTouch = false
 	part.CanQuery = false
-	part.CFrame = CFrame.new(spawnPos)
+	part.CFrame = CFrame.new(result.Position + Vector3.yAxis * PowerupConfig.SpawnHeight)
 	part.Parent = session.folder
 
-	session.spawnedFoods[part] = {
-		part = part,
-		powerupId = powerupId,
-		spawnedAt = os.clock(),
-	}
+	session.foods[part] = { powerupId = powerupId, expiresAt = now + PowerupConfig.ItemLifetime }
+	session.foodCount += 1
 end
 
-local function bindCharacter(plr: Player, session: PowerupSession, character: Model)
-	if session.diedConn ~= nil then
-		session.diedConn:Disconnect()
-		session.diedConn = nil
-	end
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if humanoid ~= nil then
-		session.diedConn = humanoid.Died:Connect(function()
-			PowerupService.StopRun(plr)
-		end)
-	end
-	applyScale(plr, session)
+local function removeFood(session: PowerupSession, part: BasePart)
+	session.foods[part] = nil
+	session.foodCount -= 1
+	part:Destroy()
 end
 
-function PowerupService.GetMultipliers(plr: Player): { Speed: number, StainSize: number, Points: number }
-	local speed = 1
-	local stainSize = 1
-	local points = 1
-	local session = sessions[plr]
-	if session ~= nil then
-		local now = os.clock()
-		for id, boost in session.activeBoosts do
-			if boost.ExpiresAt > now then
-				local def = ConfigLookup.GetPowerup(id)
-				if def ~= nil then
-					speed *= def.SpeedMultiplier
-					stainSize *= def.StainSizeMultiplier
-					points *= def.PointsMultiplier
-				end
-			end
+local function eat(session: PowerupSession, powerupId: string, now: number)
+	local plr = session.player
+	local def = ConfigLookup.GetPowerup(powerupId)
+	if def == nil then
+		return
+	end
+
+	if def.TimeBonus > 0 then
+		RunEvents.TimeBonus:Fire(plr, def.TimeBonus)
+	end
+
+	local duration = def.Duration * getDurationMultiplier(plr)
+	if duration > 0 then
+		session.boosts[powerupId] = { Duration = duration, ExpiresAt = now + duration }
+		recompute(session)
+	end
+
+	DataService.IncrementStat(plr, "PowerupsEaten", 1)
+	RunEvents.PowerupEaten:Fire(plr, powerupId)
+	Outbound.PowerupPicked(plr, powerupId)
+	syncState(session, now)
+end
+
+local function step(session: PowerupSession, now: number)
+	local character = session.player.Character
+	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
+	local reach = PowerupConfig.PickupRadius * session.appliedScale
+
+	for part, food in session.foods do
+		if hrp ~= nil and (hrp.Position - part.Position).Magnitude <= reach then
+			removeFood(session, part)
+			eat(session, food.powerupId, now)
+		elseif now >= food.expiresAt then
+			removeFood(session, part)
 		end
 	end
-	return {
-		Speed = speed,
-		StainSize = stainSize,
-		Points = points,
-	}
+
+	local expired = false
+	for id, boost in session.boosts do
+		if now >= boost.ExpiresAt then
+			session.boosts[id] = nil
+			expired = true
+		end
+	end
+	if expired then
+		recompute(session)
+		syncState(session, now)
+	end
+
+	if now >= session.nextSpawnTime then
+		session.nextSpawnTime = now + PowerupConfig.SpawnInterval
+		if session.foodCount < PowerupConfig.MaxActivePerRun then
+			spawnFood(session, now)
+		end
+	end
+
+	if now >= session.nextSyncTime then
+		session.nextSyncTime = now + PowerupConfig.SyncInterval
+		syncState(session, now)
+	end
+end
+
+function PowerupService.GetMultipliers(plr: Player): Multipliers
+	local session = sessions[plr]
+	return if session ~= nil then session.multipliers else NEUTRAL
 end
 
 function PowerupService.StopRun(plr: Player)
@@ -225,157 +251,56 @@ function PowerupService.StopRun(plr: Player)
 	end
 	sessions[plr] = nil
 
-	if session.heartbeatConn ~= nil then
-		session.heartbeatConn:Disconnect()
-		session.heartbeatConn = nil
-	end
-	if session.characterConn ~= nil then
-		session.characterConn:Disconnect()
-		session.characterConn = nil
-	end
-	if session.diedConn ~= nil then
-		session.diedConn:Disconnect()
-		session.diedConn = nil
-	end
-
 	session.folder:Destroy()
-	table.clear(session.spawnedFoods)
-	table.clear(session.activeBoosts)
-
-	if plr.Character ~= nil and plr.Character.Parent ~= nil then
-		pcall(function()
-			plr.Character:ScaleTo(1)
-		end)
+	if session.appliedScale ~= 1 then
+		setCharacterScale(plr, 1)
 	end
-
-	if plr.Parent == Players then
-		Net.PowerupState:FireClient(plr, {})
-	end
+	Outbound.PowerupState(plr, {})
 end
 
 function PowerupService.StartRun(plr: Player, mapModel: Model, mode: ConfigLookup.ModeDefinition)
 	PowerupService.StopRun(plr)
-
 	if not mode.PowerupsEnabled then
 		return
 	end
 
-	local playArea = mapModel:FindFirstChild("PlayArea", true) :: BasePart?
 	local folder = Instance.new("Folder")
 	folder.Name = PowerupConfig.FolderPrefix .. tostring(plr.UserId)
 	folder.Parent = Workspace
 
-	local session: PowerupSession = {
+	local rayParams = RaycastParams.new()
+	rayParams.FilterType = Enum.RaycastFilterType.Include
+	rayParams.FilterDescendantsInstances = { mapModel }
+
+	local now = os.clock()
+	sessions[plr] = {
 		player = plr,
-		mapModel = mapModel,
-		playArea = playArea,
+		playArea = mapModel:FindFirstChild("PlayArea", true) :: BasePart?,
 		folder = folder,
-		spawnedFoods = {},
-		activeBoosts = {},
-		nextSpawnTime = os.clock() + PowerupConfig.FirstSpawnDelay,
-		nextSyncTime = os.clock() + PowerupConfig.SyncInterval,
-		heartbeatConn = nil,
-		characterConn = nil,
-		diedConn = nil,
+		rayParams = rayParams,
+		foods = {},
+		foodCount = 0,
+		boosts = {},
+		multipliers = NEUTRAL,
+		appliedScale = 1,
+		nextSpawnTime = now + PowerupConfig.FirstSpawnDelay,
+		nextSyncTime = now + PowerupConfig.SyncInterval,
 	}
-	sessions[plr] = session
-
-	if plr.Character ~= nil then
-		bindCharacter(plr, session, plr.Character)
-	end
-
-	session.characterConn = plr.CharacterAdded:Connect(function(character)
-		task.defer(function()
-			if sessions[plr] == session then
-				bindCharacter(plr, session, character)
-			end
-		end)
-	end)
-
-	session.heartbeatConn = RunService.Heartbeat:Connect(function()
-		if sessions[plr] ~= session then
-			return
-		end
-		local now = os.clock()
-
-		local character = plr.Character
-		local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
-		if hrp ~= nil then
-			local hrpPos = hrp.Position
-			local foodsSnapshot = table.clone(session.spawnedFoods)
-			for part, food in foodsSnapshot do
-				if session.spawnedFoods[part] ~= nil and (hrpPos - part.Position).Magnitude <= PowerupConfig.PickupRadius then
-					session.spawnedFoods[part] = nil
-					part:Destroy()
-
-					local def = ConfigLookup.GetPowerup(food.powerupId)
-					if def ~= nil then
-						if def.TimeBonus > 0 then
-							RunEvents.TimeBonus:Fire(plr, def.TimeBonus)
-						end
-
-						local durationMult = getDurationMultiplier(plr)
-						local totalDuration = def.Duration * durationMult
-						if totalDuration > 0 then
-							session.activeBoosts[food.powerupId] = {
-								Duration = totalDuration,
-								ExpiresAt = now + totalDuration,
-							}
-							applyScale(plr, session)
-						end
-
-						DataService.IncrementStat(plr, "PowerupsEaten", 1)
-						RunEvents.PowerupEaten:Fire(plr, food.powerupId)
-						Net.PowerupPicked:FireClient(plr, food.powerupId)
-						syncState(plr, session)
-					end
-				end
-			end
-		end
-
-		for part, food in table.clone(session.spawnedFoods) do
-			if now - food.spawnedAt >= PowerupConfig.ItemLifetime then
-				session.spawnedFoods[part] = nil
-				part:Destroy()
-			end
-		end
-
-		local boostExpired = false
-		for id, boost in table.clone(session.activeBoosts) do
-			if now >= boost.ExpiresAt then
-				session.activeBoosts[id] = nil
-				boostExpired = true
-			end
-		end
-		if boostExpired then
-			applyScale(plr, session)
-			syncState(plr, session)
-		end
-
-		if now >= session.nextSpawnTime then
-			session.nextSpawnTime = now + PowerupConfig.SpawnInterval
-			local count = 0
-			for _ in session.spawnedFoods do
-				count += 1
-			end
-			if count < PowerupConfig.MaxActivePerRun then
-				spawnFood(session)
-			end
-		end
-
-		if now >= session.nextSyncTime then
-			session.nextSyncTime = now + PowerupConfig.SyncInterval
-			syncState(plr, session)
-		end
-	end)
 end
 
-Players.PlayerRemoving:Connect(function(plr)
-	PowerupService.StopRun(plr)
+RunService.Heartbeat:Connect(function(dt)
+	tickAccumulator += dt
+	if tickAccumulator < PowerupConfig.TickInterval then
+		return
+	end
+	tickAccumulator = 0
+
+	local now = os.clock()
+	for _, session in sessions do
+		step(session, now)
+	end
 end)
 
-RunEvents.RunEnded:Connect(function(plr, _summary)
-	PowerupService.StopRun(plr)
-end)
+Players.PlayerRemoving:Connect(PowerupService.StopRun)
 
 return PowerupService

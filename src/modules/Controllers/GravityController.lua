@@ -8,6 +8,9 @@
 	move vector projected onto the current surface plane, handles jump requests, resets
 	gravity on teleports, and publishes the current gravity "up" as the GravityUp attribute
 	on the character model.
+	Every probe distance is multiplied by the character's scale (food can grow the poop),
+	surface candidates fall through wall -> ground -> edge until one is accepted, and the root
+	ball is made frictionless so pressing into a surface can never lock it in place.
 
 	Public API: none (the returned function is spawned by runFramework at Priority 2).
 	Dependencies: ReplicatedStorage.Modules.Config.MovementConfig, Players.LocalPlayer,
@@ -75,6 +78,18 @@ local function smoothUp(current: Vector3, target: Vector3, speed: number, dt: nu
 
 	local step = angle * (1 - math.exp(-speed * dt))
 	return (CFrame.fromAxisAngle(axis.Unit, step) * current).Unit
+end
+
+local function steepness(normal: Vector3): number
+	return math.deg(math.acos(math.clamp(normal:Dot(WORLD_UP), -1, 1)))
+end
+
+local function isClimbable(normal: Vector3, fromMovement: boolean): boolean
+	if math.deg(math.acos(math.clamp(normal:Dot(up), -1, 1))) > MovementConfig.MaxClimbAngleDegrees then
+		return false
+	end
+	local onFloor = steepness(up) < MovementConfig.MinWallAngleDegrees
+	return not (fromMovement and onFloor and steepness(normal) < MovementConfig.MinWallAngleDegrees)
 end
 
 local function cast(origin: Vector3, direction: Vector3, distance: number): RaycastResult?
@@ -155,17 +170,31 @@ local function hookPlayerModule()
 	controls = (playerModule :: any):GetControls()
 end
 
-local function refreshExclusions(char: Model)
-	local excluded: { Instance } = { char }
-	for _, descendant in char:GetDescendants() do
-		table.insert(excluded, descendant)
+local function refreshExclusions()
+	local excluded: { Instance } = {}
+	for _, other in Players:GetPlayers() do
+		if other.Character then
+			table.insert(excluded, other.Character)
+		end
 	end
-	for _, descendant in workspace:GetDescendants() do
-		if descendant:IsA("Model") and descendant ~= char and descendant:FindFirstChildOfClass("Humanoid") then
-			table.insert(excluded, descendant)
+	for _, child in workspace:GetChildren() do
+		local npcs = child:FindFirstChild("NPCs")
+		if npcs then
+			table.insert(excluded, npcs)
 		end
 	end
 	raycastParams.FilterDescendantsInstances = excluded
+end
+
+local function applyBodyPhysics(part: BasePart)
+	local current = part.CurrentPhysicalProperties
+	part.CustomPhysicalProperties = PhysicalProperties.new(
+		current.Density,
+		MovementConfig.BodyFriction,
+		MovementConfig.BodyElasticity,
+		MovementConfig.BodyFrictionWeight,
+		MovementConfig.BodyElasticityWeight
+	)
 end
 
 local function teardown()
@@ -222,7 +251,8 @@ local function onCharacterAdded(char: Model)
 	hum.PlatformStand = true
 	hum.AutoRotate = false
 
-	refreshExclusions(char)
+	applyBodyPhysics(part)
+	refreshExclusions()
 
 	local anchor = Instance.new("Attachment")
 	anchor.Name = "GravityAttachment"
@@ -257,6 +287,12 @@ local function onCharacterAdded(char: Model)
 		characterConnections,
 		hum.Died:Connect(function()
 			teardown()
+		end)
+	)
+	table.insert(
+		characterConnections,
+		part:GetPropertyChangedSignal("Size"):Connect(function()
+			applyBodyPhysics(part)
 		end)
 	)
 	table.insert(
@@ -333,58 +369,48 @@ local function update(dt: number)
 		end
 	end
 
+	local scale = char:GetScale()
 	local canStick = timeSinceJump > MovementConfig.JumpCooldown
+	local probing = moving and probeDirection.Magnitude > MovementConfig.ProbeMinInput
 	local candidate: Vector3? = nil
-	local fromMovement = false
 
 	if canStick then
-		if moving and probeDirection.Magnitude > MovementConfig.ProbeMinInput then
-			local wallReach = MovementConfig.WallProbeDistance / math.max(MovementConfig.WallClimbHeadOnDot, 0.01)
+		if probing then
+			local wallProbe = MovementConfig.WallProbeDistance * scale
+			local wallReach = wallProbe / math.max(MovementConfig.WallClimbHeadOnDot, 0.01)
 			local wallHit = cast(position, probeDirection, wallReach)
 			if wallHit then
 				local headOn = -wallHit.Normal:Dot(probeDirection)
-				local perpendicular = wallHit.Distance * headOn
 				if
 					headOn >= MovementConfig.WallClimbHeadOnDot
-					and perpendicular <= MovementConfig.WallProbeDistance
+					and wallHit.Distance * headOn <= wallProbe
+					and isClimbable(wallHit.Normal, true)
 				then
 					candidate = wallHit.Normal
-					fromMovement = true
 				end
 			end
 		end
 
 		if not candidate then
-			local groundHit = cast(position, -up, MovementConfig.GroundProbeDistance)
-			if groundHit then
+			local groundHit = cast(position, -up, MovementConfig.GroundProbeDistance * scale)
+			if groundHit and isClimbable(groundHit.Normal, false) then
 				candidate = groundHit.Normal
 			end
 		end
 
-		if not candidate and moving and probeDirection.Magnitude > MovementConfig.ProbeMinInput then
-			local edgeOrigin = position + up * MovementConfig.EdgeProbeUpOffset
+		if not candidate and probing then
+			local edgeOrigin = position + up * (MovementConfig.EdgeProbeUpOffset * scale)
 			local edgeDirection = probeDirection - up * MovementConfig.EdgeProbeDownBias
-			local edgeHit = cast(edgeOrigin, edgeDirection, MovementConfig.EdgeProbeDistance)
-			if edgeHit then
+			local edgeHit = cast(edgeOrigin, edgeDirection, MovementConfig.EdgeProbeDistance * scale)
+			if edgeHit and isClimbable(edgeHit.Normal, true) then
 				candidate = edgeHit.Normal
-				fromMovement = true
 			end
-		end
-	end
-
-	if candidate then
-		local angleDegrees = math.deg(math.acos(math.clamp(candidate:Dot(up), -1, 1)))
-		local steepnessDegrees = math.deg(math.acos(math.clamp(candidate:Dot(WORLD_UP), -1, 1)))
-		local blocked = angleDegrees > MovementConfig.MaxClimbAngleDegrees
-			or (fromMovement and steepnessDegrees < MovementConfig.MinWallAngleDegrees)
-		if blocked then
-			candidate = nil
 		end
 	end
 
 	local targetUp = up
 	if candidate then
-		targetUp = candidate
+		targetUp = candidate :: Vector3
 		grounded = true
 		airborneTime = 0
 	else
@@ -485,6 +511,18 @@ return function()
 	player.CharacterAdded:Connect(function(char)
 		task.spawn(onCharacterAdded, char)
 	end)
+	Players.PlayerAdded:Connect(function(other)
+		other.CharacterAdded:Connect(function()
+			task.defer(refreshExclusions)
+		end)
+	end)
+	for _, other in Players:GetPlayers() do
+		if other ~= player then
+			other.CharacterAdded:Connect(function()
+				task.defer(refreshExclusions)
+			end)
+		end
+	end
 	player.CharacterRemoving:Connect(function()
 		teardown()
 	end)

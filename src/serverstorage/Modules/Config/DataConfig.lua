@@ -22,7 +22,6 @@
 			Stats.ObjectsSoiled: objects fully soiled across all runs (count)
 			Stats.PowerupsEaten: food items eaten across all runs (count)
 			Stats.QuestsCompleted: quests completed across all runs (count)
-		PurchaseRateLimit: minimum time between two purchase requests from one player (seconds)
 		ShutdownSaveWait: time the server waits for saves when it shuts down (seconds)
 		HumanoidWaitTimeout: how long to wait for a character's Humanoid to appear (seconds)
 		LoadFailedKick: kick message when the save cannot be loaded (text)
@@ -57,7 +56,6 @@ DataConfig.Template = {
 	},
 }
 
-DataConfig.PurchaseRateLimit = 0.2
 DataConfig.ShutdownSaveWait = 2
 DataConfig.HumanoidWaitTimeout = 5
 

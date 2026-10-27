@@ -6,7 +6,7 @@
 	(icon, label, value).
 
 	Props: data (DataController state), ui (useUIScale result), onClose
-	Dependencies: React, UIConfig, Primitives, Inset, Window, Format
+	Dependencies: React, UIConfig, Primitives, Inset, Window, WindowSize, Format
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,6 +18,7 @@ local Format = require(Components.Format)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
 local Window = require(Components.Window)
+local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
 local Palette = UIConfig.Palette
@@ -27,9 +28,7 @@ local TextSizes = UIConfig.TextSizes
 
 return function(props: any)
 	local ui = props.ui
-	local margin = UIConfig.Layouts[if ui.mobile then "Mobile" else "PC"].WindowMargin
-	local width = math.min(Sizes.Width, ui.width - margin * 2)
-	local height = math.min(Sizes.Height, ui.height - margin * 2 - UIConfig.Sizes.Window.HeaderHeight / 2)
+	local width, height = WindowSize.fit(ui, Sizes.Width, Sizes.Height)
 
 	local rows = {
 		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2),
@@ -74,13 +73,6 @@ return function(props: any)
 		title = UIConfig.Text.StatsTitle,
 		width = width,
 	}, {
-		Scroll = e("ScrollingFrame", {
-			AutomaticCanvasSize = Enum.AutomaticSize.Y,
-			BackgroundTransparency = 1,
-			BorderSizePixel = 0,
-			CanvasSize = UDim2.new(),
-			ScrollBarThickness = 0,
-			Size = UDim2.fromScale(1, 1),
-		}, rows),
+		Scroll = Primitives.scroll({}, rows),
 	})
 end

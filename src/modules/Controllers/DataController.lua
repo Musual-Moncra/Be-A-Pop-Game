@@ -3,7 +3,8 @@
 --[[
 	DataController
 	Client store for every server packet that feeds the UI. Priority 1 so it is
-	required before the screens mount.
+	required before the screens mount. Packets arriving in the same frame are folded
+	into one deferred Changed fire, so the React tree re-renders once per frame at most.
 
 	API:
 		DataController.Get() -> State
@@ -164,10 +165,19 @@ local function defaultState(): State
 end
 
 local state = defaultState()
+local publishScheduled = false
 
-local function publish()
+local function flush()
+	publishScheduled = false
 	state = table.clone(state)
 	DataController.Changed:Fire(state)
+end
+
+local function publish()
+	if not publishScheduled then
+		publishScheduled = true
+		task.defer(flush)
+	end
 end
 
 local function cleanUpgrades(source: any): { [string]: number }
@@ -432,12 +442,7 @@ Net.RunEnded.OnClientEvent:Connect(function(summary: any)
 		cleaned.QuestGems = tonumber(summary.QuestGems) or cleaned.QuestGems
 		cleaned.BonusCoins = tonumber(summary.BonusCoins) or cleaned.BonusCoins
 		cleaned.BonusGems = tonumber(summary.BonusGems) or cleaned.BonusGems
-		local leveledUp = summary.LeveledUp
-		if type(leveledUp) == "number" then
-			cleaned.LeveledUp = leveledUp
-		elseif leveledUp == true then
-			cleaned.LeveledUp = 1
-		end
+		cleaned.LeveledUp = tonumber(summary.LeveledUp) or cleaned.LeveledUp
 		cleaned.NewLevel = tonumber(summary.NewLevel) or cleaned.NewLevel
 		cleaned.OutOfTime = summary.OutOfTime == true
 	end

@@ -6,7 +6,7 @@
 	reached, quests done and objects soiled, and a CONTINUE button that clears the result.
 
 	Props: data (DataController state with LastRun), ui (useUIScale result)
-	Dependencies: React, UIConfig, DataController, Primitives, ChunkyButton, Chip, Inset, Window, Format
+	Dependencies: React, UIConfig, DataController, Primitives, ChunkyButton, Chip, Inset, Window, WindowSize, Format
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,6 +21,7 @@ local Format = require(Components.Format)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
 local Window = require(Components.Window)
+local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
 local Palette = UIConfig.Palette
@@ -66,9 +67,6 @@ end
 return function(props: any)
 	local summary = props.data.LastRun
 	local ui = props.ui
-	local margin = UIConfig.Layouts[if ui.mobile then "Mobile" else "PC"].WindowMargin
-	local width = math.min(Sizes.Width, ui.width - margin * 2)
-	local height = math.min(Sizes.Height, ui.height - margin * 2 - UIConfig.Sizes.Window.HeaderHeight / 2)
 
 	React.useEffect(function()
 		if UIConfig.Animation.ResultAutoCloseSeconds <= 0 then
@@ -129,6 +127,23 @@ return function(props: any)
 			textSize = TextSizes.Body,
 		})
 	end
+
+	local badgeCount = 0
+	for key in badges do
+		if key ~= "Layout" then
+			badgeCount += 1
+		end
+	end
+	local badgeRows = math.ceil(badgeCount / Sizes.BadgesPerRow)
+	local items = if badgeRows > 0 then 7 else 6
+	local contentHeight = TextSizes.Body
+		+ TextSizes.Huge
+		+ Shape.Stroke * 2
+		+ Sizes.RowHeight * 3
+		+ UIConfig.Sizes.Play.PlayButtonHeight
+		+ badgeRows * (Sizes.BadgeHeight + Shape.Stroke * 2)
+		+ (items - 1) * Gap / 2
+	local width, height = WindowSize.fit(ui, Sizes.Width, contentHeight + WindowSize.chrome())
 
 	return e(Window, {
 		height = height,
