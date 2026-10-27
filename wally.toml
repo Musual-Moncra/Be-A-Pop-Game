@@ -1,0 +1,19 @@
+[package]
+name = "musual/pop-do-all"
+version = "0.1.0"
+authors = ["Musual"]
+description = "Be A Pop (Do All) - Wally dependencies"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+private = true
+
+[dependencies]
+React = "roblox/react@17.3.9"
+ReactRoblox = "roblox/react-roblox@17.3.9"
+Signal = "sleitnick/signal@2.0.3"
+Trove = "sleitnick/trove@1.8.0"
+Promise = "evaera/promise@4.0.0"
+Packet = "kashtheking/packet@1.0.0"
+
+[server-dependencies]
+ProfileStore = "lm-loleris/profilestore@1.0.3"

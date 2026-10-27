@@ -1,0 +1,8 @@
+# Toolchain for this project. Install everything with: rokit install
+# Versions are pinned to what is known to work with this repo.
+
+[tools]
+rojo = "rojo-rbx/rojo@7.7.1"
+wally = "upliftgames/wally@0.4.0-alpha.0"
+selene = "kampfkarren/selene@0.28.0"
+stylua = "johnnymorganz/stylua@2.1.0"

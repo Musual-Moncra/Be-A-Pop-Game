@@ -1,0 +1,7047 @@
+{
+  "className": "Model",
+  "children": [
+    {
+      "name": "Floor",
+      "className": "Model",
+      "children": [
+        {
+          "name": "Tile_0_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_0_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_0_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_0_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_0_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_0_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_0_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_0_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_0_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_0_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -36.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_1_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -28.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_2_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_3_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -12.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_4_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -4.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_5_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  4.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_6_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  12.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_7_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  20.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_8_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  28.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_0",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  -36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_1",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  -28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_2",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  -20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_3",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  -12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_4",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  -4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_5",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  4.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_6",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  12.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_7",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  20.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_8",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  28.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Tile_9_9",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              8,
+              2,
+              8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  36.0,
+                  0.0,
+                  36.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.8392,
+              0.9255,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Walls",
+      "className": "Model",
+      "children": [
+        {
+          "name": "WallNorth",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              84,
+              22,
+              2
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  12.0,
+                  -41.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.549,
+              0.8,
+              0.9216
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "WallSouth",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              84,
+              22,
+              2
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  12.0,
+                  41.0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.549,
+              0.8,
+              0.9216
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "WallEast",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              2,
+              22,
+              80
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  41.0,
+                  12.0,
+                  0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.549,
+              0.8,
+              0.9216
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "WallWest",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              2,
+              22,
+              80
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -41.0,
+                  12.0,
+                  0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.549,
+              0.8,
+              0.9216
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "TrimNorth",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              80,
+              1.5,
+              0.1
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  1.75,
+                  -39.95
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.9725,
+              0.9725,
+              0.9804
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "TrimSouth",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              80,
+              1.5,
+              0.1
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  1.75,
+                  39.95
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.9725,
+              0.9725,
+              0.9804
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "TrimEast",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              0.1,
+              1.5,
+              80
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  39.95,
+                  1.75,
+                  0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.9725,
+              0.9725,
+              0.9804
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "TrimWest",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              0.1,
+              1.5,
+              80
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -39.95,
+                  1.75,
+                  0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.9725,
+              0.9725,
+              0.9804
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Ceiling",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              84,
+              2,
+              84
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  24.0,
+                  0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.9255,
+              0.9647,
+              0.9882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth",
+            "CastShadow": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "SpawnLocation",
+      "className": "SpawnLocation",
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "Size": [
+          8,
+          1,
+          8
+        ],
+        "CFrame": {
+          "CFrame": {
+            "position": [
+              0,
+              1.1,
+              0
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        },
+        "Color": [
+          1.0,
+          0.8863,
+          0.4706
+        ],
+        "Material": "SmoothPlastic",
+        "TopSurface": "Smooth",
+        "BottomSurface": "Smooth",
+        "Duration": 0,
+        "Neutral": true
+      }
+    },
+    {
+      "name": "PortalTrail",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "Size": [
+          5,
+          0.1,
+          18
+        ],
+        "CFrame": {
+          "CFrame": {
+            "position": [
+              0,
+              1.05,
+              14
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        },
+        "Color": [
+          0.4784,
+          0.2902,
+          0.1333
+        ],
+        "Material": "SmoothPlastic",
+        "TopSurface": "Smooth",
+        "BottomSurface": "Smooth"
+      }
+    },
+    {
+      "name": "Portal",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "Size": [
+          8,
+          11,
+          1
+        ],
+        "CFrame": {
+          "CFrame": {
+            "position": [
+              0,
+              6.5,
+              28
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        },
+        "Color": [
+          0.6,
+          0.2,
+          0.902
+        ],
+        "Material": "Neon",
+        "TopSurface": "Smooth",
+        "BottomSurface": "Smooth",
+        "Transparency": 0.25
+      }
+    },
+    {
+      "name": "PortalArch",
+      "className": "Model",
+      "children": [
+        {
+          "name": "PipeLeft",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              12,
+              4,
+              4
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -6,
+                  7.0,
+                  28
+                ],
+                "orientation": [
+                  [
+                    0,
+                    -1,
+                    0
+                  ],
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.3373,
+              0.7294,
+              0.3608
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth",
+            "Shape": "Cylinder"
+          }
+        },
+        {
+          "name": "PipeRight",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              12,
+              4,
+              4
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  6,
+                  7.0,
+                  28
+                ],
+                "orientation": [
+                  [
+                    0,
+                    -1,
+                    0
+                  ],
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.3373,
+              0.7294,
+              0.3608
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth",
+            "Shape": "Cylinder"
+          }
+        },
+        {
+          "name": "PipeTop",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              16,
+              4,
+              4
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  14.0,
+                  28
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.3373,
+              0.7294,
+              0.3608
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth",
+            "Shape": "Cylinder"
+          }
+        },
+        {
+          "name": "PipeCapLeft",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              2,
+              5,
+              5
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -8.5,
+                  14.0,
+                  28
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.2353,
+              0.5882,
+              0.2745
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth",
+            "Shape": "Cylinder"
+          }
+        },
+        {
+          "name": "PipeCapRight",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              2,
+              5,
+              5
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  8.5,
+                  14.0,
+                  28
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.2353,
+              0.5882,
+              0.2745
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth",
+            "Shape": "Cylinder"
+          }
+        },
+        {
+          "name": "PlaySign",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              14,
+              3.5,
+              0.5
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  18.5,
+                  27
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              0.8392,
+              0.3137
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "children": [
+            {
+              "name": "SurfaceGui",
+              "className": "SurfaceGui",
+              "properties": {
+                "Face": "Front",
+                "SizingMode": "PixelsPerStud",
+                "PixelsPerStud": 40,
+                "LightInfluence": 0
+              },
+              "children": [
+                {
+                  "name": "Label",
+                  "className": "TextLabel",
+                  "properties": {
+                    "Size": {
+                      "UDim2": [
+                        [
+                          1,
+                          0
+                        ],
+                        [
+                          1,
+                          0
+                        ]
+                      ]
+                    },
+                    "BackgroundTransparency": 1,
+                    "Text": "PLAY  >  KITCHEN",
+                    "TextScaled": true,
+                    "TextColor3": [
+                      0.3294,
+                      0.1961,
+                      0.0863
+                    ],
+                    "FontFace": {
+                      "Font": {
+                        "family": "rbxasset://fonts/families/FredokaOne.json",
+                        "weight": "Regular",
+                        "style": "Normal"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "UpgradeStand",
+      "className": "Model",
+      "children": [
+        {
+          "name": "Counter",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              12,
+              4,
+              4
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -26,
+                  3.0,
+                  10
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.7216,
+              0.5176,
+              0.3373
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "CounterTop",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              12,
+              0.5,
+              4
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -26,
+                  5.25,
+                  10
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              0.8392,
+              0.3137
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "PostLeft",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              0.8,
+              9,
+              0.8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -31.5,
+                  5.5,
+                  11.5
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.4706,
+              0.3216,
+              0.2039
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "PostRight",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              0.8,
+              9,
+              0.8
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -20.5,
+                  5.5,
+                  11.5
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.4706,
+              0.3216,
+              0.2039
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Sign",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              12,
+              3,
+              0.5
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -26,
+                  11.5,
+                  11.5
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              0.8392,
+              0.3137
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "children": [
+            {
+              "name": "SurfaceGui",
+              "className": "SurfaceGui",
+              "properties": {
+                "Face": "Front",
+                "SizingMode": "PixelsPerStud",
+                "PixelsPerStud": 40,
+                "LightInfluence": 0
+              },
+              "children": [
+                {
+                  "name": "Label",
+                  "className": "TextLabel",
+                  "properties": {
+                    "Size": {
+                      "UDim2": [
+                        [
+                          1,
+                          0
+                        ],
+                        [
+                          1,
+                          0
+                        ]
+                      ]
+                    },
+                    "BackgroundTransparency": 1,
+                    "Text": "UPGRADES",
+                    "TextScaled": true,
+                    "TextColor3": [
+                      0.3294,
+                      0.1961,
+                      0.0863
+                    ],
+                    "FontFace": {
+                      "Font": {
+                        "family": "rbxasset://fonts/families/FredokaOne.json",
+                        "weight": "Regular",
+                        "style": "Normal"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LeaderboardBoard",
+      "className": "Model",
+      "children": [
+        {
+          "name": "Frame",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              1,
+              14,
+              18
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  38.5,
+                  8.0,
+                  4
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.4706,
+              0.3216,
+              0.2039
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          }
+        },
+        {
+          "name": "Board",
+          "className": "Part",
+          "properties": {
+            "Anchored": true,
+            "CanCollide": true,
+            "Size": [
+              0.4,
+              12.5,
+              16.5
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  37.8,
+                  8.0,
+                  4
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.1569,
+              0.2196,
+              0.3137
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "children": [
+            {
+              "name": "SurfaceGui",
+              "className": "SurfaceGui",
+              "properties": {
+                "Face": "Left",
+                "SizingMode": "PixelsPerStud",
+                "PixelsPerStud": 40,
+                "LightInfluence": 0
+              },
+              "children": [
+                {
+                  "name": "Label",
+                  "className": "TextLabel",
+                  "properties": {
+                    "Size": {
+                      "UDim2": [
+                        [
+                          1,
+                          0
+                        ],
+                        [
+                          1,
+                          0
+                        ]
+                      ]
+                    },
+                    "BackgroundTransparency": 1,
+                    "Text": "TOP POOPERS\n(coming soon)",
+                    "TextScaled": true,
+                    "TextColor3": [
+                      0.9725,
+                      0.9725,
+                      0.9804
+                    ],
+                    "FontFace": {
+                      "Font": {
+                        "family": "rbxasset://fonts/families/FredokaOne.json",
+                        "weight": "Regular",
+                        "style": "Normal"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Decor",
+      "className": "Model",
+      "children": [
+        {
+          "name": "GiantToilet",
+          "className": "Model",
+          "children": [
+            {
+              "name": "Base",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  4,
+                  6,
+                  6
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      -28,
+                      3.0,
+                      -28
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.9725,
+                  0.9725,
+                  0.9804
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            },
+            {
+              "name": "Bowl",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  3,
+                  11,
+                  11
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      -28,
+                      6.5,
+                      -28
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.9725,
+                  0.9725,
+                  0.9804
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            },
+            {
+              "name": "Water",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  0.2,
+                  8,
+                  8
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      -28,
+                      8.0,
+                      -28
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.4706,
+                  0.7843,
+                  0.9412
+                ],
+                "Material": "Glass",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder",
+                "Transparency": 0.2
+              }
+            },
+            {
+              "name": "Seat",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  0.6,
+                  11.6,
+                  11.6
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      -28,
+                      8.3,
+                      -28
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  1.0,
+                  0.8392,
+                  0.3137
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            },
+            {
+              "name": "Tank",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  12,
+                  9,
+                  4
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      -28,
+                      9.5,
+                      -35.5
+                    ],
+                    "orientation": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.9725,
+                  0.9725,
+                  0.9804
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth"
+              }
+            },
+            {
+              "name": "TankLid",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  12,
+                  0.8,
+                  4
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      -28,
+                      14.4,
+                      -35.5
+                    ],
+                    "orientation": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.9725,
+                  0.9725,
+                  0.9804
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth"
+              }
+            },
+            {
+              "name": "Flush",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  2,
+                  0.6,
+                  0.6
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      -24,
+                      12.3,
+                      -33.3
+                    ],
+                    "orientation": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.698,
+                  0.7216,
+                  0.7529
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth"
+              }
+            }
+          ]
+        },
+        {
+          "name": "ToiletPaper",
+          "className": "Model",
+          "children": [
+            {
+              "name": "RollA",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  8,
+                  7,
+                  7
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      27,
+                      5.0,
+                      -30
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.9725,
+                  0.9725,
+                  0.9804
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            },
+            {
+              "name": "CoreA",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  8.1,
+                  2.4,
+                  2.4
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      27,
+                      5.05,
+                      -30
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.7686,
+                  0.6275,
+                  0.4314
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            },
+            {
+              "name": "RollB",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  8,
+                  7,
+                  7
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      33,
+                      5.0,
+                      -24
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.9725,
+                  0.9725,
+                  0.9804
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            },
+            {
+              "name": "CoreB",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  8.1,
+                  2.4,
+                  2.4
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      33,
+                      5.05,
+                      -24
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.7686,
+                  0.6275,
+                  0.4314
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            },
+            {
+              "name": "RollC",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  8,
+                  7,
+                  7
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      30,
+                      13.0,
+                      -27
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.9725,
+                  0.9725,
+                  0.9804
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            },
+            {
+              "name": "CoreC",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  8.1,
+                  2.4,
+                  2.4
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      30,
+                      13.05,
+                      -27
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.7686,
+                  0.6275,
+                  0.4314
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            }
+          ]
+        },
+        {
+          "name": "RubberDuck",
+          "className": "Model",
+          "children": [
+            {
+              "name": "Body",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  6,
+                  5,
+                  7
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      18,
+                      3.5,
+                      -8
+                    ],
+                    "orientation": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  1.0,
+                  0.8235,
+                  0.1961
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Ball"
+              }
+            },
+            {
+              "name": "Head",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  4,
+                  4,
+                  4
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      18,
+                      7.0,
+                      -10.5
+                    ],
+                    "orientation": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  1.0,
+                  0.8235,
+                  0.1961
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Ball"
+              }
+            },
+            {
+              "name": "Beak",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  2,
+                  0.8,
+                  1.6
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      18,
+                      6.6,
+                      -12.6
+                    ],
+                    "orientation": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  1.0,
+                  0.549,
+                  0.1569
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth"
+              }
+            },
+            {
+              "name": "EyeLeft",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  0.6,
+                  0.6,
+                  0.6
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      17,
+                      7.6,
+                      -12.3
+                    ],
+                    "orientation": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.1569,
+                  0.1569,
+                  0.1804
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Ball"
+              }
+            },
+            {
+              "name": "EyeRight",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  0.6,
+                  0.6,
+                  0.6
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      19,
+                      7.6,
+                      -12.3
+                    ],
+                    "orientation": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.1569,
+                  0.1569,
+                  0.1804
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Ball"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Plunger",
+          "className": "Model",
+          "children": [
+            {
+              "name": "Cup",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  1.6,
+                  4,
+                  4
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      -18,
+                      1.8,
+                      -32
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.8627,
+                  0.1961,
+                  0.2353
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            },
+            {
+              "name": "Handle",
+              "className": "Part",
+              "properties": {
+                "Anchored": true,
+                "CanCollide": true,
+                "Size": [
+                  9,
+                  0.8,
+                  0.8
+                ],
+                "CFrame": {
+                  "CFrame": {
+                    "position": [
+                      -18,
+                      7.1,
+                      -32
+                    ],
+                    "orientation": [
+                      [
+                        0,
+                        -1,
+                        0
+                      ],
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        0,
+                        1
+                      ]
+                    ]
+                  }
+                },
+                "Color": [
+                  0.7216,
+                  0.5176,
+                  0.3373
+                ],
+                "Material": "SmoothPlastic",
+                "TopSurface": "Smooth",
+                "BottomSurface": "Smooth",
+                "Shape": "Cylinder"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

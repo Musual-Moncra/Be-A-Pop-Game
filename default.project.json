@@ -1,0 +1,87 @@
+{
+  "name": "( Project ) Be A Pop (Do All )",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Packages": {
+        "$path": "Packages"
+      },
+      "Modules": {
+        "$path": "src/modules"
+      }
+    },
+    "ServerScriptService": {
+      "$path": "src/server"
+    },
+    "ServerStorage": {
+      "Packages": {
+        "$path": "ServerPackages"
+      },
+      "Modules": {
+        "$path": "src/serverstorage/Modules"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$path": "src/client"
+      },
+      "StarterCharacter": {
+        "$path": "src/character/StarterCharacter.model.json"
+      },
+      "StarterCharacterScripts": {
+        "$path": "src/characterscripts"
+      }
+    },
+    "Workspace": {
+      "$properties": {
+        "FilteringEnabled": true
+      },
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Anchored": true,
+          "Color": [
+            0.38823,
+            0.37254,
+            0.38823
+          ],
+          "Locked": true,
+          "Position": [
+            0,
+            -10,
+            0
+          ],
+          "Size": [
+            512,
+            20,
+            512
+          ]
+        }
+      },
+      "Lobby": {
+        "$path": "src/workspace/Lobby.model.json"
+      },
+      "Zone1": {
+        "$path": "src/workspace/Zone1.model.json"
+      }
+    },
+    "Lighting": {
+      "$properties": {
+        "Ambient": [
+          0,
+          0,
+          0
+        ],
+        "Brightness": 2,
+        "GlobalShadows": true,
+        "Outlines": false,
+        "Technology": "Voxel"
+      }
+    },
+    "SoundService": {
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    }
+  }
+}

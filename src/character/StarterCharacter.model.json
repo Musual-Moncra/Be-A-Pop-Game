@@ -1,0 +1,934 @@
+{
+  "className": "Model",
+  "properties": {},
+  "attributes": {
+    "Rojo_Target_PrimaryPart": "poop_hrp"
+  },
+  "children": [
+    {
+      "name": "HumanoidRootPart",
+      "className": "Part",
+      "attributes": {
+        "Rojo_Id": "poop_hrp"
+      },
+      "properties": {
+        "Anchored": false,
+        "CanCollide": true,
+        "Transparency": 1,
+        "Size": [
+          3.5,
+          3.5,
+          3.5
+        ],
+        "Shape": "Ball",
+        "CFrame": {
+          "CFrame": {
+            "position": [
+              0,
+              1.75,
+              0
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        }
+      },
+      "children": [
+        {
+          "name": "RootAttachment",
+          "className": "Attachment",
+          "properties": {}
+        }
+      ]
+    },
+    {
+      "name": "Humanoid",
+      "className": "Humanoid",
+      "properties": {
+        "HipHeight": 0,
+        "RequiresNeck": false,
+        "BreakJointsOnDeath": false,
+        "DisplayDistanceType": "None",
+        "WalkSpeed": 16,
+        "UseJumpPower": true,
+        "JumpPower": 50
+      }
+    },
+    {
+      "name": "Body",
+      "className": "Model",
+      "children": [
+        {
+          "name": "TierBottom",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              4.4,
+              1.9,
+              4.4
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  0.95,
+                  0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.4784,
+              0.2902,
+              0.1333
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "attributes": {
+            "Rojo_Id": "poop_TierBottom"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_TierBottom"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "TierMiddle",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              3.5,
+              1.7,
+              3.5
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  2.05,
+                  0
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.5412,
+              0.3373,
+              0.1569
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "attributes": {
+            "Rojo_Id": "poop_TierMiddle"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_TierMiddle"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "TierTop",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              2.4,
+              1.5,
+              2.4
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0.1,
+                  3.0,
+                  0.05
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.6118,
+              0.3922,
+              0.1882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "attributes": {
+            "Rojo_Id": "poop_TierTop"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_TierTop"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tip",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              1.1,
+              1.2,
+              1.1
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0.35,
+                  3.8,
+                  0.1
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.6118,
+              0.3922,
+              0.1882
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "attributes": {
+            "Rojo_Id": "poop_Tip"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_Tip"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Shine",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              0.7,
+              0.45,
+              0.5
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -0.45,
+                  3.35,
+                  -0.75
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth",
+            "Transparency": 0.45
+          },
+          "attributes": {
+            "Rojo_Id": "poop_Shine"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_Shine"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "EyeLeft",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              0.85,
+              1.0,
+              0.45
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -0.6,
+                  2.25,
+                  -1.5
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "attributes": {
+            "Rojo_Id": "poop_EyeLeft"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_EyeLeft"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "EyeRight",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              0.85,
+              1.0,
+              0.45
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0.6,
+                  2.25,
+                  -1.5
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "attributes": {
+            "Rojo_Id": "poop_EyeRight"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_EyeRight"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PupilLeft",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              0.42,
+              0.5,
+              0.25
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -0.55,
+                  2.2,
+                  -1.72
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.1098,
+              0.0863,
+              0.0706
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "attributes": {
+            "Rojo_Id": "poop_PupilLeft"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_PupilLeft"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PupilRight",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              0.42,
+              0.5,
+              0.25
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0.55,
+                  2.2,
+                  -1.72
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.1098,
+              0.0863,
+              0.0706
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "attributes": {
+            "Rojo_Id": "poop_PupilRight"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_PupilRight"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mouth",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              1.0,
+              0.5,
+              0.3
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  0,
+                  1.45,
+                  -1.9
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.1098,
+              0.0863,
+              0.0706
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth"
+          },
+          "attributes": {
+            "Rojo_Id": "poop_Mouth"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_Mouth"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "CheekLeft",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              0.5,
+              0.3,
+              0.2
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  -1.15,
+                  1.7,
+                  -1.75
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.9412,
+              0.5098,
+              0.549
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth",
+            "Transparency": 0.2
+          },
+          "attributes": {
+            "Rojo_Id": "poop_CheekLeft"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_CheekLeft"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        },
+        {
+          "name": "CheekRight",
+          "className": "Part",
+          "properties": {
+            "Anchored": false,
+            "CanCollide": false,
+            "CanQuery": false,
+            "CanTouch": false,
+            "Massless": true,
+            "CastShadow": true,
+            "Size": [
+              0.5,
+              0.3,
+              0.2
+            ],
+            "CFrame": {
+              "CFrame": {
+                "position": [
+                  1.15,
+                  1.7,
+                  -1.75
+                ],
+                "orientation": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ],
+                  [
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              }
+            },
+            "Color": [
+              0.9412,
+              0.5098,
+              0.549
+            ],
+            "Material": "SmoothPlastic",
+            "TopSurface": "Smooth",
+            "BottomSurface": "Smooth",
+            "Transparency": 0.2
+          },
+          "attributes": {
+            "Rojo_Id": "poop_CheekRight"
+          },
+          "children": [
+            {
+              "name": "Weld",
+              "className": "WeldConstraint",
+              "attributes": {
+                "Rojo_Target_Part0": "poop_hrp",
+                "Rojo_Target_Part1": "poop_CheekRight"
+              }
+            },
+            {
+              "name": "Mesh",
+              "className": "SpecialMesh",
+              "properties": {
+                "MeshType": "Sphere"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
