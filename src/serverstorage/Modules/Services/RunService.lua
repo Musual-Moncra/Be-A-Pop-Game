@@ -2,20 +2,18 @@
 
 --[[
 	RunService
-	Coordinates map/mode selection, gameplay runs, wall/ceiling surface stains,
-	scoring, lifespan countdown, and reward payout.
+	Owns active runs: lifespan, staining, area scoring, object soiling, NPC catches,
+	timed bonuses, rewards and the run result packet.
 
 	API:
 		RunService.StartRun(plr: Player): boolean
 		RunService.EndRun(plr: Player, outOfTime: boolean)
 		RunService.IsPlayerInRun(plr: Player): boolean
 		RunService.GetRun(plr: Player): ActiveRun?
-		RunService.SelectRun(plr: Player, mapId: string, modeId: string): boolean
-		RunService.GetSelection(plr: Player): { mapId: string, modeId: string }
 
 	Dependencies:
-		DataService, UpgradeService, GameConfig, UpgradeConfig, MapConfig,
-		ModeConfig, RunConfig, Net, Trove
+		DataService, UpgradeService, MapService, RunEvents, PowerupService?, QuestService?,
+		ConfigLookup, GameConfig, MapConfig, ModeConfig, ObjectConfig, RunConfig, MessageConfig, DataConfig, Net, Trove
 ]]
 
 local Players = game:GetService("Players")
@@ -26,28 +24,42 @@ local Workspace = game:GetService("Workspace")
 local Services = ServerStorage.Modules.Services
 local DataService = require(Services.DataService)
 local UpgradeService = require(Services.UpgradeService)
+local MapService = require(Services.MapService)
+local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
-local UpgradeConfig = require(ReplicatedStorage.Modules.Config.UpgradeConfig)
 local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
+local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
+local ObjectConfig = require(ReplicatedStorage.Modules.Config.ObjectConfig)
 local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
+local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
 local Trove = require(ReplicatedStorage.Packages.Trove)
+
+local DataConfig = require(script.Parent.Parent.Config.DataConfig)
 
 export type ActiveRun = {
 	player: Player,
 	trove: any,
-	mapId: string,
-	modeId: string,
+	mapDef: ConfigLookup.MapDefinition,
+	modeDef: ConfigLookup.ModeDefinition,
+	mapModel: Model?,
+	hasTimer: boolean,
 	timeLeft: number,
 	elapsedTime: number,
 	score: number,
 	visitedCells: { [string]: boolean },
+	objectStains: { [Model]: number },
+	objectsSoiled: number,
 	stainParts: { BasePart },
 	stainFolder: Folder,
 	stainTimer: number,
 	syncTimer: number,
+	npcCooldown: number,
+	targetReached: boolean,
+	powerupsStarted: boolean,
+	questsStarted: boolean,
 	active: boolean,
 }
 
@@ -55,14 +67,80 @@ local RunService = {}
 
 local activeRuns: { [Player]: ActiveRun } = {}
 local portalDebounce: { [Player]: number } = {}
-local playerSelections: { [Player]: { mapId: string, modeId: string } } = {}
 
-local function getUpgradeLevel(plr: Player, id: string): number
-	local data = DataService.Get(plr)
-	if data == nil or data.Upgrades == nil then
-		return 0
+local function optionalRequire(name: string): any
+	local module = Services:FindFirstChild(name)
+	if module == nil or not module:IsA("ModuleScript") then
+		return nil
 	end
-	return data.Upgrades[id] or 0
+	local ok, result = pcall(require, module)
+	if not ok then
+		warn(`{name} failed to load: {result}`)
+		return nil
+	end
+	return result
+end
+
+local PowerupService = optionalRequire("PowerupService")
+local QuestService = optionalRequire("QuestService")
+
+local function getUpgradeValue(plr: Player, id: string): number
+	local data = DataService.Get(plr)
+	local level = 0
+	if data ~= nil and data.Upgrades ~= nil then
+		level = data.Upgrades[id] or 0
+	end
+	return ConfigLookup.GetUpgradeValue(id, level)
+end
+
+local function getMultipliers(plr: Player): { Speed: number, StainSize: number, Points: number }
+	local defaults = { Speed = 1, StainSize = 1, Points = 1 }
+	if PowerupService == nil then
+		return defaults
+	end
+	local ok, result = pcall(PowerupService.GetMultipliers, plr)
+	if not ok or type(result) ~= "table" then
+		return defaults
+	end
+	return {
+		Speed = tonumber(result.Speed) or 1,
+		StainSize = tonumber(result.StainSize) or 1,
+		Points = tonumber(result.Points) or 1,
+	}
+end
+
+local function startPowerups(run: ActiveRun): boolean
+	if PowerupService == nil or not run.modeDef.PowerupsEnabled or run.mapModel == nil then
+		return false
+	end
+	local ok = pcall(PowerupService.StartRun, run.player, run.mapModel, run.modeDef)
+	return ok
+end
+
+local function stopPowerups(plr: Player)
+	if PowerupService == nil then
+		return
+	end
+	pcall(PowerupService.StopRun, plr)
+end
+
+local function startQuests(run: ActiveRun): boolean
+	if QuestService == nil then
+		return false
+	end
+	local ok = pcall(QuestService.StartRun, run.player, run.mapDef, run.modeDef)
+	return ok
+end
+
+local function finishQuests(plr: Player): any
+	if QuestService == nil then
+		return nil
+	end
+	local ok, result = pcall(QuestService.FinishRun, plr)
+	if not ok or type(result) ~= "table" then
+		return nil
+	end
+	return result
 end
 
 local function getGravityUp(character: Model): Vector3
@@ -88,17 +166,97 @@ local function getSurfaceCFrame(position: Vector3, normal: Vector3): CFrame
 	end
 end
 
-local function dropSurfaceStain(run: ActiveRun, character: Model, hrp: BasePart, modelName: string)
+local function findObjectType(hit: BasePart, mapModel: Model): (Model?, string?)
+	local props = mapModel:FindFirstChild("Props")
+	if props == nil then
+		return nil, nil
+	end
+	local current: Instance? = hit
+	while current ~= nil and current ~= props do
+		if current.Parent == props and current:IsA("Model") then
+			local objectType = current:GetAttribute("ObjectType")
+			if typeof(objectType) == "string" and ConfigLookup.GetObject(objectType) ~= nil then
+				return current, objectType
+			end
+			return nil, nil
+		end
+		current = current.Parent
+	end
+	return nil, nil
+end
+
+local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stainSize: number)
+	if #run.stainParts >= GameConfig.MaxStainParts then
+		local oldest = table.remove(run.stainParts, 1)
+		if oldest ~= nil and oldest.Parent ~= nil then
+			oldest:Destroy()
+		end
+	end
+
+	local centerPos = position + normal * (RunConfig.StainThickness * 0.5 + RunConfig.StainSurfaceOffset)
+	local stain = Instance.new("Part")
+	stain.Name = "Stain"
+	stain.Anchored = true
+	stain.CanCollide = false
+	stain.CanTouch = false
+	stain.CanQuery = false
+	stain.CastShadow = false
+	stain.Material = RunConfig.StainMaterial
+	stain.Color = RunConfig.StainColor
+	stain.Transparency = RunConfig.StainTransparency
+	stain.Size = Vector3.new(stainSize, RunConfig.StainThickness, stainSize)
+	stain.CFrame = getSurfaceCFrame(centerPos, normal)
+	stain.Parent = run.stainFolder
+
+	table.insert(run.stainParts, stain)
+end
+
+local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number)
+	local multipliers = getMultipliers(run.player)
+	local objectModel, objectType = nil, nil
+	if run.mapModel ~= nil then
+		objectModel, objectType = findObjectType(hitPart, run.mapModel)
+	end
+
+	local objectDef = if objectType ~= nil then ConfigLookup.GetObject(objectType) else nil
+	local multiplier = if objectDef ~= nil then objectDef.PointsMultiplier else ObjectConfig.SurfacePointsMultiplier
+
+	local area = stainSize * stainSize
+	local points = area * GameConfig.PointsPerStud * multiplier * multipliers.Points
+	run.score += points
+	RunEvents.Stained:Fire(run.player, points, objectType)
+
+	if objectModel == nil or objectDef == nil then
+		return
+	end
+
+	local count = (run.objectStains[objectModel] or 0) + 1
+	run.objectStains[objectModel] = count
+
+	local step =
+		math.clamp(math.ceil(count / objectDef.StainsToSoil * ObjectConfig.TintSteps), 1, ObjectConfig.TintSteps)
+	Net.ObjectStained:FireClient(run.player, objectModel, step)
+
+	if count == objectDef.StainsToSoil then
+		run.score += objectDef.SoilBonus
+		run.objectsSoiled += 1
+		Net.ObjectSoiled:FireClient(run.player, objectModel, objectDef.SoilBonus)
+		RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
+	end
+end
+
+local function dropSurfaceStain(run: ActiveRun, character: Model, hrp: BasePart)
+	if run.mapModel == nil then
+		return
+	end
+
 	local gravityUp = getGravityUp(character)
 	local rayOrigin = hrp.Position + gravityUp * RunConfig.StainRayUpOffset
 	local rayDirection = -gravityUp * RunConfig.StainRayLength
 
 	local rayParams = RaycastParams.new()
 	rayParams.FilterType = Enum.RaycastFilterType.Include
-	local mapModel = Workspace:FindFirstChild(modelName)
-	if mapModel ~= nil then
-		rayParams.FilterDescendantsInstances = { mapModel }
-	end
+	rayParams.FilterDescendantsInstances = { run.mapModel }
 
 	local rayResult = Workspace:Raycast(rayOrigin, rayDirection, rayParams)
 	if rayResult == nil then
@@ -121,34 +279,35 @@ local function dropSurfaceStain(run: ActiveRun, character: Model, hrp: BasePart,
 		return
 	end
 	run.visitedCells[cellKey] = true
-	run.score += 1
 
-	if #run.stainParts >= GameConfig.MaxStainParts then
-		local oldest = table.remove(run.stainParts, 1)
-		if oldest ~= nil and oldest.Parent ~= nil then
-			oldest:Destroy()
-		end
+	local multipliers = getMultipliers(run.player)
+	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize
+	addStain(run, hitPos, normal, stainSize)
+	scoreStain(run, rayResult.Instance, stainSize)
+end
+
+local function checkNpcCatch(run: ActiveRun, hrp: BasePart)
+	if not run.modeDef.NpcsEnabled or run.npcCooldown > 0 or run.mapModel == nil then
+		return
+	end
+	local npcsFolder = run.mapModel:FindFirstChild("NPCs")
+	if npcsFolder == nil then
+		return
 	end
 
-	local stainSizeLvl = getUpgradeLevel(run.player, "StainSize")
-	local stainSize = UpgradeConfig.GetValue("StainSize", stainSizeLvl)
-	local centerPos = hitPos + normal * (RunConfig.StainThickness * 0.5 + RunConfig.StainSurfaceOffset)
-
-	local stain = Instance.new("Part")
-	stain.Name = "Stain"
-	stain.Anchored = true
-	stain.CanCollide = false
-	stain.CanTouch = false
-	stain.CanQuery = false
-	stain.CastShadow = false
-	stain.Material = Enum.Material.SmoothPlastic
-	stain.Color = RunConfig.StainColor
-	stain.Transparency = RunConfig.StainTransparency
-	stain.Size = Vector3.new(stainSize, RunConfig.StainThickness, stainSize)
-	stain.CFrame = getSurfaceCFrame(centerPos, normal)
-	stain.Parent = run.stainFolder
-
-	table.insert(run.stainParts, stain)
+	for _, npc in npcsFolder:GetChildren() do
+		if npc:IsA("Model") then
+			local offset = npc:GetPivot().Position - hrp.Position
+			if offset.Magnitude <= RunConfig.NpcCatchRadius then
+				run.npcCooldown = RunConfig.NpcCatchCooldown
+				if run.hasTimer then
+					run.timeLeft = math.max(0, run.timeLeft - RunConfig.NpcCatchTimePenalty)
+				end
+				Net.NpcCaught:FireClient(run.player, RunConfig.NpcCatchTimePenalty)
+				return
+			end
+		end
+	end
 end
 
 function RunService.IsPlayerInRun(plr: Player): boolean
@@ -159,41 +318,7 @@ function RunService.GetRun(plr: Player): ActiveRun?
 	return activeRuns[plr]
 end
 
-function RunService.GetSelection(plr: Player): { mapId: string, modeId: string }
-	local selection = playerSelections[plr]
-	if selection == nil then
-		selection = {
-			mapId = MapConfig.DefaultMapId,
-			modeId = ModeConfig.DefaultModeId,
-		}
-		playerSelections[plr] = selection
-	end
-	return selection
-end
-
-function RunService.SelectRun(plr: Player, mapId: string, modeId: string): boolean
-	if type(mapId) ~= "string" or type(modeId) ~= "string" then
-		return false
-	end
-
-	local mapDef = MapConfig.GetMap(mapId)
-	local modeDef = ModeConfig.GetMode(modeId)
-	if mapDef == nil or not mapDef.Enabled or modeDef == nil then
-		return false
-	end
-
-	playerSelections[plr] = {
-		mapId = mapId,
-		modeId = modeId,
-	}
-
-	if plr.Parent == Players then
-		Net.SelectionSync:FireClient(plr, mapId, modeId)
-	end
-	return true
-end
-
-function RunService.EndRun(plr: Player, _outOfTime: boolean)
+function RunService.EndRun(plr: Player, outOfTime: boolean)
 	local run = activeRuns[plr]
 	if run == nil or not run.active then
 		return
@@ -202,18 +327,75 @@ function RunService.EndRun(plr: Player, _outOfTime: boolean)
 	run.active = false
 	activeRuns[plr] = nil
 
-	local modeDef = ModeConfig.GetMode(run.modeId)
-	local score = run.score
-	local coins = if modeDef ~= nil and modeDef.AwardsCoins
-		then math.floor(score * GameConfig.CoinsPerScore)
-		else 0
-
-	if coins > 0 then
-		DataService.AddCoins(plr, coins)
+	if run.powerupsStarted then
+		stopPowerups(plr)
 	end
 
+	local questResult = if run.questsStarted then finishQuests(plr) else nil
+	local questCoins = if type(questResult) == "table" then tonumber(questResult.Coins) or 0 else 0
+	local questGems = if type(questResult) == "table" then tonumber(questResult.Gems) or 0 else 0
+	local questsCompleted = if type(questResult) == "table" then tonumber(questResult.Completed) or 0 else 0
+
+	local modeDef = run.modeDef
+	local mapDef = run.mapDef
+	local score = math.floor(run.score)
+	local baseCoins = 0
+	local xp = 0
+	local targetReached = run.targetReached
+
+	if modeDef.RewardMultiplier > 0 then
+		local coinBonus = getUpgradeValue(plr, "CoinBonus")
+		baseCoins = math.floor(
+			score * GameConfig.CoinsPerPoint * mapDef.RewardMultiplier * modeDef.RewardMultiplier * (1 + coinBonus / 100)
+		)
+		xp = math.floor(score * GameConfig.XpPerPoint * mapDef.RewardMultiplier * modeDef.RewardMultiplier)
+	end
+
+	local bonusCoins = if targetReached then modeDef.TargetBonusCoins else 0
+	local bonusGems = if targetReached then modeDef.TargetBonusGems else 0
+
+	DataService.RecordRun(plr, score)
+	if run.objectsSoiled > 0 then
+		DataService.IncrementStat(plr, "ObjectsSoiled", run.objectsSoiled)
+	end
+	if baseCoins + bonusCoins > 0 then
+		DataService.AddCoins(plr, baseCoins + bonusCoins)
+	end
+
+	local levelsGained = if xp > 0 then DataService.AddXp(plr, xp) else 0
+	local levelGems = levelsGained * GameConfig.GemsPerLevelUp
+	if levelGems + bonusGems > 0 then
+		DataService.AddGems(plr, levelGems + bonusGems)
+	end
+
+	local data = DataService.Get(plr)
+	local newLevel = if data ~= nil then data.Level else DataConfig.Template.Level
+	if levelsGained > 0 and plr.Parent == Players then
+		Net.Notify:FireClient(plr, "Success", string.format(MessageConfig.LevelUp, newLevel))
+	end
+
+	local summary = {
+		Score = score,
+		Coins = baseCoins + bonusCoins + questCoins,
+		Gems = levelGems + bonusGems + questGems,
+		Xp = xp,
+		MapId = mapDef.Id,
+		ModeId = modeDef.Id,
+		ObjectsSoiled = run.objectsSoiled,
+		TargetReached = targetReached,
+		QuestsCompleted = questsCompleted,
+		LeveledUp = levelsGained,
+		NewLevel = newLevel,
+		OutOfTime = outOfTime,
+		QuestCoins = questCoins,
+		QuestGems = questGems,
+		BonusCoins = bonusCoins,
+		BonusGems = bonusGems,
+	}
+
+	RunEvents.RunEnded:Fire(plr, summary)
 	if plr.Parent == Players then
-		Net.RunEnded:FireClient(plr, score, coins)
+		Net.RunEnded:FireClient(plr, summary)
 	end
 
 	if plr.Parent == Players and plr.Character ~= nil then
@@ -245,27 +427,33 @@ function RunService.StartRun(plr: Player): boolean
 		return false
 	end
 
-	local selection = RunService.GetSelection(plr)
-	local mapDef = MapConfig.GetMap(selection.mapId)
+	local selection = MapService.GetSelection(plr)
+	local mapDef = ConfigLookup.GetMap(selection.mapId)
+	if mapDef == nil or not mapDef.Enabled or not DataService.IsMapUnlocked(plr, selection.mapId) then
+		mapDef = ConfigLookup.GetMap(MapConfig.DefaultMapId)
+	end
 	if mapDef == nil or not mapDef.Enabled then
-		mapDef = MapConfig.GetMap(MapConfig.DefaultMapId)
-	end
-	local modeDef = ModeConfig.GetMode(selection.modeId)
-	if modeDef == nil then
-		modeDef = ModeConfig.GetMode(ModeConfig.DefaultModeId)
-	end
-	if mapDef == nil or modeDef == nil then
 		return false
 	end
 
-	local lifespanLvl = getUpgradeLevel(plr, "Lifespan")
-	local initialTimeLeft = if modeDef.UsesTimer
-		then UpgradeConfig.GetValue("Lifespan", lifespanLvl)
-		else RunConfig.PracticeTimeLeft
+	local modeDef = ConfigLookup.GetMode(selection.modeId)
+	if modeDef == nil then
+		modeDef = ConfigLookup.GetMode(ModeConfig.DefaultModeId)
+	end
+	if modeDef == nil then
+		return false
+	end
+
+	local hasTimer = modeDef.Duration ~= -1
+	local initialTimeLeft = if modeDef.Duration == 0
+		then getUpgradeValue(plr, "Lifespan")
+		elseif modeDef.Duration == -1 then RunConfig.PracticeTimeLeft
+		else modeDef.Duration
 
 	UpgradeService.ApplyStats(plr, character)
-
 	character:PivotTo(CFrame.new(mapDef.Spawn))
+
+	local mapModel = Workspace:FindFirstChild(mapDef.ModelName) :: Model?
 
 	local runTrove = Trove.new()
 	local stainFolder = Instance.new("Folder")
@@ -276,20 +464,32 @@ function RunService.StartRun(plr: Player): boolean
 	local run: ActiveRun = {
 		player = plr,
 		trove = runTrove,
-		mapId = mapDef.Id,
-		modeId = modeDef.Id,
+		mapDef = mapDef,
+		modeDef = modeDef,
+		mapModel = mapModel,
+		hasTimer = hasTimer,
 		timeLeft = initialTimeLeft,
 		elapsedTime = 0,
 		score = 0,
 		visitedCells = {},
+		objectStains = {},
+		objectsSoiled = 0,
 		stainParts = {},
 		stainFolder = stainFolder,
 		stainTimer = 0,
 		syncTimer = 0,
+		npcCooldown = 0,
+		targetReached = false,
+		powerupsStarted = false,
+		questsStarted = false,
 		active = true,
 	}
 	activeRuns[plr] = run
 
+	run.powerupsStarted = startPowerups(run)
+	run.questsStarted = startQuests(run)
+
+	RunEvents.RunStarted:Fire(plr, mapDef.Id, modeDef.Id)
 	Net.RunState:FireClient(plr, GameConfig.RunStates.Running, initialTimeLeft, 0)
 
 	runTrove:Connect(humanoid.Died, function()
@@ -306,7 +506,8 @@ function RunService.StartRun(plr: Player): boolean
 			end
 
 			run.elapsedTime += dt
-			if modeDef.UsesTimer then
+			run.npcCooldown = math.max(0, run.npcCooldown - dt)
+			if run.hasTimer then
 				run.timeLeft = math.max(0, run.timeLeft - dt)
 			end
 
@@ -322,19 +523,32 @@ function RunService.StartRun(plr: Player): boolean
 				break
 			end
 
+			local multipliers = getMultipliers(plr)
+			local walkSpeed = getUpgradeValue(plr, "Speed") * multipliers.Speed
+			if hum.WalkSpeed ~= walkSpeed then
+				hum.WalkSpeed = walkSpeed
+			end
+
 			if run.stainTimer >= GameConfig.StainInterval then
 				run.stainTimer -= GameConfig.StainInterval
-				dropSurfaceStain(run, currentChar, hrp, mapDef.ModelName)
+				dropSurfaceStain(run, currentChar, hrp)
+			end
+
+			checkNpcCatch(run, hrp)
+
+			if not run.targetReached and modeDef.TargetScore > 0 and run.score >= modeDef.TargetScore then
+				run.targetReached = true
+				Net.Notify:FireClient(plr, "Success", MessageConfig.TargetReached)
 			end
 
 			if run.syncTimer >= RunConfig.RunStateSyncInterval then
 				run.syncTimer = 0
-				local reportedTime = if modeDef.UsesTimer then run.timeLeft else RunConfig.PracticeTimeLeft
-				Net.RunState:FireClient(plr, GameConfig.RunStates.Running, reportedTime, run.score)
+				local reportedTime = if run.hasTimer then run.timeLeft else RunConfig.PracticeTimeLeft
+				Net.RunState:FireClient(plr, GameConfig.RunStates.Running, reportedTime, math.floor(run.score))
 			end
 
-			local isTimedOut = (modeDef.UsesTimer and run.timeLeft <= 0)
-				or (not modeDef.UsesTimer and modeDef.MaxDuration > 0 and run.elapsedTime >= modeDef.MaxDuration)
+			local isTimedOut = (run.hasTimer and run.timeLeft <= 0)
+				or (not run.hasTimer and modeDef.MaxDuration > 0 and run.elapsedTime >= modeDef.MaxDuration)
 			if isTimedOut then
 				RunService.EndRun(plr, true)
 				break
@@ -345,7 +559,7 @@ function RunService.StartRun(plr: Player): boolean
 	return true
 end
 
-local function startNpcPatrol(npcModel: Model, patrolDef: RunConfig.NpcPatrolConfig)
+local function startNpcPatrol(npcModel: Model, patrolDef: any)
 	local startPos = patrolDef.startPos
 	local endPos = patrolDef.endPos
 	local totalDist = (endPos - startPos).Magnitude
@@ -381,7 +595,7 @@ local function startNpcPatrol(npcModel: Model, patrolDef: RunConfig.NpcPatrolCon
 	end)
 end
 
-local function setupNpcsForMap(mapDef: MapConfig.MapDefinition)
+local function setupNpcsForMap(mapDef: ConfigLookup.MapDefinition)
 	local mapModel = Workspace:WaitForChild(mapDef.ModelName, RunConfig.InstanceWaitTimeout)
 	if mapModel == nil then
 		return
@@ -405,7 +619,7 @@ local function setupNpcsForMap(mapDef: MapConfig.MapDefinition)
 end
 
 local function setupAllNpcs()
-	for _, mapDef in MapConfig.Maps do
+	for _, mapDef in ConfigLookup.GetSortedMaps() do
 		if mapDef.Enabled then
 			task.spawn(setupNpcsForMap, mapDef)
 		end
@@ -445,13 +659,13 @@ local function setupPortal()
 	end)
 end
 
-local function onPlayerAdded(plr: Player)
-	playerSelections[plr] = {
-		mapId = MapConfig.DefaultMapId,
-		modeId = ModeConfig.DefaultModeId,
-	}
-	Net.SelectionSync:FireClient(plr, MapConfig.DefaultMapId, ModeConfig.DefaultModeId)
-end
+RunEvents.TimeBonus:Connect(function(plr: Player, seconds: number)
+	local run = activeRuns[plr]
+	if run == nil or not run.active or not run.hasTimer then
+		return
+	end
+	run.timeLeft += seconds
+end)
 
 task.spawn(setupPortal)
 task.spawn(setupAllNpcs)
@@ -460,7 +674,7 @@ Workspace.ChildAdded:Connect(function(child)
 	if child.Name == "Lobby" then
 		task.spawn(setupPortal)
 	else
-		for _, mapDef in MapConfig.Maps do
+		for _, mapDef in ConfigLookup.GetSortedMaps() do
 			if mapDef.Enabled and child.Name == mapDef.ModelName then
 				task.spawn(setupNpcsForMap, mapDef)
 			end
@@ -468,28 +682,25 @@ Workspace.ChildAdded:Connect(function(child)
 	end
 end)
 
-Players.PlayerAdded:Connect(onPlayerAdded)
-for _, plr in Players:GetPlayers() do
-	task.spawn(onPlayerAdded, plr)
-end
-
 Net.StartRun.OnServerEvent:Connect(function(plr)
 	if activeRuns[plr] == nil then
 		RunService.StartRun(plr)
 	end
 end)
 
-Net.SelectRun.OnServerEvent:Connect(function(plr, mapId, modeId)
-	RunService.SelectRun(plr, mapId, modeId)
+Net.LeaveRun.OnServerEvent:Connect(function(plr)
+	RunService.EndRun(plr, false)
 end)
 
 Players.PlayerRemoving:Connect(function(plr)
 	portalDebounce[plr] = nil
-	playerSelections[plr] = nil
 	local run = activeRuns[plr]
 	if run ~= nil then
 		run.active = false
 		activeRuns[plr] = nil
+		if run.powerupsStarted then
+			stopPowerups(plr)
+		end
 		run.trove:Clean()
 		run.trove:Destroy()
 	end

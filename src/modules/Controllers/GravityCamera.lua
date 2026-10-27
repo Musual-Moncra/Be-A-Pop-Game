@@ -126,7 +126,7 @@ local function onCharacterAdded(char: Model)
 	resetView()
 
 	task.spawn(function()
-		local foundRoot = char:WaitForChild("HumanoidRootPart", 10)
+		local foundRoot = char:WaitForChild("HumanoidRootPart", MovementConfig.CharacterWaitTimeout)
 		if character ~= char or not foundRoot or not foundRoot:IsA("BasePart") then
 			return
 		end

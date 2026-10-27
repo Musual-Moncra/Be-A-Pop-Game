@@ -63,6 +63,12 @@
       },
       "Zone1": {
         "$path": "src/workspace/Zone1.model.json"
+      },
+      "Zone2": {
+        "$path": "src/workspace/Zone2.model.json"
+      },
+      "Zone3": {
+        "$path": "src/workspace/Zone3.model.json"
       }
     },
     "Lighting": {

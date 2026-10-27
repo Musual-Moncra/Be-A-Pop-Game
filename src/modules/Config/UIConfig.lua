@@ -2,363 +2,595 @@
 
 --[[
 	UIConfig
-	Pure UI tokens and PC/Mobile layouts for HUD, PlayMenu and UpgradeMenu.
-	No side effects; components and screens only read this table.
+	Every look, size, text and timing of the client UI. Pure data, no functions.
+	Sizes are "design pixels" on a screen ReferenceHeight pixels tall; the whole UI is scaled to the
+	real screen, so a value of 100 is always the same share of the screen on every device.
 
-	Theme.Colors.Background: screen backdrop RGB (unused panels stay transparent)
-	Theme.Colors.Panel: main panel background RGB
-	Theme.Colors.Surface: cards, rows and inactive segments RGB
-	Theme.Colors.Accent: the single highlight color RGB (primary actions, selection)
-	Theme.Colors.AccentText: text/icon color drawn on Accent RGB
-	Theme.Colors.Text: primary text RGB
-	Theme.Colors.TextMuted: secondary text RGB
-	Theme.Colors.Disabled: disabled control background RGB
-	Theme.Colors.DisabledText: disabled control text RGB
-	Theme.Colors.Success: positive value/accent RGB
-	Theme.Colors.Danger: low-time warning RGB
-	Theme.Colors.Overlay: modal dimmer RGB
-	Theme.Colors.BarTrack: progress bar track RGB
-	Theme.Fonts.Regular: Enum.Font for body text
-	Theme.Fonts.Medium: Enum.Font for emphasized body text
-	Theme.Fonts.Bold: Enum.Font for headings and buttons
-	Theme.TextSizes.Title: screen title size in px
-	Theme.TextSizes.Header: panel/section heading size in px
-	Theme.TextSizes.CardTitle: card title size in px
-	Theme.TextSizes.CardBody: card subtitle/description size in px
-	Theme.TextSizes.Body: default body size in px
-	Theme.TextSizes.Small: labels and metadata size in px
-	Theme.TextSizes.ChipLabel: stat chip caption size in px
-	Theme.TextSizes.ChipValue: stat chip value size in px
-	Theme.TextSizes.Button: button label size in px
-	Theme.TextSizes.Score: in-run score size in px
-	Theme.TextSizes.Timer: in-run timer size in px
-	Theme.TextSizes.Badge: lock/badge text size in px
-	Theme.TextBounds.Min: minimum px for TextScaled labels
-	Theme.TextBounds.Max: maximum px for TextScaled labels
-	Theme.Radii.Small: small corner radius in px
-	Theme.Radii.Medium: medium corner radius in px
-	Theme.Radii.Large: panel corner radius in px
-	Theme.Radii.Pill: fully rounded corner radius (scale)
-	Theme.Spacing.XS: 4 px gaps and micro padding
-	Theme.Spacing.S: 8 px gaps
-	Theme.Spacing.M: 12 px gaps and row padding
-	Theme.Spacing.L: 16 px panel padding and section gaps
-	Theme.Spacing.XL: 24 px screen edge margin
-	Theme.Sizes.NavButtonWidth: lobby nav button width in px
-	Theme.Sizes.NavButtonHeight: lobby nav button height in px
-	Theme.Sizes.NavGap: gap between lobby nav buttons in px
-	Theme.Sizes.CardHeight: map card height in px
-	Theme.Sizes.RowHeight: upgrade row height in px
-	Theme.Sizes.SectionHeight: section caption height in px
-	Theme.Sizes.DescriptionHeight: mode description height in px
-	Theme.Sizes.ProgressHeight: progress bar height in px
-	Theme.Sizes.BuyButtonWidth: upgrade buy button width in px
-	Theme.Sizes.BuyButtonHeight: upgrade buy button height in px
-	Theme.Sizes.TitleHeight: panel title height in px
-	Theme.Sizes.PlayButtonHeight: primary PLAY button height in px
-	Theme.Sizes.ResultChipHeight: result modal stat chip height in px
-	Theme.Sizes.ScrollBarThickness: lobby panel scrollbar width in px
-	Theme.Sizes.ScoreRowHeight: HUD score row height in px
-	Theme.Sizes.ScoreCaptionWidth: HUD score caption width as a fraction of the panel
-	Theme.Sizes.ScoreValueWidth: HUD score value width as a fraction of the panel
-	Theme.Sizes.TimerHeight: HUD timer label height in px
-	Theme.MobileMaxWidth: viewport width in px below which the Mobile layout is used
-	Theme.ResultSeconds: seconds the run-result modal stays before auto-continue
-	Theme.LowTimeRatio: timer fraction (0-1) at or below which the timer turns Danger
-	Layouts.PC.HUD.CoinsChip.AnchorPoint: coins chip anchor (fraction of its size)
-	Layouts.PC.HUD.CoinsChip.Position: coins chip position (scale/offset)
-	Layouts.PC.HUD.CoinsChip.Size: coins chip size (scale/offset)
-	Layouts.PC.HUD.CoinsChip.MaxSize: coins chip max pixel size
-	Layouts.PC.HUD.CoinsChip.MinSize: coins chip min pixel size
-	Layouts.PC.HUD.RunPanel.AnchorPoint: run panel anchor
-	Layouts.PC.HUD.RunPanel.Position: run panel position
-	Layouts.PC.HUD.RunPanel.Size: run panel size
-	Layouts.PC.HUD.RunPanel.MaxSize: run panel max pixel size
-	Layouts.PC.HUD.RunPanel.MinSize: run panel min pixel size
-	Layouts.PC.Lobby.Nav.AnchorPoint: lobby nav frame anchor
-	Layouts.PC.Lobby.Nav.Position: lobby nav frame position
-	Layouts.PC.Lobby.Nav.Size: lobby nav frame size in px
-	Layouts.PC.Lobby.PlayPanel.AnchorPoint: PlayMenu panel anchor
-	Layouts.PC.Lobby.PlayPanel.Position: PlayMenu panel position
-	Layouts.PC.Lobby.PlayPanel.Size: PlayMenu panel size
-	Layouts.PC.Lobby.PlayPanel.MaxSize: PlayMenu panel max pixel size
-	Layouts.PC.Lobby.PlayPanel.MinSize: PlayMenu panel min pixel size
-	Layouts.PC.Lobby.UpgradePanel.AnchorPoint: UpgradeMenu panel anchor
-	Layouts.PC.Lobby.UpgradePanel.Position: UpgradeMenu panel position
-	Layouts.PC.Lobby.UpgradePanel.Size: UpgradeMenu panel size
-	Layouts.PC.Lobby.UpgradePanel.MaxSize: UpgradeMenu panel max pixel size
-	Layouts.PC.Lobby.UpgradePanel.MinSize: UpgradeMenu panel min pixel size
-	Layouts.PC.Lobby.ResultCard.AnchorPoint: result modal card anchor
-	Layouts.PC.Lobby.ResultCard.Position: result modal card position
-	Layouts.PC.Lobby.ResultCard.Size: result modal card size
-	Layouts.PC.Lobby.ResultCard.MaxSize: result modal card max pixel size
-	Layouts.Mobile.HUD.CoinsChip.AnchorPoint: coins chip anchor (fraction of its size)
-	Layouts.Mobile.HUD.CoinsChip.Position: coins chip position (scale/offset)
-	Layouts.Mobile.HUD.CoinsChip.Size: coins chip size (scale/offset)
-	Layouts.Mobile.HUD.CoinsChip.MaxSize: coins chip max pixel size
-	Layouts.Mobile.HUD.CoinsChip.MinSize: coins chip min pixel size
-	Layouts.Mobile.HUD.RunPanel.AnchorPoint: run panel anchor
-	Layouts.Mobile.HUD.RunPanel.Position: run panel position
-	Layouts.Mobile.HUD.RunPanel.Size: run panel size
-	Layouts.Mobile.HUD.RunPanel.MaxSize: run panel max pixel size
-	Layouts.Mobile.HUD.RunPanel.MinSize: run panel min pixel size
-	Layouts.Mobile.Lobby.Nav.AnchorPoint: lobby nav frame anchor
-	Layouts.Mobile.Lobby.Nav.Position: lobby nav frame position
-	Layouts.Mobile.Lobby.Nav.Size: lobby nav frame size in px
-	Layouts.Mobile.Lobby.PlayPanel.AnchorPoint: PlayMenu bottom-sheet anchor
-	Layouts.Mobile.Lobby.PlayPanel.Position: PlayMenu bottom-sheet position
-	Layouts.Mobile.Lobby.PlayPanel.Size: PlayMenu bottom-sheet size
-	Layouts.Mobile.Lobby.PlayPanel.MaxSize: PlayMenu bottom-sheet max pixel size
-	Layouts.Mobile.Lobby.UpgradePanel.AnchorPoint: UpgradeMenu bottom-sheet anchor
-	Layouts.Mobile.Lobby.UpgradePanel.Position: UpgradeMenu bottom-sheet position
-	Layouts.Mobile.Lobby.UpgradePanel.Size: UpgradeMenu bottom-sheet size
-	Layouts.Mobile.Lobby.UpgradePanel.MaxSize: UpgradeMenu bottom-sheet max pixel size
-	Layouts.Mobile.Lobby.ResultCard.AnchorPoint: result modal card anchor
-	Layouts.Mobile.Lobby.ResultCard.Position: result modal card position
-	Layouts.Mobile.Lobby.ResultCard.Size: result modal card size
-	Layouts.Mobile.Lobby.ResultCard.MaxSize: result modal card max pixel size
-	Layouts.Mobile.Lobby.ResultCard.MinSize: result modal card min pixel size
-	Text.CoinsLabel: coins chip caption
-	Text.ScoreLabel: in-run score caption
-	Text.TimeFormat: timer string with seconds (string.format)
-	Text.Practice: label shown instead of the timer in Practice mode
-	Text.PlayTitle: PlayMenu title
-	Text.PlaySubtitle: PlayMenu subheading
-	Text.MapSection: map section caption
-	Text.ModeSection: mode section caption
-	Text.ComingSoon: disabled map badge
-	Text.PlayButton: primary lobby button
-	Text.UpgradesTitle: UpgradeMenu title
-	Text.NavPlay: lobby nav button for PlayMenu
-	Text.NavUpgrades: lobby nav button for UpgradeMenu
-	Text.Maxed: buy button label at max level
-	Text.PriceFormat: buy button label with cost in coins (string.format)
-	Text.UpgradeDetail: upgrade level and current value line (string.format)
-	UIConfig.UpgradeOrder: display order of upgrade ids in UpgradeMenu
-	Text.ValueFormats.Lifespan: lifespan value format in seconds
-	Text.ValueFormats.Speed: speed value format in studs/second
-	Text.ValueFormats.StainSize: stain size value format in studs
-	Text.UpgradeNames.Lifespan: display name for the Lifespan upgrade
-	Text.UpgradeNames.Speed: display name for the Speed upgrade
-	Text.UpgradeNames.StainSize: display name for the StainSize upgrade
-	Text.ResultTitle: run-result modal title
-	Text.Continue: result modal button
-	Text.SelectionPending: hint shown while SelectRun waits for server confirmation
+	Scale:
+		ReferenceHeight: screen height the design pixels are drawn for on PC (pixels)
+		MobileReferenceHeight: same for phones/tablets, smaller = bigger UI on phones (pixels)
+		Min / Max: smallest / largest UI scale allowed (multiplier)
+		MobileMaxWidth: screens narrower than this, or touch-only devices, use the Mobile layout (pixels)
+
+	Fonts:
+		Display / DisplayWeight: chunky font (asset path) and weight for titles, numbers and buttons
+		Body / BodyWeight: font (asset path) and weight for descriptions
+
+	Palette (RGB colours):
+		Ink: text outline and darkest outline colour
+		Text: main text colour
+		TextSoft: secondary text on dark panels
+		PanelTop / PanelBottom: top and bottom of the window body gradient
+		PanelRim: thick outer rim of windows, HUD panels and scrollbars
+		Inset: dark recessed boxes inside windows (bar tracks, lists, icon wells)
+		InsetStroke: outline of recessed boxes
+		Shadow: drop shadow colour
+		Overlay: dimmer behind open windows
+		Sparkle: sparkle stars, highlighted numbers and the selection ring
+		Locked: lock overlay colour
+
+	Swatches: colour sets for buttons, cards, chips, bars and icon circles. Each has Top (gradient top),
+		Bottom (gradient bottom), Lip (3D bottom edge) and Stroke (outline), all RGB.
+		Names: Orange, Blue, Purple, Green, Red, Gold, Grey, Pink, Teal, Brown.
+
+	Shape (design pixels unless noted):
+		Stroke: outline thickness of buttons, cards and pills
+		RimStroke: outline thickness of windows and pill rims
+		TextStroke / SmallTextStroke: outline thickness around big / small text
+		Lip: height of the 3D bottom edge of buttons
+		ShadowOffset: how far drop shadows sit below their box
+		ShadowTransparency: drop shadow transparency (0 to 1)
+		Radius / WindowRadius: corner radius of buttons and cards / of windows
+		InsetTransparency: transparency of recessed boxes (0 to 1)
+		OverlayTransparency: transparency of the window dimmer (0 to 1)
+		LockedTransparency: transparency of lock overlays (0 to 1)
+		DisabledTransparency: extra transparency on disabled buttons (0 to 1)
+		GlossTransparency: transparency of the white shine on buttons and bars (0 to 1)
+		GlossHeight: height of the shine as a fraction of the button face (0 to 1)
+		IconFill: emoji size as a fraction of its round icon (0 to 1)
+		GradientRotation: direction of every gradient, 90 = top to bottom (degrees)
+
+	TextSizes (design pixels): Huge (scores), Title (window titles, big buttons), Header (card names,
+		currency), Large (section titles, button labels), Body, Small, Tiny (chips, bar labels),
+		Icon (emoji in tiles), BigIcon (emoji on the MENU button)
+
+	Animation (seconds unless noted):
+		Press: button hover/press tween time
+		PressScale / HoverScale: button size while pressed / hovered (multiplier)
+		Open: window, toast and menu pop-in time
+		OpenFromScale: size a window or toast starts at when it opens (multiplier)
+		MenuStagger: delay between menu wheel buttons popping out
+		BarTween: progress bar fill tween time
+		PopupRise: how far in-run popups float up (design pixels)
+		SparkleSpeed: sparkle twinkle cycles per second (cycles/second)
+		HudTick: how often power-up countdowns redraw
+		ToastSeconds / PopupSeconds: how long a toast / in-run popup stays on screen
+		ResultAutoCloseSeconds: result window closes by itself after this, 0 = never
+		ToastMaxVisible: most toasts shown at once (count)
+		LowTimeRatio: timer bar turns red at or below this fraction of the run (0 to 1)
+		SpringStyle / SpringDirection: easing of pop-ins and button presses (Enum.EasingStyle / Direction)
+		SmoothStyle / SmoothDirection: easing of bars and popups (Enum.EasingStyle / Direction)
+		TwinkleStyle / TwinkleDirection: easing of sparkles (Enum.EasingStyle / Direction)
+
+	Sizes (design pixels unless noted):
+		Hud.Width: width of the wallet column (level, coins, gems)
+		Hud.BadgeSize: gold level badge diameter
+		Hud.XpBarHeight: XP bar height
+		Hud.PillHeight / Hud.PillIconSize: coin/gem pill height / round icon diameter
+		Hud.Gap: gap between wallet rows
+		Menu.ButtonSize: round MENU button diameter
+		Menu.ItemSize: diameter of each wheel button
+		Menu.LabelHeight: height of the label under each wheel button
+		Window.HeaderHeight: height of the ribbon title
+		Window.CloseSize: red close button size
+		Window.Padding: space between the window edge and its content
+		Window.Gap: default gap between items inside windows
+		Window.HeaderWidth: ribbon width as a fraction of the window (0 to 1)
+		Window.CenterShift: window moves down by this fraction of the header height (0 to 1)
+		Window.CloseInset: how far the close button sits inside the corner, fraction of its size (0 to 1)
+		Window.Sparkles: stars around the ribbon; X = fraction of window width, Y = fraction of header
+			height from the top edge, Size = TextSizes key, Delay = fraction of a twinkle cycle
+		Play.Width / Play.Height: play window size (shrinks to fit small screens)
+		Play.MapColumnWidth: width of the map list (at most half the window)
+		Play.MapCardHeight: height of a map card
+		Play.MapIconSize: round icon diameter on map cards
+		Play.ModeTileHeight: height of a mode tile
+		Play.ChipHeight: height of info chips (size, rewards, rules)
+		Play.PlayButtonHeight: height of the PLAY and CONTINUE buttons
+		Play.ActionButtonWidth / ActionButtonHeight: size of the UNLOCK price button
+		Upgrade.Width / Upgrade.Height: upgrade window size (shrinks to fit small screens)
+		Upgrade.Columns: upgrade cards per row (count)
+		Upgrade.CardHeight: height of an upgrade card
+		Upgrade.IconSize: round icon diameter on upgrade cards
+		Upgrade.BuyButtonHeight: height of the price button
+		Upgrade.LevelBarHeight: height of the level bar
+		Stats.Width / Stats.Height: stats window size
+		Stats.RowHeight: height of a stat row
+		Run.ScoreWidth: width of the score panel
+		Run.TimerBarHeight: timer bar height
+		Run.TargetBarHeight: height of target, quest and power-up bars
+		Run.QuestWidth: width of the quest panel
+		Run.QuestRowHeight: height of a quest row
+		Run.PowerupSize: power-up icon diameter
+		Run.LeaveWidth / Run.LeaveHeight: LEAVE button size
+		Result.Width / Result.Height: result window size
+		Result.RowHeight: height of a reward row
+		Result.BadgeHeight: height of the level-up / target / quest badges
+		Toast.Width / Toast.Height / Toast.Gap: toast size and the gap between stacked toasts
+		Popup.Width / Popup.Height: size of a floating in-run popup
+
+	Layouts.PC / Layouts.Mobile: where the big pieces sit. Each entry has AnchorPoint (fraction of its
+		own size) and Position (scale of the screen + design-pixel offset):
+		Wallet (level and currency), MenuButton, Toasts, RunScore, RunQuests, RunPowerups, RunLeave, Popups.
+		WindowMargin: gap kept between a window and the screen edge (design pixels)
+
+	MenuItems: buttons in the menu wheel, in order. Add a row to add a button.
+		Id: unique id (string)
+		Label: text under the button (text)
+		Icon: emoji drawn in the button (text)
+		Swatch: Swatches key used for the button colour (string)
+		Route: window it opens: Play, Upgrades or Stats (string)
+		AngleDegrees: direction from the MENU button, 0 = straight up, negative = left (degrees)
+	MenuRadius: distance from the MENU button to the wheel buttons (design pixels)
+
+	MapVisuals: per map id, Icon (emoji) and Swatch (colour) of its map card
+	ModeVisuals: per mode id, Icon (emoji) and Swatch (colour) of its mode tile
+	UpgradeSwatches: card colours cycled through the upgrade cards, in order (Swatches keys)
+	PowerupSwatch: colour of power-up icons in the run HUD (Swatches key)
+	ToastSwatches: per toast kind (Info, Success, Error), the Swatches key used
+
+	Layers: drawing order, higher = on top (number): Wallet, RunHud, LobbyMenu, Window, Result, Toasts
+
+	Text (every word the UI shows; %s = text, %d = whole number, %.1f = one decimal):
+		Icons: MenuIcon, CloseIcon, SparkleIcon, CoinIcon, GemIcon, XpIcon, LockIcon, CheckIcon (emoji/text)
+		IconLabel: how an icon and a word are joined, e.g. "💰 25" (format: icon, text)
+		MenuButton: label on the MENU button
+		LevelFormat: level next to the badge (format: level)
+		XpFormat: text on the XP bar (format: xp, xp needed)
+		MaxLevel: XP bar text at max level
+		PlayTitle / MapsHeader / ModesHeader / RewardHeader: play window title and section titles
+		SizeChip: map size chip (format: SizeLabel)
+		RewardChip: map reward chip (format: multiplier)
+		LockedModeFormat: locked mode tile (format: mode name, required level)
+		Owned / ComingSoon: map state chips
+		NeedMapFirst: requirement chip when the previous map is not owned (format: map name)
+		NeedLevel: requirement chip when the level is too low (format: level)
+		DurationLifespan / DurationSeconds / DurationNone: mode timer chip (DurationSeconds format: seconds)
+		FoodOn / FoodOff / ChefsOn / ChefsOff: mode rule chips
+		QuestsChip: quest count chip (format: count)
+		TargetChip: target score chip (format: points)
+		NoRewards: reward line for modes that pay nothing
+		RewardTotal: reward multiplier line (format: multiplier)
+		RewardTarget: target bonus line (format: coins, gems)
+		RewardLines: how two reward lines are joined (format: line, line)
+		PlayButton / PlayLocked: PLAY button text when playable / locked
+		UpgradesTitle: upgrade window title
+		UpgradeLevel: level bar text (format: level, max level)
+		UpgradeArrow: current and next value (format: current, next)
+		UpgradeMaxValue: value text at max level (format: value)
+		Max: price button text at max level
+		StatsTitle: stats window title
+		StatRows: rows of the stats window; Key = save Stats key, Icon = emoji, Label = text
+		ScoreLabel: caption over the run score
+		TimerFormat: timer bar text (format: seconds)
+		Untimed: timer bar text for untimed modes
+		TargetFormat / TargetDone: Challenge target bar text (TargetFormat format: score, target)
+		QuestsHeader: quest panel title
+		QuestProgress: quest bar text (format: progress, target)
+		PowerupTimer: power-up countdown (format: seconds)
+		Leave: LEAVE button text
+		ResultTitle / ResultTimeUp: result window title for a normal end / for running out of time
+		ResultScore / ResultCoins / ResultGems / ResultXp: result captions
+		ResultLevelUp: level-up badge (format: new level)
+		ResultTarget: target-reached badge
+		ResultQuests: quests badge (format: count)
+		ResultSoiled: soiled objects badge (format: count)
+		ResultPlus: reward amount (format: amount)
+		Continue: result window button
+		PowerupPickedFormat: popup when food is eaten (format: food name)
+		ObjectSoiledFormat: popup when an object is fully soiled (format: object name, bonus points)
+		ObjectUnknown: object name used when the type is missing
+		ToastInfoKind / ToastSuccessKind / ToastErrorKind: toast kind names (must match ToastSwatches keys)
+		ThousandsSuffixes: suffixes for big numbers: thousand, million, billion, trillion
+		CompactFormat: big-number format (format: number, suffix)
+		ThousandsSeparator: character between groups of three digits
+		NegativeSign: sign put in front of negative numbers
+		IntegerFormat: format of whole numbers
+
+	Defaults.Level: level shown before the save data arrives (level)
 ]]
 
 local UIConfig = {}
 
-UIConfig.Theme = {
-	Colors = {
-		Background = Color3.fromRGB(24, 22, 20),
-		Panel = Color3.fromRGB(34, 31, 27),
-		Surface = Color3.fromRGB(45, 41, 36),
-		Accent = Color3.fromRGB(230, 166, 76),
-		AccentText = Color3.fromRGB(24, 22, 20),
-		Text = Color3.fromRGB(245, 239, 230),
-		TextMuted = Color3.fromRGB(166, 156, 143),
-		Disabled = Color3.fromRGB(58, 53, 47),
-		DisabledText = Color3.fromRGB(120, 112, 102),
-		Success = Color3.fromRGB(123, 201, 139),
-		Danger = Color3.fromRGB(224, 108, 94),
-		Overlay = Color3.fromRGB(0, 0, 0),
-		BarTrack = Color3.fromRGB(58, 53, 47),
-	},
-	Fonts = {
-		Regular = Enum.Font.Gotham,
-		Medium = Enum.Font.GothamMedium,
-		Bold = Enum.Font.GothamBold,
-	},
-	TextSizes = {
-		Title = 26,
-		Header = 18,
-		CardTitle = 17,
-		CardBody = 13,
-		Body = 15,
-		Small = 12,
-		ChipLabel = 10,
-		ChipValue = 16,
-		Button = 16,
-		Score = 30,
-		Timer = 13,
-		Badge = 11,
-	},
-	TextBounds = {
-		Min = 10,
-		Max = 28,
-	},
-	Radii = {
-		Small = UDim.new(0, 6),
-		Medium = UDim.new(0, 10),
-		Large = UDim.new(0, 16),
-		Pill = UDim.new(1, 0),
-	},
-	Spacing = {
-		XS = 4,
-		S = 8,
-		M = 12,
-		L = 16,
-		XL = 24,
-	},
-	Sizes = {
-		NavButtonWidth = 108,
-		NavButtonHeight = 36,
-		NavGap = 8,
-		CardHeight = 64,
-		RowHeight = 84,
-		SectionHeight = 16,
-		DescriptionHeight = 40,
-		ProgressHeight = 8,
-		BuyButtonWidth = 112,
-		BuyButtonHeight = 40,
-		TitleHeight = 30,
-		PlayButtonHeight = 46,
-		ResultChipHeight = 46,
-		ScrollBarThickness = 4,
-		ScoreRowHeight = 30,
-		ScoreCaptionWidth = 0.4,
-		ScoreValueWidth = 0.6,
-		TimerHeight = 16,
-	},
+UIConfig.Scale = {
+	ReferenceHeight = 900,
+	MobileReferenceHeight = 640,
+	Min = 0.4,
+	Max = 1.5,
 	MobileMaxWidth = 900,
-	ResultSeconds = 3.5,
-	LowTimeRatio = 0.25,
 }
 
-local Theme = UIConfig.Theme
-local Spacing = Theme.Spacing
+UIConfig.Fonts = {
+	Display = "rbxasset://fonts/families/FredokaOne.json",
+	DisplayWeight = Enum.FontWeight.Regular,
+	Body = "rbxasset://fonts/families/GothamSSm.json",
+	BodyWeight = Enum.FontWeight.Bold,
+}
+
+UIConfig.Palette = {
+	Ink = Color3.fromRGB(16, 14, 38),
+	Text = Color3.fromRGB(255, 255, 255),
+	TextSoft = Color3.fromRGB(186, 194, 240),
+	PanelTop = Color3.fromRGB(58, 64, 132),
+	PanelBottom = Color3.fromRGB(34, 36, 84),
+	PanelRim = Color3.fromRGB(112, 86, 230),
+	Inset = Color3.fromRGB(20, 20, 52),
+	InsetStroke = Color3.fromRGB(14, 12, 34),
+	Shadow = Color3.fromRGB(8, 6, 24),
+	Overlay = Color3.fromRGB(10, 8, 30),
+	Sparkle = Color3.fromRGB(255, 236, 140),
+	Locked = Color3.fromRGB(14, 12, 34),
+}
+
+UIConfig.Swatches = {
+	Orange = {
+		Top = Color3.fromRGB(255, 170, 50),
+		Bottom = Color3.fromRGB(246, 106, 22),
+		Lip = Color3.fromRGB(178, 62, 10),
+		Stroke = Color3.fromRGB(90, 32, 8),
+	},
+	Blue = {
+		Top = Color3.fromRGB(96, 200, 255),
+		Bottom = Color3.fromRGB(40, 128, 240),
+		Lip = Color3.fromRGB(22, 76, 170),
+		Stroke = Color3.fromRGB(14, 40, 100),
+	},
+	Purple = {
+		Top = Color3.fromRGB(200, 120, 255),
+		Bottom = Color3.fromRGB(132, 64, 236),
+		Lip = Color3.fromRGB(84, 36, 168),
+		Stroke = Color3.fromRGB(46, 18, 100),
+	},
+	Green = {
+		Top = Color3.fromRGB(150, 240, 80),
+		Bottom = Color3.fromRGB(64, 192, 46),
+		Lip = Color3.fromRGB(34, 128, 30),
+		Stroke = Color3.fromRGB(18, 70, 16),
+	},
+	Red = {
+		Top = Color3.fromRGB(255, 110, 110),
+		Bottom = Color3.fromRGB(228, 44, 60),
+		Lip = Color3.fromRGB(150, 20, 36),
+		Stroke = Color3.fromRGB(84, 10, 20),
+	},
+	Gold = {
+		Top = Color3.fromRGB(255, 232, 90),
+		Bottom = Color3.fromRGB(250, 172, 24),
+		Lip = Color3.fromRGB(190, 112, 10),
+		Stroke = Color3.fromRGB(100, 56, 6),
+	},
+	Grey = {
+		Top = Color3.fromRGB(176, 184, 206),
+		Bottom = Color3.fromRGB(110, 118, 146),
+		Lip = Color3.fromRGB(70, 76, 100),
+		Stroke = Color3.fromRGB(34, 38, 56),
+	},
+	Pink = {
+		Top = Color3.fromRGB(255, 150, 210),
+		Bottom = Color3.fromRGB(236, 80, 160),
+		Lip = Color3.fromRGB(164, 40, 110),
+		Stroke = Color3.fromRGB(90, 16, 60),
+	},
+	Teal = {
+		Top = Color3.fromRGB(90, 240, 210),
+		Bottom = Color3.fromRGB(24, 180, 170),
+		Lip = Color3.fromRGB(10, 116, 112),
+		Stroke = Color3.fromRGB(6, 62, 60),
+	},
+	Brown = {
+		Top = Color3.fromRGB(196, 132, 70),
+		Bottom = Color3.fromRGB(132, 80, 36),
+		Lip = Color3.fromRGB(86, 50, 20),
+		Stroke = Color3.fromRGB(48, 26, 10),
+	},
+}
+
+UIConfig.Shape = {
+	Stroke = 3,
+	RimStroke = 5,
+	TextStroke = 3,
+	SmallTextStroke = 2,
+	Lip = 6,
+	ShadowOffset = 6,
+	ShadowTransparency = 0.45,
+	Radius = 16,
+	WindowRadius = 26,
+	InsetTransparency = 0.15,
+	OverlayTransparency = 0.45,
+	LockedTransparency = 0.35,
+	DisabledTransparency = 0.25,
+	GlossTransparency = 0.78,
+	GlossHeight = 0.42,
+	IconFill = 0.55,
+	GradientRotation = 90,
+}
+
+UIConfig.TextSizes = {
+	Huge = 64,
+	Title = 40,
+	Header = 30,
+	Large = 26,
+	Body = 20,
+	Small = 17,
+	Tiny = 14,
+	Icon = 34,
+	BigIcon = 56,
+}
+
+UIConfig.Animation = {
+	Press = 0.08,
+	PressScale = 0.9,
+	HoverScale = 1.05,
+	Open = 0.22,
+	OpenFromScale = 0.82,
+	MenuStagger = 0.04,
+	BarTween = 0.25,
+	PopupRise = 60,
+	SparkleSpeed = 0.7,
+	HudTick = 0.1,
+	ToastSeconds = 3,
+	PopupSeconds = 1.8,
+	ResultAutoCloseSeconds = 0,
+	ToastMaxVisible = 3,
+	LowTimeRatio = 0.25,
+	SpringStyle = Enum.EasingStyle.Back,
+	SpringDirection = Enum.EasingDirection.Out,
+	SmoothStyle = Enum.EasingStyle.Quad,
+	SmoothDirection = Enum.EasingDirection.Out,
+	TwinkleStyle = Enum.EasingStyle.Sine,
+	TwinkleDirection = Enum.EasingDirection.InOut,
+}
+
+UIConfig.Sizes = {
+	Hud = {
+		Width = 330,
+		BadgeSize = 92,
+		XpBarHeight = 34,
+		PillHeight = 58,
+		PillIconSize = 74,
+		Gap = 14,
+	},
+	Menu = {
+		ButtonSize = 128,
+		ItemSize = 100,
+		LabelHeight = 30,
+	},
+	Window = {
+		HeaderHeight = 74,
+		CloseSize = 62,
+		Padding = 22,
+		Gap = 16,
+		HeaderWidth = 0.62,
+		CenterShift = 0.25,
+		CloseInset = 0.2,
+		Sparkles = {
+			{ X = 0.19, Y = -0.45, Size = "Large", Delay = 0 },
+			{ X = 0.81, Y = 0.4, Size = "Body", Delay = 0.33 },
+		},
+	},
+	Play = {
+		Width = 1180,
+		Height = 720,
+		MapColumnWidth = 560,
+		MapCardHeight = 150,
+		MapIconSize = 112,
+		ModeTileHeight = 104,
+		ChipHeight = 34,
+		PlayButtonHeight = 92,
+		ActionButtonWidth = 150,
+		ActionButtonHeight = 50,
+	},
+	Upgrade = {
+		Width = 1100,
+		Height = 720,
+		Columns = 3,
+		CardHeight = 300,
+		IconSize = 92,
+		BuyButtonHeight = 56,
+		LevelBarHeight = 18,
+	},
+	Stats = {
+		Width = 620,
+		Height = 480,
+		RowHeight = 62,
+	},
+	Run = {
+		ScoreWidth = 420,
+		TimerBarHeight = 30,
+		TargetBarHeight = 20,
+		QuestWidth = 360,
+		QuestRowHeight = 62,
+		PowerupSize = 84,
+		LeaveWidth = 170,
+		LeaveHeight = 64,
+	},
+	Result = {
+		Width = 620,
+		Height = 560,
+		RowHeight = 64,
+		BadgeHeight = 44,
+	},
+	Toast = {
+		Width = 560,
+		Height = 58,
+		Gap = 10,
+	},
+	Popup = {
+		Width = 520,
+		Height = 56,
+	},
+}
 
 UIConfig.Layouts = {
 	PC = {
-		HUD = {
-			CoinsChip = {
-				AnchorPoint = Vector2.new(0, 0),
-				Position = UDim2.fromOffset(Spacing.XL, 20),
-				Size = UDim2.fromScale(0.14, 0.06),
-				MaxSize = Vector2.new(200, 48),
-				MinSize = Vector2.new(150, 40),
-			},
-			RunPanel = {
-				AnchorPoint = Vector2.new(0.5, 0),
-				Position = UDim2.new(0.5, 0, 0, 20),
-				Size = UDim2.fromScale(0.26, 0.1),
-				MaxSize = Vector2.new(360, 112),
-				MinSize = Vector2.new(260, 96),
-			},
-		},
-		Lobby = {
-			Nav = {
-				AnchorPoint = Vector2.new(1, 0),
-				Position = UDim2.new(1, -Spacing.XL, 0, 20),
-				Size = UDim2.fromOffset(
-					Theme.Sizes.NavButtonWidth * 2 + Theme.Sizes.NavGap,
-					Theme.Sizes.NavButtonHeight
-				),
-			},
-			PlayPanel = {
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.5, 0.5),
-				Size = UDim2.fromScale(0.46, 0.72),
-				MaxSize = Vector2.new(640, 640),
-				MinSize = Vector2.new(480, 460),
-			},
-			UpgradePanel = {
-				AnchorPoint = Vector2.new(1, 0.5),
-				Position = UDim2.new(1, -Spacing.XL, 0.5, 0),
-				Size = UDim2.fromScale(0.32, 0.56),
-				MaxSize = Vector2.new(440, 640),
-				MinSize = Vector2.new(340, 360),
-			},
-			ResultCard = {
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.5, 0.5),
-				Size = UDim2.fromOffset(380, 270),
-				MaxSize = Vector2.new(380, 280),
-				MinSize = Vector2.new(320, 240),
-			},
-		},
+		Wallet = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 24) },
+		MenuButton = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -30) },
+		Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 24) },
+		RunScore = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 20) },
+		RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 24) },
+		RunPowerups = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 330) },
+		RunLeave = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -28, 1, -28) },
+		Popups = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 200) },
+		WindowMargin = 40,
 	},
 	Mobile = {
-		HUD = {
-			CoinsChip = {
-				AnchorPoint = Vector2.new(0, 0),
-				Position = UDim2.fromOffset(Spacing.M, Spacing.M),
-				Size = UDim2.fromScale(0.4, 0.055),
-				MaxSize = Vector2.new(180, 44),
-				MinSize = Vector2.new(132, 38),
-			},
-			RunPanel = {
-				AnchorPoint = Vector2.new(0, 0),
-				Position = UDim2.new(0, Spacing.M, 0, 64),
-				Size = UDim2.fromScale(0.72, 0.11),
-				MaxSize = Vector2.new(320, 92),
-				MinSize = Vector2.new(220, 80),
-			},
-		},
-		Lobby = {
-			Nav = {
-				AnchorPoint = Vector2.new(1, 0),
-				Position = UDim2.new(1, -Spacing.M, 0, 64),
-				Size = UDim2.fromOffset(
-					Theme.Sizes.NavButtonWidth * 2 + Theme.Sizes.NavGap,
-					Theme.Sizes.NavButtonHeight
-				),
-			},
-			PlayPanel = {
-				AnchorPoint = Vector2.new(0.5, 1),
-				Position = UDim2.new(0.5, 0, 1, -Spacing.M),
-				Size = UDim2.new(1, -Spacing.XL, 0.72, -Spacing.L),
-				MaxSize = Vector2.new(640, 700),
-			},
-			UpgradePanel = {
-				AnchorPoint = Vector2.new(0.5, 1),
-				Position = UDim2.new(0.5, 0, 1, -Spacing.M),
-				Size = UDim2.new(1, -Spacing.XL, 0.72, -Spacing.L),
-				MaxSize = Vector2.new(640, 700),
-			},
-			ResultCard = {
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.5, 0.5),
-				Size = UDim2.new(0.86, 0, 0, 250),
-				MaxSize = Vector2.new(360, 280),
-				MinSize = Vector2.new(280, 230),
-			},
-		},
+		Wallet = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 12) },
+		MenuButton = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -16) },
+		Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12) },
+		RunScore = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10) },
+		RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 12) },
+		RunPowerups = { AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 16, 1, -16) },
+		RunLeave = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -16) },
+		Popups = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 180) },
+		WindowMargin = 16,
 	},
 }
 
-UIConfig.UpgradeOrder = { "Lifespan", "Speed", "StainSize" }
+UIConfig.MenuItems = {
+	{ Id = "Play", Label = "PLAY", Icon = "▶️", Swatch = "Green", Route = "Play", AngleDegrees = -50 },
+	{ Id = "Upgrades", Label = "UPGRADES", Icon = "⚡", Swatch = "Blue", Route = "Upgrades", AngleDegrees = 0 },
+	{ Id = "Stats", Label = "STATS", Icon = "🏆", Swatch = "Purple", Route = "Stats", AngleDegrees = 50 },
+}
+
+UIConfig.MenuRadius = 170
+
+UIConfig.MapVisuals = {
+	Zone1 = { Icon = "🍳", Swatch = "Orange" },
+	Zone2 = { Icon = "🛋️", Swatch = "Blue" },
+	Zone3 = { Icon = "🍽️", Swatch = "Purple" },
+	Zone4 = { Icon = "🛍️", Swatch = "Pink" },
+}
+
+UIConfig.ModeVisuals = {
+	Classic = { Icon = "💩", Swatch = "Brown" },
+	Quests = { Icon = "📜", Swatch = "Teal" },
+	Challenge = { Icon = "🔥", Swatch = "Red" },
+	Practice = { Icon = "🎯", Swatch = "Grey" },
+}
+
+UIConfig.UpgradeSwatches = { "Orange", "Blue", "Purple", "Teal", "Pink", "Green" }
+UIConfig.PowerupSwatch = "Purple"
+
+UIConfig.ToastSwatches = {
+	Info = "Blue",
+	Success = "Green",
+	Error = "Red",
+}
+
+UIConfig.Layers = {
+	Wallet = 1,
+	RunHud = 2,
+	LobbyMenu = 3,
+	Window = 4,
+	Result = 5,
+	Toasts = 6,
+}
 
 UIConfig.Text = {
-	CoinsLabel = "COINS",
-	ScoreLabel = "SCORE",
-	TimeFormat = "%.1fs",
-	Practice = "PRACTICE",
-	PlayTitle = "PLAY",
-	PlaySubtitle = "Choose a map and mode",
-	MapSection = "MAP",
-	ModeSection = "MODE",
+	MenuButton = "MENU",
+	MenuIcon = "💩",
+	CloseIcon = "X",
+	SparkleIcon = "✨",
+	CoinIcon = "💰",
+	GemIcon = "💎",
+	XpIcon = "⭐",
+	LockIcon = "🔒",
+	CheckIcon = "✅",
+	LevelFormat = "LVL %d",
+	IconLabel = "%s %s",
+	XpFormat = "%s / %s XP",
+	MaxLevel = "MAX LEVEL",
+
+	PlayTitle = "CHOOSE YOUR MESS",
+	MapsHeader = "MAPS",
+	ModesHeader = "GAME MODE",
+	RewardHeader = "REWARDS",
+	SizeChip = "SIZE %s",
+	RewardChip = "x%s REWARDS",
+	LockedModeFormat = "%s\nLVL %d",
+	Owned = "OWNED",
 	ComingSoon = "COMING SOON",
-	PlayButton = "PLAY",
+	NeedMapFirst = "Unlock %s first",
+	NeedLevel = "Reach level %d",
+	DurationLifespan = "⏰ Lifespan",
+	DurationSeconds = "⏰ %ds",
+	DurationNone = "⏰ No timer",
+	FoodOn = "🍔 Food",
+	FoodOff = "🚫 No food",
+	ChefsOn = "👨‍🍳 Chefs",
+	ChefsOff = "😴 No chefs",
+	QuestsChip = "📜 %d quests",
+	TargetChip = "🎯 %d pts",
+	NoRewards = "No rewards in this mode",
+	RewardTotal = "Coins & XP x%s",
+	RewardTarget = "Target bonus: %s 💰  %s 💎",
+	RewardLines = "%s\n%s",
+	PlayButton = "PLAY!",
+	PlayLocked = "LOCKED",
+
 	UpgradesTitle = "UPGRADES",
-	NavPlay = "Play",
-	NavUpgrades = "Upgrades",
-	Maxed = "MAX",
-	PriceFormat = "%d coins",
-	UpgradeDetail = "Lv %d / %d  ·  %s",
-	ValueFormats = {
-		Lifespan = "%.0fs",
-		Speed = "%.0f",
-		StainSize = "%.1f studs",
+	UpgradeLevel = "LV %d / %d",
+	UpgradeArrow = "%s  ➡️  %s",
+	UpgradeMaxValue = "%s",
+	Max = "MAX",
+
+	StatsTitle = "STATS",
+	StatRows = {
+		{ Key = "BestScore", Icon = "🏆", Label = "Best score" },
+		{ Key = "TotalRuns", Icon = "🏃", Label = "Runs played" },
+		{ Key = "ObjectsSoiled", Icon = "💩", Label = "Objects soiled" },
+		{ Key = "PowerupsEaten", Icon = "🍔", Label = "Food eaten" },
+		{ Key = "QuestsCompleted", Icon = "📜", Label = "Quests completed" },
 	},
-	UpgradeNames = {
-		Lifespan = "Lifespan",
-		Speed = "Speed",
-		StainSize = "StainSize",
-	},
-	ResultTitle = "RUN COMPLETE",
+
+	ScoreLabel = "SCORE",
+	TimerFormat = "%.1fs",
+	Untimed = "NO TIMER",
+	TargetFormat = "TARGET %s / %s",
+	TargetDone = "TARGET REACHED!",
+	QuestsHeader = "QUESTS",
+	QuestProgress = "%s / %s",
+	PowerupTimer = "%ds",
+	Leave = "LEAVE",
+
+	ResultTitle = "RUN COMPLETE!",
+	ResultTimeUp = "TIME'S UP!",
+	ResultScore = "SCORE",
+	ResultCoins = "Coins",
+	ResultGems = "Gems",
+	ResultXp = "XP",
+	ResultLevelUp = "LEVEL UP!  LVL %d",
+	ResultTarget = "TARGET REACHED",
+	ResultQuests = "%d QUESTS DONE",
+	ResultSoiled = "%d objects soiled",
+	ResultPlus = "+%s",
 	Continue = "CONTINUE",
-	SelectionPending = "Confirming selection...",
+
+	PowerupPickedFormat = "Yum! %s",
+	ObjectSoiledFormat = "%s soiled! +%d",
+	ObjectUnknown = "Object",
+	ToastInfoKind = "Info",
+	ToastSuccessKind = "Success",
+	ToastErrorKind = "Error",
+	ThousandsSuffixes = { "K", "M", "B", "T" },
+	CompactFormat = "%.1f%s",
+	ThousandsSeparator = ",",
+	NegativeSign = "-",
+	IntegerFormat = "%d",
+}
+
+UIConfig.Defaults = {
+	Level = 1,
 }
 
 return UIConfig

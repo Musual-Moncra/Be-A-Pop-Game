@@ -5,11 +5,13 @@
 	Handles upgrade purchases from the client and applies their stats.
 
 	Purchase flow: validate id -> validate max level -> SpendCoins(cost) ->
-	level + 1 -> publish. Any failure simply drops the request; the server
-	never trusts client input.
+	level + 1 -> publish -> notify. Every failure is reported to the player;
+	the server never trusts client input.
 
 	API:
 		UpgradeService.ApplyStats(plr, character?)
+
+	Dependencies: DataService, ConfigLookup, MessageConfig, Net, DataConfig
 ]]
 
 local Players = game:GetService("Players")
@@ -17,7 +19,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DataService = require(script.Parent.DataService)
 local DataConfig = require(script.Parent.Parent.Config.DataConfig)
-local UpgradeConfig = require(ReplicatedStorage.Modules.Config.UpgradeConfig)
+local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
 
 local UpgradeService = {}
@@ -31,6 +34,12 @@ local function getLevel(data, id: string): number
 		return 0
 	end
 	return upgrades[id] or 0
+end
+
+local function notify(plr: Player, kind: string, text: string)
+	if plr.Parent == Players then
+		Net.Notify:FireClient(plr, kind, text)
+	end
 end
 
 function UpgradeService.ApplyStats(plr: Player, character: Model?)
@@ -50,7 +59,7 @@ function UpgradeService.ApplyStats(plr: Player, character: Model?)
 	local data = DataService.Get(plr)
 	local level = if data ~= nil then getLevel(data, "Speed") else 0
 
-	humanoid.WalkSpeed = UpgradeConfig.GetValue("Speed", level)
+	humanoid.WalkSpeed = ConfigLookup.GetUpgradeValue("Speed", level)
 end
 
 local function onCharacterAdded(plr: Player, character: Model)
@@ -87,7 +96,7 @@ Net.PurchaseUpgrade.OnServerEvent:Connect(function(plr, id)
 		return
 	end
 
-	local definition = UpgradeConfig.Upgrades[id]
+	local definition = ConfigLookup.GetUpgrade(id)
 	if definition == nil then
 		return
 	end
@@ -99,11 +108,13 @@ Net.PurchaseUpgrade.OnServerEvent:Connect(function(plr, id)
 
 	local level = getLevel(data, id)
 	if level >= definition.MaxLevel then
+		notify(plr, "Error", MessageConfig.MaxLevelReached)
 		return
 	end
 
-	local cost = UpgradeConfig.GetCost(id, level)
+	local cost = ConfigLookup.GetUpgradeCost(id, level)
 	if not DataService.SpendCoins(plr, cost) then
+		notify(plr, "Error", MessageConfig.NotEnoughCoins)
 		return
 	end
 
@@ -113,6 +124,8 @@ Net.PurchaseUpgrade.OnServerEvent:Connect(function(plr, id)
 	if id == "Speed" then
 		UpgradeService.ApplyStats(plr, plr.Character)
 	end
+
+	notify(plr, "Success", string.format(MessageConfig.UpgradeBought, definition.DisplayName))
 end)
 
 Players.PlayerAdded:Connect(trackPlayer)

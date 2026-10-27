@@ -29,6 +29,8 @@
 		EdgeProbeDownBias: how much the edge ray tilts downward instead of forward (0 to 1)
 		MinWallAngleDegrees: smallest tilt from world up at which a surface walked into counts as a wall (degrees)
 		MaxClimbAngleDegrees: largest angle from GravityUp the poop will climb onto (degrees)
+		ProbeMinInput: smallest movement input strength that makes the poop probe ahead for walls and edges (0 to 1)
+		CharacterWaitTimeout: how long to wait for the character's parts and PlayerScripts to load (seconds)
 
 	Camera fields:
 		CameraDistance: distance from the poop to the camera (studs)
@@ -75,6 +77,8 @@ MovementConfig.EdgeProbeUpOffset = 0.6
 MovementConfig.EdgeProbeDownBias = 0.9
 MovementConfig.MinWallAngleDegrees = 35
 MovementConfig.MaxClimbAngleDegrees = 110
+MovementConfig.ProbeMinInput = 0.5
+MovementConfig.CharacterWaitTimeout = 10
 
 MovementConfig.CameraDistance = 14
 MovementConfig.CameraMinDistance = 2.5

@@ -17,3 +17,4 @@ ServerPackages/
 
 # Local graphify knowledge-graph output
 graphify-out/
+.coordination/

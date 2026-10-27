@@ -13235,7 +13235,10 @@
                 "Shape": "Cylinder"
               }
             }
-          ]
+          ],
+          "attributes": {
+            "ObjectType": "Counter"
+          }
         },
         {
           "name": "Fridge",
@@ -13429,7 +13432,10 @@
                 "BottomSurface": "Smooth"
               }
             }
-          ]
+          ],
+          "attributes": {
+            "ObjectType": "Fridge"
+          }
         },
         {
           "name": "WestCounter",
@@ -13814,7 +13820,10 @@
                 "Shape": "Ball"
               }
             }
-          ]
+          ],
+          "attributes": {
+            "ObjectType": "Counter"
+          }
         },
         {
           "name": "KitchenIsland",
@@ -14057,7 +14066,10 @@
                 "BottomSurface": "Smooth"
               }
             }
-          ]
+          ],
+          "attributes": {
+            "ObjectType": "Island"
+          }
         },
         {
           "name": "FloorObstacles",
@@ -14302,7 +14314,10 @@
                 "BottomSurface": "Smooth"
               }
             }
-          ]
+          ],
+          "attributes": {
+            "ObjectType": "Trash"
+          }
         },
         {
           "name": "PantryShelf1",
@@ -15107,7 +15122,10 @@
                 "BottomSurface": "Smooth"
               }
             }
-          ]
+          ],
+          "attributes": {
+            "ObjectType": "Shelf"
+          }
         },
         {
           "name": "PantryShelf2",
@@ -15912,7 +15930,10 @@
                 "BottomSurface": "Smooth"
               }
             }
-          ]
+          ],
+          "attributes": {
+            "ObjectType": "Shelf"
+          }
         },
         {
           "name": "DiningTable1",
@@ -16529,7 +16550,10 @@
                 "BottomSurface": "Smooth"
               }
             }
-          ]
+          ],
+          "attributes": {
+            "ObjectType": "Table"
+          }
         },
         {
           "name": "DiningTable2",
@@ -17146,7 +17170,10 @@
                 "BottomSurface": "Smooth"
               }
             }
-          ]
+          ],
+          "attributes": {
+            "ObjectType": "Table"
+          }
         },
         {
           "name": "Windows",
@@ -18628,6 +18655,57 @@
           ]
         }
       ]
+    },
+    {
+      "name": "PlayArea",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "CanCollide": false,
+        "Size": [
+          152,
+          16,
+          152
+        ],
+        "CFrame": {
+          "CFrame": {
+            "position": [
+              500,
+              9.0,
+              0
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        },
+        "Color": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "Material": "SmoothPlastic",
+        "TopSurface": "Smooth",
+        "BottomSurface": "Smooth",
+        "Transparency": 1,
+        "CanQuery": false,
+        "CanTouch": false,
+        "CastShadow": false
+      }
     }
   ]
 }

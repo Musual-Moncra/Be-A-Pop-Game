@@ -26,10 +26,10 @@ For more help, check out [the Rojo documentation](https://rojo.space/docs).
 ## Runtime layout
 
 - `ReplicatedStorage.Packages` — shared Wally packages: React and ReactRoblox for UI, Signal for events, Trove for cleanup, Promise for asynchronous flows, and Packet for typed client-server communication.
-- `ReplicatedStorage.Modules` — shared code. `Config` holds plain data and is never started by the framework; `Controllers` and `UIs` hold client modules.
+- `ReplicatedStorage.Modules` — shared code. `Config` holds plain data only (no functions) for the balance team, every field documented in each file's header; `Shared/ConfigLookup` holds every lookup and formula over that data; `Shared/Net` defines every remote. `Controllers` and `UIs` hold client modules started by the framework (`UIs/App` mounts the whole React UI); `Screens` and `UIComponents` are plain React components required by `App`, never started on their own.
 - `ServerScriptService.ServerMain` — the server bridge. It calls `runFramework({ ServerStorage.Modules })`.
 - `ServerStorage.Packages` — server-only Wally packages: ProfileStore for player data sessions and saving.
-- `ServerStorage.Modules` — server-only code: `Services`, `Controllers`, `Shared`, and `Config`. `ServerStorage.Modules` is the only server location handed to the framework, and it scans descendants.
+- `ServerStorage.Modules` — server-only code: `Services` (Data, Map, Run, Upgrade, Powerup, Quest, Leaderboard), `Shared/RunEvents` (signals between run services), and `Config/DataConfig` (save layout). `ServerStorage.Modules` is the only server location handed to the framework, and it scans descendants.
 - `StarterPlayer.StarterPlayerScripts.ClientMain` — the client bridge. It calls `runFramework({ ReplicatedStorage.Modules.Controllers, ReplicatedStorage.Modules.UIs })`.
 
 `src/modules/Shared/runFramework.lua` returns a single function, `runFramework(Locations)`, where `Locations` is an array of instances. It walks `:GetDescendants()` of every location, collects every `ModuleScript`, and `require`s each one in ascending `Priority` order (attribute, default `999`), calling the result with `task.spawn` if it is a function. Modules with the `Folder` attribute set, and modules nested inside a `ModuleScript` that lacks it, are skipped — so a folder of modules can act as a container. `Config` is deliberately outside the locations so the framework never runs it; both sides `require` it directly.

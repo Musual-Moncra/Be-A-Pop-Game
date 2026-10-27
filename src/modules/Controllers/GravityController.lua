@@ -208,8 +208,8 @@ local function onCharacterAdded(char: Model)
 	jumpQueued = false
 	char:SetAttribute("GravityUp", WORLD_UP)
 
-	local foundHumanoid = char:WaitForChild("Humanoid", 10)
-	local foundRoot = char:WaitForChild("HumanoidRootPart", 10)
+	local foundHumanoid = char:WaitForChild("Humanoid", MovementConfig.CharacterWaitTimeout)
+	local foundRoot = char:WaitForChild("HumanoidRootPart", MovementConfig.CharacterWaitTimeout)
 	if not foundHumanoid or not foundHumanoid:IsA("Humanoid") or not foundRoot or not foundRoot:IsA("BasePart") then
 		return
 	end
@@ -338,13 +338,16 @@ local function update(dt: number)
 	local fromMovement = false
 
 	if canStick then
-		if moving and probeDirection.Magnitude > 0.5 then
+		if moving and probeDirection.Magnitude > MovementConfig.ProbeMinInput then
 			local wallReach = MovementConfig.WallProbeDistance / math.max(MovementConfig.WallClimbHeadOnDot, 0.01)
 			local wallHit = cast(position, probeDirection, wallReach)
 			if wallHit then
 				local headOn = -wallHit.Normal:Dot(probeDirection)
 				local perpendicular = wallHit.Distance * headOn
-				if headOn >= MovementConfig.WallClimbHeadOnDot and perpendicular <= MovementConfig.WallProbeDistance then
+				if
+					headOn >= MovementConfig.WallClimbHeadOnDot
+					and perpendicular <= MovementConfig.WallProbeDistance
+				then
 					candidate = wallHit.Normal
 					fromMovement = true
 				end
@@ -358,7 +361,7 @@ local function update(dt: number)
 			end
 		end
 
-		if not candidate and moving and probeDirection.Magnitude > 0.5 then
+		if not candidate and moving and probeDirection.Magnitude > MovementConfig.ProbeMinInput then
 			local edgeOrigin = position + up * MovementConfig.EdgeProbeUpOffset
 			local edgeDirection = probeDirection - up * MovementConfig.EdgeProbeDownBias
 			local edgeHit = cast(edgeOrigin, edgeDirection, MovementConfig.EdgeProbeDistance)
@@ -467,7 +470,7 @@ return function()
 	end)
 
 	task.spawn(function()
-		local playerScripts = player:WaitForChild("PlayerScripts", 10)
+		local playerScripts = player:WaitForChild("PlayerScripts", MovementConfig.CharacterWaitTimeout)
 		if not playerScripts then
 			return
 		end

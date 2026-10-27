@@ -2,27 +2,26 @@
 
 --[[
 	ModeConfig
-	Pure data tuning for game modes and gameplay rules.
+	Game modes and their rules. Pure data, no functions.
 
 	Fields:
-		DefaultModeId: default mode id string used on player join and fallback
-		Modes: array of ModeDefinition tables
-			Id: unique mode identifier string
-			DisplayName: human-readable title shown in selection UI
-			Description: description text explaining mode rules
-			UsesTimer: boolean flag whether the run counts down player lifespan
-			AwardsCoins: boolean flag whether score converts to coins at run completion
-			MaxDuration: maximum allowed duration before session ends (seconds, 0 for timer-driven)
+		DefaultModeId: mode selected for a new player and the fallback selection (mode id)
+		Modes: list of modes, one table per mode
+			Id: unique mode id (string)
+			DisplayName: name shown on the mode button (text)
+			Description: rules text shown when the mode is selected (text)
+			Order: position in the mode list, 1 = first (number)
+			Duration: run length; 0 = use the player's Lifespan upgrade, -1 = no timer (seconds)
+			MaxDuration: hard stop for untimed runs so they cannot last forever, 0 = never (seconds)
+			RewardMultiplier: multiplies coins and xp from score; 0 = this mode pays nothing (multiplier)
+			PowerupsEnabled: food power-ups spawn during the run (true/false)
+			NpcsEnabled: chefs patrol the map and cost you lifespan when they touch you (true/false)
+			TargetScore: score to reach for the mode bonus, 0 = no target (points)
+			TargetBonusCoins: coins paid once when TargetScore is reached (coins)
+			TargetBonusGems: gems paid once when TargetScore is reached (gems)
+			QuestCount: quests rolled at run start from QuestConfig, 0 = none (count)
+			RequiredLevel: player level needed to pick this mode (level)
 ]]
-
-export type ModeDefinition = {
-	Id: string,
-	DisplayName: string,
-	Description: string,
-	UsesTimer: boolean,
-	AwardsCoins: boolean,
-	MaxDuration: number,
-}
 
 local ModeConfig = {}
 
@@ -32,28 +31,67 @@ ModeConfig.Modes = {
 	{
 		Id = "Classic",
 		DisplayName = "Classic",
-		Description = "Standard timed run for coins and high scores.",
-		UsesTimer = true,
-		AwardsCoins = true,
+		Description = "Make a mess before your lifespan runs out. Eat food for boosts.",
+		Order = 1,
+		Duration = 0,
 		MaxDuration = 0,
+		RewardMultiplier = 1,
+		PowerupsEnabled = true,
+		NpcsEnabled = true,
+		TargetScore = 0,
+		TargetBonusCoins = 0,
+		TargetBonusGems = 0,
+		QuestCount = 0,
+		RequiredLevel = 1,
+	},
+	{
+		Id = "Quests",
+		DisplayName = "Quests",
+		Description = "Finish the run objectives for big bonus coins and gems.",
+		Order = 2,
+		Duration = 0,
+		MaxDuration = 0,
+		RewardMultiplier = 0.75,
+		PowerupsEnabled = true,
+		NpcsEnabled = true,
+		TargetScore = 0,
+		TargetBonusCoins = 0,
+		TargetBonusGems = 0,
+		QuestCount = 3,
+		RequiredLevel = 2,
+	},
+	{
+		Id = "Challenge",
+		DisplayName = "Challenge",
+		Description = "60 seconds, no power-ups. Hit the target score for a huge bonus.",
+		Order = 3,
+		Duration = 60,
+		MaxDuration = 0,
+		RewardMultiplier = 1.5,
+		PowerupsEnabled = false,
+		NpcsEnabled = true,
+		TargetScore = 400,
+		TargetBonusCoins = 500,
+		TargetBonusGems = 10,
+		QuestCount = 0,
+		RequiredLevel = 3,
 	},
 	{
 		Id = "Practice",
 		DisplayName = "Practice",
-		Description = "Untimed exploration with no coin rewards.",
-		UsesTimer = false,
-		AwardsCoins = false,
+		Description = "No timer, no chefs, no rewards. Learn to climb walls.",
+		Order = 4,
+		Duration = -1,
 		MaxDuration = 600,
+		RewardMultiplier = 0,
+		PowerupsEnabled = true,
+		NpcsEnabled = false,
+		TargetScore = 0,
+		TargetBonusCoins = 0,
+		TargetBonusGems = 0,
+		QuestCount = 0,
+		RequiredLevel = 1,
 	},
-} :: { ModeDefinition }
-
-function ModeConfig.GetMode(id: string): ModeDefinition?
-	for _, mode in ModeConfig.Modes do
-		if mode.Id == id then
-			return mode
-		end
-	end
-	return nil
-end
+}
 
 return ModeConfig
