@@ -8,7 +8,6 @@
 		RunStateSyncInterval: time between network sync packets to client (seconds)
 		PortalTouchDebounce: minimum delay between portal touch triggers per player (seconds)
 		RunLoopStepInterval: update tick interval for active run loops (seconds)
-		NpcTurnaroundPause: pause duration when NPC reaches patrol boundary (seconds)
 		InstanceWaitTimeout: maximum time to wait for workspace child instances (seconds)
 		StainFolderPrefix: name prefix for grouping player stains in Workspace (string)
 		StainRayUpOffset: starting offset along character up axis for raycasts (studs)
@@ -19,10 +18,8 @@
 		StainThickness: extrusion height of stain parts perpendicular to surface (studs)
 		StainTransparency: visual transparency level of stain parts (0 to 1)
 		PracticeTimeLeft: time-left value sent to the client for untimed runs (seconds, -1 = no timer)
-		NpcCatchRadius: distance at which a patrolling NPC catches the poop (studs)
-		NpcCatchTimePenalty: lifespan removed when an NPC catches the poop (seconds)
-		NpcCatchCooldown: time after a catch before any NPC can catch again (seconds)
-		NpcPatrols: per map id, the NPCs that walk back and forth between two points
+		NpcPatrols: per map id, the NPCs that walk back and forth between two points (vision and
+			chase tuning lives in NpcConfig)
 			name: name of the NPC Model inside the map's NPCs folder (string)
 			startPos: one end of the patrol line (studs, world position)
 			endPos: the other end of the patrol line (studs, world position)
@@ -34,7 +31,6 @@ local RunConfig = {}
 RunConfig.RunStateSyncInterval = 0.25
 RunConfig.PortalTouchDebounce = 1.0
 RunConfig.RunLoopStepInterval = 0.05
-RunConfig.NpcTurnaroundPause = 0.5
 RunConfig.InstanceWaitTimeout = 5
 
 RunConfig.StainFolderPrefix = "Stains_"
@@ -46,9 +42,6 @@ RunConfig.StainMaterial = Enum.Material.SmoothPlastic
 RunConfig.StainThickness = 0.08
 RunConfig.StainTransparency = 0.0
 RunConfig.PracticeTimeLeft = -1
-RunConfig.NpcCatchRadius = 4
-RunConfig.NpcCatchTimePenalty = 5
-RunConfig.NpcCatchCooldown = 2
 
 RunConfig.NpcPatrols = {
 	["Zone1"] = {
