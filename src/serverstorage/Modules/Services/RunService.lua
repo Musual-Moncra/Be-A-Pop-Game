@@ -18,8 +18,8 @@
 
 	Dependencies:
 		DataService, UpgradeService, MapService, PowerupService, PotionService, QuestService, MonetizationService,
-		EventService, PetService, RunEvents, Outbound, ConfigLookup, EventConfig, GameConfig, MapConfig, ModeConfig,
-		ObjectConfig, MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
+		EventService, PetService, GoldenTargetService, RunEvents, Outbound, ConfigLookup, EventConfig, GameConfig,
+		MapConfig, ModeConfig, ObjectConfig, MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
 local Players = game:GetService("Players")
@@ -38,6 +38,7 @@ local PotionService = require(Services.PotionService)
 local QuestService = require(Services.QuestService)
 local EventService = require(Services.EventService)
 local MonetizationService = require(Services.MonetizationService)
+local GoldenTargetService = require(Services.GoldenTargetService)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataConfig = require(ServerStorage.Modules.Config.DataConfig)
@@ -233,6 +234,7 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, 
 		RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 		RunEvents.TargetSoiled:Fire(run.player, run.mapDef.Id, objectType)
 		panicNpcs(run, objectModel:GetPivot().Position)
+		run.score += GoldenTargetService.Soil(run.player, objectModel, objectDef)
 	end
 end
 
@@ -257,6 +259,7 @@ local function soilObject(run: ActiveRun, objectModel: Model)
 	RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 	RunEvents.TargetSoiled:Fire(run.player, run.mapDef.Id, objectType)
 	panicNpcs(run, objectModel:GetPivot().Position)
+	run.score += GoldenTargetService.Soil(run.player, objectModel, objectDef)
 end
 
 local function soilPropsInRadius(run: ActiveRun, origin: Vector3, radius: number)
@@ -441,6 +444,7 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 	activeRuns[plr] = nil
 
 	PowerupService.StopRun(plr)
+	GoldenTargetService.StopRun(plr)
 	local questResult = QuestService.FinishRun(plr)
 
 	local modeDef = run.modeDef
@@ -589,6 +593,7 @@ function RunService.StartRun(plr: Player): boolean
 	UpgradeService.ApplyStats(plr, character)
 	character:PivotTo(CFrame.new(mapDef.Spawn))
 
+	GoldenTargetService.StartRun(plr, mapModel)
 	local runTrove = Trove.new()
 
 	local stainFolder = runTrove:Add(Instance.new("Folder"))

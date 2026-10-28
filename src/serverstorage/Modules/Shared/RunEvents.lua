@@ -9,6 +9,7 @@
 		RunEvents.RunStarted(plr, mapId, modeId)
 		RunEvents.Stained(plr, points, objectType)
 		RunEvents.ObjectSoiled(plr, objectType, bonusPoints)
+		RunEvents.GoldenSoiled(plr, name, gems, points)
 		RunEvents.PowerupEaten(plr, powerupId)
 		RunEvents.TimeBonus(plr, seconds)
 		RunEvents.RunEnded(plr, summary)
@@ -38,5 +39,6 @@ RunEvents.ReviveActivated = Signal.new()
 RunEvents.StainBomb = Signal.new()
 RunEvents.TargetSoiled = Signal.new()
 RunEvents.MiniBombDetonated = Signal.new()
+RunEvents.GoldenSoiled = Signal.new()
 
 return RunEvents

@@ -41,6 +41,7 @@
 		PetMergeNeed: merging blocked because there are not enough identical pets (text)
 		PetMaxVariant: merging blocked because the pet is already at its final variant (text)
 		PetMerged: merge succeeded, first %s = pet name, second %s = new variant name (text)
+		GoldenSoiled: a golden target was fully soiled, %s = object name, %d = gems paid (text)
 ]]
 
 local MessageConfig = {}
@@ -80,5 +81,6 @@ MessageConfig.PetSlotsFull = "All pet slots are full."
 MessageConfig.PetMergeNeed = "You need 5 identical pets to merge."
 MessageConfig.PetMaxVariant = "This pet is already at its final variant."
 MessageConfig.PetMerged = "%s merged into a %s!"
+MessageConfig.GoldenSoiled = "Golden %s! +%d gems"
 
 return MessageConfig

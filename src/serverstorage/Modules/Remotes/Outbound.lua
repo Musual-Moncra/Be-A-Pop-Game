@@ -20,6 +20,7 @@
 		Outbound.PowerupPicked(plr, powerupId)
 		Outbound.ObjectStained(plr, object, step)
 		Outbound.ObjectSoiled(plr, object, bonus)
+		Outbound.GoldenTargets(plr, paths)              coalesced
 		Outbound.NpcCaught(plr, penaltySeconds)
 		Outbound.DailyState(plr, state)                  coalesced
 		Outbound.Notify(plr, kind, text)
@@ -128,6 +129,10 @@ function Outbound.NpcCaught(plr: Player, penaltySeconds: number)
 	if connected(plr) then
 		Net.NpcCaught:FireClient(plr, math.ceil(penaltySeconds))
 	end
+end
+
+function Outbound.GoldenTargets(plr: Player, paths: { string })
+	queue(Net.GoldenTargets, plr, paths)
 end
 
 function Outbound.Notify(plr: Player, kind: string, text: string)

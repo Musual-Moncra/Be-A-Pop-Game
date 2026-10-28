@@ -38,6 +38,7 @@
 		ObjectStained(object, step)        object Model, step 1..ObjectConfig.TintSteps
 		ObjectSoiled(object, bonus)        object Model fully soiled, bonus points
 		QuestState(quests)                 { { Id, Text, Progress, Target, Done } }
+		GoldenTargets(paths)               prop name paths relative to the map model
 		NpcCaught(penaltySeconds)
 		DailyState(state)                  { Day, CanClaim, SecondsUntilNext, Streak }
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
@@ -178,5 +179,7 @@ Net.MergePet = Packet.new("MergePet", Packet.String)
 
 Net.PetInventory = Packet.new("PetInventory", PetInventoryState)
 Net.HatchResult = Packet.new("HatchResult", Packet.String, Packet.String)
+
+Net.GoldenTargets = Packet.new("GoldenTargets", { Packet.String })
 
 return Net
