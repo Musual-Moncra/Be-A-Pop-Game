@@ -69,6 +69,9 @@
       },
       "Zone3": {
         "$path": "src/workspace/Zone3.model.json"
+      },
+      "Zone4": {
+        "$path": "src/workspace/Zone4.model.json"
       }
     },
     "Lighting": {
@@ -87,6 +90,164 @@
     "SoundService": {
       "$properties": {
         "RespectFilteringEnabled": true
+      }
+    },
+    "MaterialService": {
+      "$className": "MaterialService",
+      "$properties": {
+        "SmoothPlasticName": "StudsSmoothPlastic",
+        "PlasticName": "StudsPlastic",
+        "MarbleName": "StudsMarble",
+        "WoodPlanksName": "StudsWoodPlanks",
+        "WoodName": "StudsWood",
+        "FabricName": "StudsFabric",
+        "ConcreteName": "StudsConcrete",
+        "GrassName": "StudsGrass",
+        "LeafyGrassName": "StudsLeafyGrass",
+        "SandName": "StudsSand",
+        "MetalName": "StudsMetal",
+        "BrickName": "StudsBrick",
+        "SlateName": "StudsSlate",
+        "FoilName": "StudsFoil",
+        "CarpetName": "StudsCarpet",
+        "PlasterName": "StudsPlaster",
+        "RubberName": "StudsRubber"
+      },
+      "StudsSmoothPlastic": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "SmoothPlastic",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsPlastic": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Plastic",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsMarble": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Marble",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsWoodPlanks": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "WoodPlanks",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsWood": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Wood",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsFabric": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Fabric",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsConcrete": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Concrete",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsGrass": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Grass",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsLeafyGrass": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "LeafyGrass",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsSand": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Sand",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsMetal": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Metal",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsBrick": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Brick",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsSlate": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Slate",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsFoil": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Foil",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsCarpet": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Carpet",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsPlaster": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Plaster",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
+      },
+      "StudsRubber": {
+        "$className": "MaterialVariant",
+        "$properties": {
+          "BaseMaterial": "Rubber",
+          "ColorMap": "rbxassetid://126698498",
+          "StudsPerTile": 4
+        }
       }
     }
   }

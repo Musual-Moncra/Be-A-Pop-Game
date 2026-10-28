@@ -52,88 +52,33 @@ RunConfig.NpcCatchCooldown = 2
 
 RunConfig.NpcPatrols = {
 	["Zone1"] = {
-		{
-			name = "NPC_Chef1",
-			startPos = Vector3.new(475, 3.5, -30),
-			endPos = Vector3.new(475, 3.5, 30),
-			speed = 8,
-		},
-		{
-			name = "NPC_Chef2",
-			startPos = Vector3.new(525, 3.5, -30),
-			endPos = Vector3.new(525, 3.5, 30),
-			speed = 10,
-		},
-		{
-			name = "NPC_Chef3",
-			startPos = Vector3.new(470, 3.5, 30),
-			endPos = Vector3.new(530, 3.5, 30),
-			speed = 9,
-		},
-		{
-			name = "NPC_Chef4",
-			startPos = Vector3.new(440, 3.5, 40),
-			endPos = Vector3.new(490, 3.5, 40),
-			speed = 7,
-		},
+		{ name = "NPC_Chef1", startPos = Vector3.new(480, 3.5, -22), endPos = Vector3.new(480, 3.5, 30), speed = 8 },
+		{ name = "NPC_Chef2", startPos = Vector3.new(525, 3.5, -22), endPos = Vector3.new(525, 3.5, 32), speed = 9 },
+		{ name = "NPC_Cat", startPos = Vector3.new(440, 3.5, -15), endPos = Vector3.new(475, 3.5, -15), speed = 12 },
+		{ name = "NPC_Dog", startPos = Vector3.new(515, 3.5, 66), endPos = Vector3.new(560, 3.5, 66), speed = 11 },
 	},
 	["Zone2"] = {
-		{
-			name = "NPC_Mom1",
-			startPos = Vector3.new(930, 3.5, -90),
-			endPos = Vector3.new(1070, 3.5, -90),
-			speed = 9,
-		},
-		{
-			name = "NPC_Dad1",
-			startPos = Vector3.new(920, 3.5, 70),
-			endPos = Vector3.new(920, 3.5, -100),
-			speed = 8,
-		},
-		{
-			name = "NPC_Grandma1",
-			startPos = Vector3.new(960, 3.5, 92),
-			endPos = Vector3.new(1040, 3.5, 92),
-			speed = 6,
-		},
-		{
-			name = "NPC_Kid1",
-			startPos = Vector3.new(1090, 3.5, 30),
-			endPos = Vector3.new(1090, 3.5, -40),
-			speed = 12,
-		},
+		{ name = "NPC_Shopper1", startPos = Vector3.new(910, 3.5, -70), endPos = Vector3.new(1090, 3.5, -70), speed = 9 },
+		{ name = "NPC_Shopper2", startPos = Vector3.new(910, 3.5, 72), endPos = Vector3.new(1090, 3.5, 72), speed = 9 },
+		{ name = "NPC_Guard1", startPos = Vector3.new(900, 3.5, -80), endPos = Vector3.new(900, 3.5, 10), speed = 7 },
+		{ name = "NPC_Guard2", startPos = Vector3.new(1100, 3.5, -80), endPos = Vector3.new(1100, 3.5, 80), speed = 7 },
+		{ name = "NPC_Kid", startPos = Vector3.new(940, 3.5, -45), endPos = Vector3.new(1060, 3.5, -45), speed = 13 },
 	},
 	["Zone3"] = {
-		{
-			name = "NPC_Waiter1",
-			startPos = Vector3.new(1500, 3.5, -60),
-			endPos = Vector3.new(1500, 3.5, 110),
-			speed = 10,
-		},
-		{
-			name = "NPC_Waiter2",
-			startPos = Vector3.new(1700, 3.5, -60),
-			endPos = Vector3.new(1700, 3.5, 110),
-			speed = 10,
-		},
-		{
-			name = "NPC_Waiter3",
-			startPos = Vector3.new(1470, 3.5, -110),
-			endPos = Vector3.new(1730, 3.5, -110),
-			speed = 12,
-		},
-		{
-			name = "NPC_Waiter4",
-			startPos = Vector3.new(1470, 3.5, 115),
-			endPos = Vector3.new(1730, 3.5, 115),
-			speed = 11,
-		},
-		{
-			name = "NPC_Waiter5",
-			startPos = Vector3.new(1600, 3.5, 40),
-			endPos = Vector3.new(1600, 3.5, 110),
-			speed = 8,
-		},
+		{ name = "NPC_Staff1", startPos = Vector3.new(1470, 3.5, -9), endPos = Vector3.new(1575, 3.5, -9), speed = 9 },
+		{ name = "NPC_Staff2", startPos = Vector3.new(1625, 3.5, 9), endPos = Vector3.new(1730, 3.5, 9), speed = 9 },
+		{ name = "NPC_IceCream", startPos = Vector3.new(1520, 3.5, 52), endPos = Vector3.new(1560, 3.5, 52), speed = 6 },
+		{ name = "NPC_Jogger", startPos = Vector3.new(1470, 3.5, -125), endPos = Vector3.new(1730, 3.5, -125), speed = 15 },
+		{ name = "NPC_Dog", startPos = Vector3.new(1609, 3.5, 30), endPos = Vector3.new(1609, 3.5, 130), speed = 13 },
+		{ name = "NPC_Kid", startPos = Vector3.new(1591, 3.5, -30), endPos = Vector3.new(1591, 3.5, -130), speed = 11 },
+	},
+	["Zone4"] = {
+		{ name = "NPC_Butler1", startPos = Vector3.new(2380, 3.5, -120), endPos = Vector3.new(2380, 3.5, 140), speed = 9 },
+		{ name = "NPC_Butler2", startPos = Vector3.new(2420, 3.5, -120), endPos = Vector3.new(2420, 3.5, 140), speed = 9 },
+		{ name = "NPC_Bellhop", startPos = Vector3.new(2250, 3.5, 0), endPos = Vector3.new(2370, 3.5, 0), speed = 11 },
+		{ name = "NPC_Guest1", startPos = Vector3.new(2430, 3.5, 40), endPos = Vector3.new(2550, 3.5, 40), speed = 7 },
+		{ name = "NPC_Guest2", startPos = Vector3.new(2250, 3.5, 120), endPos = Vector3.new(2370, 3.5, 120), speed = 8 },
+		{ name = "NPC_Maid", startPos = Vector3.new(2460, 3.5, -120), endPos = Vector3.new(2550, 3.5, -120), speed = 10 },
 	},
 }
 
