@@ -10,6 +10,9 @@
 	pet roll -> weighted variant roll -> add entry -> publish + PetInventory + HatchResult.
 	Multipliers are additive around 1: equipped pets contribute (pet * variant bonus - 1).
 
+	Equip slots are PetConfig.BaseSlots plus Pets.ExtraSlots plus the live Extra Pet Slots
+	gamepass, so buying the pass raises the cap without writing anything into the save.
+
 	API:
 		PetService.HatchEgg(plr, eggId) -> boolean
 		PetService.Equip(plr, uid) -> boolean
@@ -17,9 +20,11 @@
 		PetService.Delete(plr, uid) -> boolean
 		PetService.Merge(plr, uid) -> boolean
 		PetService.GetMultipliers(plr) -> { Coins: number, Stink: number }
+		PetService.HasPet(plr, petId, variantId) -> boolean
+		PetService.GrantPet(plr, petId, variantId) -> boolean
 		PetService.Sync(plr)            re-send the PetInventory packet
 
-	Dependencies: DataService, Outbound, ConfigLookup, PetConfig, MessageConfig
+	Dependencies: DataService, Outbound, ConfigLookup, PetConfig, MessageConfig, MonetizationService
 ]]
 
 local Players = game:GetService("Players")
@@ -27,6 +32,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local DataService = require(script.Parent.DataService)
+local MonetizationService = require(script.Parent.MonetizationService)
 local Outbound = require(script.Parent.Parent.Remotes.Outbound)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
@@ -79,7 +85,7 @@ local function newUid(pets: any): string
 	end
 end
 
-local function buildState(pets: any): any
+local function buildState(pets: any, slots: number): any
 	local entries = {}
 	for _, entry in pets.Inventory do
 		if type(entry) == "table" and type(entry.Uid) == "string" then
@@ -95,8 +101,17 @@ local function buildState(pets: any): any
 	return {
 		Pets = entries,
 		Equipped = equipped,
-		Slots = ConfigLookup.GetMaxEquippedSlots(pets.ExtraSlots),
+		Slots = slots,
 	}
+end
+
+local function getSlotCount(plr: Player, pets: any): number
+	local extraSlots = pets.ExtraSlots
+	local pass = ConfigLookup.GetPass("ExtraPetSlots")
+	if pass ~= nil and pass.ExtraPetSlots > 0 and MonetizationService.HasPass(plr, "ExtraPetSlots") then
+		extraSlots += pass.ExtraPetSlots
+	end
+	return ConfigLookup.GetMaxEquippedSlots(extraSlots)
 end
 
 local function clearFollowers(plr: Player)
@@ -222,7 +237,7 @@ function PetService.Sync(plr: Player)
 	if pets == nil then
 		return
 	end
-	Outbound.PetInventory(plr, buildState(pets))
+	Outbound.PetInventory(plr, buildState(pets, getSlotCount(plr, pets)))
 end
 
 function PetService.GetMultipliers(plr: Player): ConfigLookup.PetMultipliers
@@ -244,6 +259,54 @@ function PetService.GetMultipliers(plr: Player): ConfigLookup.PetMultipliers
 		end
 	end
 	return { Coins = 1 + coins, Stink = 1 + stink }
+end
+
+function PetService.HasPet(plr: Player, petId: string, variantId: string): boolean
+	local pets = getPets(plr)
+	if pets == nil then
+		return false
+	end
+	for _, entry in pets.Inventory do
+		if type(entry) == "table" and entry.PetId == petId and entry.Variant == variantId then
+			return true
+		end
+	end
+	return false
+end
+
+function PetService.GrantPet(plr: Player, petId: string, variantId: string): boolean
+	local pets = getPets(plr)
+	if pets == nil then
+		return false
+	end
+	local pet = ConfigLookup.GetPet(petId)
+	local variant = ConfigLookup.GetVariant(variantId)
+	if pet == nil or variant == nil then
+		return false
+	end
+
+	table.insert(pets.Inventory, { Uid = newUid(pets), PetId = petId, Variant = variantId })
+	publish(plr)
+	return true
+end
+
+local function migrateGrantedPets(plr: Player, data: any)
+	local granted = data.GrantedPets
+	if type(granted) ~= "table" or #granted == 0 then
+		return
+	end
+
+	local remaining = {}
+	for _, petId in granted do
+		if type(petId) ~= "string" or ConfigLookup.GetPet(petId) == nil then
+			table.insert(remaining, petId)
+		elseif not PetService.HasPet(plr, petId, PetConfig.GrantVariant) then
+			PetService.GrantPet(plr, petId, PetConfig.GrantVariant)
+		end
+	end
+	if #remaining ~= #granted then
+		DataService.SetGrantedPets(plr, remaining)
+	end
 end
 
 function PetService.HatchEgg(plr: Player, eggId: string): boolean
@@ -297,7 +360,7 @@ function PetService.Equip(plr: Player, uid: string): boolean
 			return false
 		end
 	end
-	if #pets.Equipped >= ConfigLookup.GetMaxEquippedSlots(pets.ExtraSlots) then
+	if #pets.Equipped >= getSlotCount(plr, pets) then
 		Outbound.Notify(plr, "Error", MessageConfig.PetSlotsFull)
 		return false
 	end
@@ -426,15 +489,20 @@ local function onPlayerAdded(plr: Player)
 end
 
 DataService.Changed:Connect(function(plr, data)
-	if synced[plr] == true then
+	if type(data) ~= "table" or type(data.Pets) ~= "table" then
 		return
 	end
-	if type(data) ~= "table" or type(data.Pets) ~= "table" then
+	migrateGrantedPets(plr, data)
+	if synced[plr] == true then
 		return
 	end
 	synced[plr] = true
 	PetService.Sync(plr)
 	rebuild(plr)
+end)
+
+MonetizationService.PassStateChanged:Connect(function(plr: Player)
+	PetService.Sync(plr)
 end)
 
 Players.PlayerAdded:Connect(onPlayerAdded)
