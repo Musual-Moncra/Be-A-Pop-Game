@@ -116,11 +116,11 @@ LobbyUIConfig.Badge = {
 
 LobbyUIConfig.Layouts = {
 	PC = {
-		Rail = { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 28, 0.58, 0) },
+		Rail = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 290) },
 		PlayButton = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -34) },
 	},
 	Mobile = {
-		Rail = { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 16, 0.6, 0) },
+		Rail = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 262) },
 		PlayButton = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -24, 1, -20) },
 	},
 }
