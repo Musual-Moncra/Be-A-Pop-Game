@@ -133,10 +133,14 @@ local function findObjectType(hit: BasePart, mapModel: Model): (Model?, string?)
 	return nil, nil
 end
 
-local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stainSize: number)
+local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stainSize: number, key: string)
 	if #run.stainParts >= GameConfig.MaxStainParts then
 		local oldest = table.remove(run.stainParts, 1)
 		if oldest ~= nil then
+			local oldKey = oldest:GetAttribute("StainCell")
+			if typeof(oldKey) == "string" then
+				run.visitedCells[oldKey :: string] = nil
+			end
 			oldest:Destroy()
 		end
 	end
@@ -154,6 +158,7 @@ local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stai
 	stain.Transparency = RunConfig.StainTransparency
 	stain.Size = Vector3.new(stainSize, RunConfig.StainThickness, stainSize)
 	stain.CFrame = getSurfaceCFrame(centerPos, normal)
+	stain:SetAttribute("StainCell", key)
 	stain.Parent = run.stainFolder
 
 	table.insert(run.stainParts, stain)
@@ -298,7 +303,7 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 
 	local potionStainMultiplier = PotionService.GetMultiplier(run.player, "StainSize")
 	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize * potionStainMultiplier
-	addStain(run, rayResult.Position, normal, stainSize)
+	addStain(run, rayResult.Position, normal, stainSize, key)
 	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points)
 end
 
@@ -344,7 +349,7 @@ local function stepRun(run: ActiveRun, dt: number)
 	local multipliers = PowerupService.GetMultipliers(plr)
 	local potionSpeedMultiplier = PotionService.GetMultiplier(plr, "Speed")
 	local walkSpeed = getUpgradeValue(plr, "Speed") * multipliers.Speed * potionSpeedMultiplier
-	if hum.WalkSpeed ~= walkSpeed then
+	if math.abs(hum.WalkSpeed - walkSpeed) > 0.01 then
 		hum.WalkSpeed = walkSpeed
 	end
 
@@ -399,7 +404,12 @@ local function stepPatrol(patrol: Patrol, now: number)
 	local alpha = math.clamp((now - patrol.startedAt) / patrol.travelTime, 0, 1)
 	local position = patrol.fromPos:Lerp(patrol.toPos, alpha)
 	local heading = patrol.toPos - patrol.fromPos
-	patrol.model:PivotTo(CFrame.lookAt(position, position + Vector3.new(heading.X, 0, heading.Z)))
+	local flatHeading = Vector3.new(heading.X, 0, heading.Z)
+	if flatHeading.Magnitude < 1e-3 then
+		patrol.model:PivotTo(CFrame.new(position))
+	else
+		patrol.model:PivotTo(CFrame.lookAt(position, position + flatHeading))
+	end
 
 	if alpha >= 1 then
 		local arrived = patrol.toPos
@@ -542,6 +552,10 @@ function RunService.StartRun(plr: Player): boolean
 	if activeRuns[plr] ~= nil then
 		return false
 	end
+	if DataService.Get(plr) == nil then
+		Outbound.Notify(plr, "Error", MessageConfig.DataLoading)
+		return false
+	end
 
 	local character = plr.Character
 	local humanoid = if character ~= nil then character:FindFirstChildOfClass("Humanoid") else nil
@@ -557,6 +571,12 @@ function RunService.StartRun(plr: Player): boolean
 		return false
 	end
 
+	local mapModel = Workspace:FindFirstChild(mapDef.ModelName)
+	if mapModel == nil or not mapModel:IsA("Model") then
+		Outbound.Notify(plr, "Error", MessageConfig.RunUnavailable)
+		return false
+	end
+
 	local hasTimer = modeDef.Duration ~= -1
 	local potionLifespanMultiplier = PotionService.GetMultiplier(plr, "Lifespan")
 	local initialTimeLeft = if modeDef.Duration == 0
@@ -567,7 +587,6 @@ function RunService.StartRun(plr: Player): boolean
 	UpgradeService.ApplyStats(plr, character)
 	character:PivotTo(CFrame.new(mapDef.Spawn))
 
-	local mapModel = Workspace:FindFirstChild(mapDef.ModelName) :: Model?
 	local runTrove = Trove.new()
 
 	local stainFolder = runTrove:Add(Instance.new("Folder"))
@@ -576,7 +595,7 @@ function RunService.StartRun(plr: Player): boolean
 
 	local rayParams = RaycastParams.new()
 	rayParams.FilterType = Enum.RaycastFilterType.Include
-	rayParams.FilterDescendantsInstances = if mapModel ~= nil then { mapModel } else {}
+	rayParams.FilterDescendantsInstances = { mapModel }
 
 	local run: ActiveRun = {
 		player = plr,
@@ -584,7 +603,7 @@ function RunService.StartRun(plr: Player): boolean
 		mapDef = mapDef,
 		modeDef = modeDef,
 		mapModel = mapModel,
-		npcsFolder = if mapModel ~= nil then mapModel:FindFirstChild("NPCs") else nil,
+		npcsFolder = mapModel:FindFirstChild("NPCs"),
 		rayParams = rayParams,
 		hasTimer = hasTimer,
 		timeLeft = initialTimeLeft,
@@ -604,9 +623,7 @@ function RunService.StartRun(plr: Player): boolean
 	}
 	activeRuns[plr] = run
 
-	if mapModel ~= nil then
-		PowerupService.StartRun(plr, mapModel, modeDef)
-	end
+	PowerupService.StartRun(plr, mapModel, modeDef)
 	QuestService.StartRun(plr, mapDef, modeDef)
 
 	RunEvents.RunStarted:Fire(plr, mapDef.Id, modeDef.Id)
@@ -633,7 +650,8 @@ local function setupNpcsForMap(mapDef: ConfigLookup.MapDefinition)
 	for _, patrolDef in patrolDefs do
 		local model = npcsFolder:FindFirstChild(patrolDef.name)
 		local distance = (patrolDef.endPos - patrolDef.startPos).Magnitude
-		if model ~= nil and model:IsA("Model") and distance > 0 and patrols[model] == nil then
+		local travelTime = if patrolDef.speed > 0 then distance / patrolDef.speed else 0
+		if model ~= nil and model:IsA("Model") and travelTime > 0 and patrols[model] == nil then
 			patrols[model] = {
 				model = model,
 				aPos = patrolDef.startPos,
@@ -642,7 +660,7 @@ local function setupNpcsForMap(mapDef: ConfigLookup.MapDefinition)
 				toPos = patrolDef.endPos,
 				baseSpeed = patrolDef.speed,
 				speed = patrolDef.speed,
-				travelTime = distance / patrolDef.speed,
+				travelTime = travelTime,
 				startedAt = now,
 				pausedUntil = 0,
 				panicUntil = 0,
@@ -651,14 +669,19 @@ local function setupNpcsForMap(mapDef: ConfigLookup.MapDefinition)
 	end
 end
 
+local portalConnection: RBXScriptConnection? = nil
+
 local function setupPortal()
 	local lobby = Workspace:WaitForChild("Lobby", RunConfig.InstanceWaitTimeout)
 	local portal = if lobby ~= nil then lobby:WaitForChild("Portal", RunConfig.InstanceWaitTimeout) else nil
 	if portal == nil or not portal:IsA("BasePart") then
 		return
 	end
+	if portalConnection ~= nil then
+		portalConnection:Disconnect()
+	end
 
-	portal.Touched:Connect(function(hit)
+	portalConnection = portal.Touched:Connect(function(hit)
 		local character = hit.Parent
 		local player = if character ~= nil then Players:GetPlayerFromCharacter(character) else nil
 		if player == nil then
@@ -717,8 +740,14 @@ Heartbeat:Connect(function(dt)
 	local step = stepAccumulator
 	stepAccumulator = 0
 
+	local running: { ActiveRun } = {}
 	for _, run in activeRuns do
-		stepRun(run, step)
+		table.insert(running, run)
+	end
+	for _, run in running do
+		if run.active then
+			stepRun(run, step)
+		end
 	end
 
 	local now = os.clock()

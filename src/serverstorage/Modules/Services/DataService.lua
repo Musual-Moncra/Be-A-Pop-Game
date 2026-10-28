@@ -82,11 +82,13 @@ end
 local function flush()
 	flushScheduled = false
 	for plr in Dirty do
-		local data = DataService.Get(plr)
-		if data ~= nil then
-			DataService.Changed:Fire(plr, data)
-			updateLeaderstats(plr, data)
-			Outbound.DataSync(plr, data)
+		if plr.Parent == Players then
+			local data = DataService.Get(plr)
+			if data ~= nil then
+				DataService.Changed:Fire(plr, data)
+				updateLeaderstats(plr, data)
+				Outbound.DataSync(plr, data)
+			end
 		end
 	end
 	table.clear(Dirty)
@@ -191,12 +193,16 @@ function DataService.UnlockMap(plr: Player, mapId: string): (boolean, string?)
 	if mapDef == nil or not mapDef.Enabled then
 		return false, "Unavailable"
 	end
-	if data.UnlockedMaps[mapId] == true then
+	local unlocked = data.UnlockedMaps
+	if unlocked == nil then
+		return false, "Unavailable"
+	end
+	if unlocked[mapId] == true then
 		return false, "AlreadyUnlocked"
 	end
 
 	local previous = ConfigLookup.GetPreviousMap(mapId)
-	if previous ~= nil and data.UnlockedMaps[previous.Id] ~= true then
+	if previous ~= nil and unlocked[previous.Id] ~= true then
 		return false, "NeedPrevious"
 	end
 	if data.Level < mapDef.RequiredLevel then
@@ -206,14 +212,14 @@ function DataService.UnlockMap(plr: Player, mapId: string): (boolean, string?)
 		return false, "NotEnoughCoins"
 	end
 
-	data.UnlockedMaps[mapId] = true
+	unlocked[mapId] = true
 	publish(plr)
 	return true, nil
 end
 
 function DataService.IsMapUnlocked(plr: Player, mapId: string): boolean
 	local data = DataService.Get(plr)
-	if data == nil then
+	if data == nil or data.UnlockedMaps == nil then
 		return false
 	end
 	return data.UnlockedMaps[mapId] == true
@@ -391,6 +397,7 @@ local function onPlayerAdded(plr: Player)
 		Profiles[plr] = nil
 		CoinsValues[plr] = nil
 		LevelValues[plr] = nil
+		Dirty[plr] = nil
 
 		local isLeaving = Leaving[plr] == true
 		Leaving[plr] = nil
@@ -432,11 +439,18 @@ for _, plr in Players:GetPlayers() do
 end
 
 game:BindToClose(function()
+	local sessions = {}
 	for plr, profile in Profiles do
 		Leaving[plr] = true
-		Profiles[plr] = nil
+		Dirty[plr] = nil
 		CoinsValues[plr] = nil
 		LevelValues[plr] = nil
+		table.insert(sessions, profile)
+	end
+	table.clear(Profiles)
+	table.clear(Dirty)
+
+	for _, profile in sessions do
 		profile:EndSession()
 	end
 	task.wait(DataConfig.ShutdownSaveWait)

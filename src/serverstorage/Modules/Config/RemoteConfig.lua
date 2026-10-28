@@ -17,6 +17,7 @@
 			OpenCrate: opening a cosmetic crate
 			EquipCosmetic: equipping or unequipping a skin or trail
 		DefaultRateLimit: limit used for a remote missing from RateLimits (seconds)
+		MaxStringLength: longest string argument a client may send on any remote (characters)
 ]]
 
 local RemoteConfig = {}
@@ -34,5 +35,6 @@ RemoteConfig.RateLimits = {
 }
 
 RemoteConfig.DefaultRateLimit = 0.2
+RemoteConfig.MaxStringLength = 64
 
 return RemoteConfig

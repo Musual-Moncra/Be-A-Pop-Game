@@ -42,17 +42,20 @@ local attachment: Attachment? = nil
 local velocityActuator: LinearVelocity? = nil
 local alignActuator: AlignOrientation? = nil
 local characterConnections: { RBXScriptConnection } = {}
+local otherConnections: { [Player]: { RBXScriptConnection } } = {}
 
 local up = WORLD_UP
 local publishedUp = WORLD_UP
 local facing = WORLD_FORWARD
 local upVelocity = 0
 local grounded = false
+local coyoteTimer = 0
 local airborneTime = 0
 local timeSinceJump = math.huge
 local lastPosition: Vector3? = nil
 local moveVelocity = Vector3.zero
 local jumpQueued = false
+local characterGeneration = 0
 
 local raycastParams = RaycastParams.new()
 raycastParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -186,6 +189,17 @@ local function refreshExclusions()
 	raycastParams.FilterDescendantsInstances = excluded
 end
 
+local function watchOther(other: Player)
+	if other == player or otherConnections[other] ~= nil then
+		return
+	end
+	otherConnections[other] = {
+		other.CharacterAdded:Connect(function()
+			task.defer(refreshExclusions)
+		end),
+	}
+end
+
 local function applyBodyPhysics(part: BasePart)
 	local current = part.CurrentPhysicalProperties
 	part.CustomPhysicalProperties = PhysicalProperties.new(
@@ -225,12 +239,16 @@ end
 local function onCharacterAdded(char: Model)
 	teardown()
 
+	characterGeneration += 1
+	local generation = characterGeneration
+
 	character = char
 	up = WORLD_UP
 	publishedUp = WORLD_UP
 	facing = WORLD_FORWARD
 	upVelocity = 0
 	grounded = false
+	coyoteTimer = 0
 	airborneTime = 0
 	timeSinceJump = math.huge
 	moveVelocity = Vector3.zero
@@ -239,7 +257,13 @@ local function onCharacterAdded(char: Model)
 
 	local foundHumanoid = char:WaitForChild("Humanoid", MovementConfig.CharacterWaitTimeout)
 	local foundRoot = char:WaitForChild("HumanoidRootPart", MovementConfig.CharacterWaitTimeout)
+	if generation ~= characterGeneration then
+		return
+	end
 	if not foundHumanoid or not foundHumanoid:IsA("Humanoid") or not foundRoot or not foundRoot:IsA("BasePart") then
+		return
+	end
+	if not char:IsDescendantOf(workspace) then
 		return
 	end
 
@@ -331,6 +355,7 @@ local function update(dt: number)
 		up = WORLD_UP
 		upVelocity = 0
 		grounded = false
+		coyoteTimer = 0
 		airborneTime = 0
 		timeSinceJump = math.huge
 		moveVelocity = Vector3.zero
@@ -413,10 +438,12 @@ local function update(dt: number)
 		targetUp = candidate :: Vector3
 		grounded = true
 		airborneTime = 0
+		coyoteTimer = MovementConfig.GroundCoyoteTime
 	else
-		grounded = false
+		coyoteTimer = math.max(0, coyoteTimer - dt)
+		grounded = coyoteTimer > 0
 		airborneTime += dt
-		if airborneTime >= MovementConfig.AirGravityHoldTime then
+		if not grounded and airborneTime >= MovementConfig.AirGravityHoldTime then
 			targetUp = WORLD_UP
 		end
 	end
@@ -430,6 +457,7 @@ local function update(dt: number)
 			timeSinceJump = 0
 			airborneTime = 0
 			grounded = false
+			coyoteTimer = 0
 		end
 	end
 
@@ -468,7 +496,15 @@ local function update(dt: number)
 	velocity.VectorVelocity = desiredVelocity
 
 	align.MaxTorque = part.AssemblyMass * MovementConfig.AlignmentTorquePerMass
-	align.CFrame = CFrame.lookAt(position, position + facing, up)
+	local alignTarget = position + facing
+	if facing:Cross(up).Magnitude < 1e-3 then
+		local fallback = up:Cross(Vector3.xAxis)
+		if fallback.Magnitude < 1e-3 then
+			fallback = up:Cross(Vector3.zAxis)
+		end
+		alignTarget = position + fallback.Unit
+	end
+	align.CFrame = CFrame.lookAt(position, alignTarget, up)
 
 	local publishedAngle = math.deg(math.acos(math.clamp(up:Dot(publishedUp), -1, 1)))
 	if publishedAngle >= MovementConfig.GravityUpPublishMinAngleDegrees then
@@ -511,18 +547,20 @@ return function()
 	player.CharacterAdded:Connect(function(char)
 		task.spawn(onCharacterAdded, char)
 	end)
-	Players.PlayerAdded:Connect(function(other)
-		other.CharacterAdded:Connect(function()
-			task.defer(refreshExclusions)
-		end)
-	end)
+	Players.PlayerAdded:Connect(watchOther)
 	for _, other in Players:GetPlayers() do
-		if other ~= player then
-			other.CharacterAdded:Connect(function()
-				task.defer(refreshExclusions)
-			end)
-		end
+		watchOther(other)
 	end
+	Players.PlayerRemoving:Connect(function(other)
+		local connections = otherConnections[other]
+		if connections ~= nil then
+			for _, connection in connections do
+				connection:Disconnect()
+			end
+			otherConnections[other] = nil
+		end
+		task.defer(refreshExclusions)
+	end)
 	player.CharacterRemoving:Connect(function()
 		teardown()
 	end)

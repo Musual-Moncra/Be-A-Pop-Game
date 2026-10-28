@@ -50,6 +50,9 @@ function MapService.GetSelection(plr: Player): Selection
 end
 
 function MapService.UnlockMap(plr: Player, mapId: string): boolean
+	if DataService.Get(plr) == nil then
+		return false
+	end
 	local mapDef = ConfigLookup.GetMap(mapId)
 	if mapDef == nil then
 		Outbound.Notify(plr, "Error", MessageConfig.MapUnavailable)
@@ -91,6 +94,9 @@ function MapService.UnlockMap(plr: Player, mapId: string): boolean
 end
 
 function MapService.SelectRun(plr: Player, mapId: string, modeId: string): boolean
+	if DataService.Get(plr) == nil then
+		return false
+	end
 	local mapDef = ConfigLookup.GetMap(mapId)
 	if mapDef == nil or not mapDef.Enabled then
 		Outbound.Notify(plr, "Error", MessageConfig.MapUnavailable)

@@ -38,6 +38,7 @@ local pitch = math.rad(MovementConfig.CameraDefaultPitchDegrees)
 
 local orbitTouch: InputObject? = nil
 local dragging = false
+local endDrag: () -> () = function() end
 
 local cameraRaycastParams = RaycastParams.new()
 cameraRaycastParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -120,6 +121,7 @@ end
 
 local function onCharacterAdded(char: Model)
 	clearCharacterConnections()
+	endDrag()
 	character = char
 	root = nil
 	focus = nil
@@ -247,13 +249,23 @@ local function beginDrag()
 	UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
 end
 
-local function endDrag()
+function endDrag()
 	dragging = false
 	UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 end
 
 return function()
 	player.CharacterAdded:Connect(onCharacterAdded)
+	player.CharacterRemoving:Connect(function()
+		endDrag()
+		if orbitTouch ~= nil then
+			orbitTouch = nil
+		end
+		clearCharacterConnections()
+		character = nil
+		root = nil
+		focus = nil
+	end)
 	local current = player.Character
 	if current then
 		onCharacterAdded(current)

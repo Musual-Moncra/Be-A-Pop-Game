@@ -31,6 +31,8 @@
 		CosmeticUnequipped: cosmetic unequipped (text)
 		CosmeticNotOwned: player does not own the cosmetic (text)
 		InvalidCrate: crate does not exist (text)
+		RunUnavailable: the selected map has no world model loaded so a run cannot start (text)
+		DataLoading: a run was requested before the player's save finished loading (text)
 ]]
 
 local MessageConfig = {}
@@ -60,5 +62,7 @@ MessageConfig.CosmeticEquipped = "%s equipped!"
 MessageConfig.CosmeticUnequipped = "Cosmetic unequipped."
 MessageConfig.CosmeticNotOwned = "You do not own this cosmetic."
 MessageConfig.InvalidCrate = "Invalid crate."
+MessageConfig.RunUnavailable = "This map is not ready yet. Try again later."
+MessageConfig.DataLoading = "Your save is still loading. Try again in a moment."
 
 return MessageConfig
