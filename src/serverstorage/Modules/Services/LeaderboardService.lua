@@ -271,7 +271,7 @@ local function renderBoard(modelName: string, title: string, entries: { Leaderbo
 
 		local nameLabel = Instance.new("TextLabel")
 		nameLabel.Name = "Name"
-		nameLabel.Size = UDim2.new(0.68, 0, 1, 0)
+		nameLabel.Size = UDim2.new(LeaderboardConfig.NameWidth, 0, 1, 0)
 		nameLabel.Position = UDim2.new(0, 0, 0, 0)
 		nameLabel.BackgroundTransparency = 1
 		nameLabel.Text = string.format("%d. %s", rank, entry.name)
@@ -284,8 +284,8 @@ local function renderBoard(modelName: string, title: string, entries: { Leaderbo
 
 		local scoreLabel = Instance.new("TextLabel")
 		scoreLabel.Name = "Score"
-		scoreLabel.Size = UDim2.new(0.32, 0, 1, 0)
-		scoreLabel.Position = UDim2.new(0.68, 0, 0, 0)
+		scoreLabel.Size = UDim2.new(LeaderboardConfig.ScoreWidth, 0, 1, 0)
+		scoreLabel.Position = UDim2.new(LeaderboardConfig.NameWidth, 0, 0, 0)
 		scoreLabel.BackgroundTransparency = 1
 		scoreLabel.Text = formatNumber(entry.score)
 		scoreLabel.TextColor3 = rowColor

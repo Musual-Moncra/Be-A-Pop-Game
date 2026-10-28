@@ -5,7 +5,10 @@
 	Configuration for character skins, trails, and crates. Pure data, no functions.
 
 	Fields:
-		Skins: table of skin definitions keyed by skin id
+		BodyParts: list of body part names colored by equipped skins (array of strings)
+		TrailTop: offset of the upper attachment for cosmetics trails (Vector3 studs)
+		TrailBottom: offset of the lower attachment for cosmetics trails (Vector3 studs)
+		Skins: table of skin definitions keyed by skin id (Default, DailyStreak7, Gold, Rainbow, Frozen, Ninja, Alien)
 			DisplayName: player-facing skin name (text)
 			Rarity: tier Common, Uncommon, Rare, Epic, Legendary, Mythical, Secret, Darkness (text)
 			Color: body parts tint color (Color3)
@@ -28,6 +31,10 @@
 ]]
 
 local CosmeticConfig = {}
+
+CosmeticConfig.BodyParts = { "TierBottom", "TierMiddle", "TierTop", "Tip" }
+CosmeticConfig.TrailTop = Vector3.new(0, 1, 0)
+CosmeticConfig.TrailBottom = Vector3.new(0, -1, 0)
 
 CosmeticConfig.Skins = {
 	Default = {

@@ -16,6 +16,11 @@
 			Level: starting level (level)
 			Xp: starting experience inside the current level (xp)
 			Upgrades: starting level of every upgrade (level)
+				Lifespan: lifespan upgrade starting level
+				Speed: speed upgrade starting level
+				StainSize: stain size upgrade starting level
+				CoinBonus: coin bonus upgrade starting level
+				PowerupDuration: powerup duration upgrade starting level
 			UnlockedMaps: maps owned from the start, map id = true (map ids)
 			Stats.BestScore: best score ever (points)
 			Stats.TotalRuns: runs played (count)
@@ -32,8 +37,8 @@
 			CoinBoostUntil: unix time the purchased coin boost stops working, 0 = no boost
 				(unix seconds)
 			MapProgress: best percent reached per map, map id = 0..100 (percent)
-			Potions: active potion expiries keyed by potion id (Unix timestamp)
-			PotionInventory: inventory counts of owned potions keyed by potion id (count)
+			Potions: active potion expiries keyed by potion id (LifespanPotion, SpeedPotion, StinkPotion, unix seconds)
+			PotionInventory: inventory counts of owned potions keyed by potion id (LifespanPotion, SpeedPotion, StinkPotion, count)
 			Rebirths: number of rebirths completed (count)
 			OwnedSkins: table of owned skin ids mapped to true ({ [string]: boolean })
 			OwnedTrails: table of owned trail ids mapped to true ({ [string]: boolean })

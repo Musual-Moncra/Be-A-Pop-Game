@@ -173,7 +173,6 @@ Net.DailyState = Packet.new("DailyState", DailyStateEntry)
 Net.ReviveOffer = Packet.new("ReviveOffer", Packet.NumberU32, Packet.NumberU8, Packet.NumberF32)
 Net.PassState = Packet.new("PassState", { Packet.String })
 
--- Potion
 Net.UsePotion = Packet.new("UsePotion", Packet.String)
 
 Net.Rebirth = Packet.new("Rebirth")

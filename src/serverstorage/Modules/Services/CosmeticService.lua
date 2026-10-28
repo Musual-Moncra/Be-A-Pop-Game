@@ -210,8 +210,7 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 
 	local body = character:FindFirstChild("Body")
 	if body ~= nil and skinDef ~= nil then
-		local tierParts = { "TierBottom", "TierMiddle", "TierTop", "Tip" }
-		for _, partName in tierParts do
+		for _, partName in CosmeticConfig.BodyParts do
 			local part = body:FindFirstChild(partName) :: BasePart?
 			if part ~= nil and part:IsA("BasePart") then
 				if part:GetAttribute("BaseColor") == nil then
@@ -244,7 +243,7 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 				if att0 == nil then
 					att0 = Instance.new("Attachment")
 					att0.Name = "TrailAttachment0"
-					att0.Position = Vector3.new(0, 1, 0)
+					att0.Position = CosmeticConfig.TrailTop
 					att0.Parent = hrp
 				end
 
@@ -252,7 +251,7 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 				if att1 == nil then
 					att1 = Instance.new("Attachment")
 					att1.Name = "TrailAttachment1"
-					att1.Position = Vector3.new(0, -1, 0)
+					att1.Position = CosmeticConfig.TrailBottom
 					att1.Parent = hrp
 				end
 
