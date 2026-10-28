@@ -29,6 +29,8 @@
 		Outbound.SpecialEvent(plr, mapId, endsAt)
 		Outbound.CosmeticState(plr, equippedSkin, equippedTrail, ownedSkins, ownedTrails)
 		Outbound.CrateResult(plr, result)
+		Outbound.PetInventory(plr, state)                coalesced, { Pets, Equipped, Slots }
+		Outbound.HatchResult(plr, petId, variantId)
 
 	Dependencies: Net
 ]]
@@ -169,6 +171,16 @@ end
 function Outbound.CrateResult(plr: Player, result: any)
 	if connected(plr) then
 		Net.CrateResult:FireClient(plr, result)
+	end
+end
+
+function Outbound.PetInventory(plr: Player, state: any)
+	queue(Net.PetInventory, plr, state)
+end
+
+function Outbound.HatchResult(plr: Player, petId: string, variantId: string)
+	if connected(plr) then
+		Net.HatchResult:FireClient(plr, petId, variantId)
 	end
 end
 

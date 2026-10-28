@@ -39,6 +39,9 @@
 			OwnedTrails: table of owned trail ids mapped to true ({ [string]: boolean })
 			EquippedSkin: currently equipped skin id (string)
 			EquippedTrail: currently equipped trail id (string)
+			Pets.Inventory: owned pets, one { Uid, PetId, Variant } table each (pet entries)
+			Pets.Equipped: uids of equipped pets, order is the follower order (pet uids)
+			Pets.ExtraSlots: extra equip slots bought with gamepasses (slots)
 		ShutdownSaveWait: time the server waits for saves when it shuts down (seconds)
 		HumanoidWaitTimeout: how long to wait for a character's Humanoid to appear (seconds)
 		LoadFailedKick: kick message when the save cannot be loaded (text)
@@ -93,6 +96,11 @@ DataConfig.Template = {
 	OwnedTrails = {},
 	EquippedSkin = "Default",
 	EquippedTrail = "",
+	Pets = {
+		Inventory = {},
+		Equipped = {},
+		ExtraSlots = 0,
+	},
 }
 
 DataConfig.ShutdownSaveWait = 2

@@ -18,7 +18,7 @@
 
 	Dependencies:
 		DataService, UpgradeService, MapService, PowerupService, PotionService, QuestService, MonetizationService,
-		EventService, RunEvents, Outbound, ConfigLookup, EventConfig, GameConfig, MapConfig, ModeConfig,
+		EventService, PetService, RunEvents, Outbound, ConfigLookup, EventConfig, GameConfig, MapConfig, ModeConfig,
 		ObjectConfig, MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
@@ -32,6 +32,7 @@ local Services = ServerStorage.Modules.Services
 local DataService = require(Services.DataService)
 local UpgradeService = require(Services.UpgradeService)
 local MapService = require(Services.MapService)
+local PetService = require(Services.PetService)
 local PowerupService = require(Services.PowerupService)
 local PotionService = require(Services.PotionService)
 local QuestService = require(Services.QuestService)
@@ -304,7 +305,7 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 	local potionStainMultiplier = PotionService.GetMultiplier(run.player, "StainSize")
 	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize * potionStainMultiplier
 	addStain(run, rayResult.Position, normal, stainSize, key)
-	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points)
+	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points * PetService.GetMultipliers(run.player).Stink)
 end
 
 local function checkNpcCatch(run: ActiveRun, hrp: BasePart)
@@ -461,6 +462,7 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 				* (1 + coinBonus / 100)
 				* DataService.GetBoostMultiplier(plr, "Coins")
 				* coinMultiplier
+				* PetService.GetMultipliers(plr).Coins
 		)
 		xp = math.floor(score * GameConfig.XpPerPoint * rewardScale)
 	end

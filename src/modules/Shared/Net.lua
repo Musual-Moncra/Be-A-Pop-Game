@@ -22,6 +22,11 @@
 		Rebirth()
 		OpenCrate(crateId)
 		EquipCosmetic(kind, id)
+		HatchEgg(eggId)
+		EquipPet(uid)
+		UnequipPet(uid)
+		DeletePet(uid)
+		MergePet(uid)
 
 	Server -> Client:
 		SelectionSync(mapId, modeId)
@@ -43,6 +48,8 @@
 		                                   MapId "" means the event just ended
 		CosmeticState(equippedSkin, equippedTrail, ownedSkins, ownedTrails)
 		CrateResult(crateId, kind, id, isNew, refund)
+		PetInventory(state)                { Pets = { PetEntry }, Equipped = { uid }, Slots }
+		HatchResult(petId, variantId)      pet that came out of the last egg
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -106,6 +113,18 @@ local CrateResultStruct = {
 	Refund = Packet.NumberU32,
 }
 
+local PetEntry = {
+	Uid = Packet.String,
+	PetId = Packet.String,
+	Variant = Packet.String,
+}
+
+local PetInventoryState = {
+	Pets = { PetEntry },
+	Equipped = { Packet.String },
+	Slots = Packet.NumberU8,
+}
+
 local Net = {}
 
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
@@ -150,5 +169,14 @@ Net.EquipCosmetic = Packet.new("EquipCosmetic", Packet.String, Packet.String)
 
 Net.CosmeticState = Packet.new("CosmeticState", Packet.String, Packet.String, Packet.Any, Packet.Any)
 Net.CrateResult = Packet.new("CrateResult", CrateResultStruct)
+
+Net.HatchEgg = Packet.new("HatchEgg", Packet.String)
+Net.EquipPet = Packet.new("EquipPet", Packet.String)
+Net.UnequipPet = Packet.new("UnequipPet", Packet.String)
+Net.DeletePet = Packet.new("DeletePet", Packet.String)
+Net.MergePet = Packet.new("MergePet", Packet.String)
+
+Net.PetInventory = Packet.new("PetInventory", PetInventoryState)
+Net.HatchResult = Packet.new("HatchResult", Packet.String, Packet.String)
 
 return Net
