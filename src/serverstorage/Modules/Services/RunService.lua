@@ -333,7 +333,13 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 	if modeDef.RewardMultiplier > 0 then
 		local rewardScale = mapDef.RewardMultiplier * modeDef.RewardMultiplier
 		local coinBonus = getUpgradeValue(plr, "CoinBonus")
-		baseCoins = math.floor(score * GameConfig.CoinsPerPoint * rewardScale * (1 + coinBonus / 100))
+		baseCoins = math.floor(
+			score
+				* GameConfig.CoinsPerPoint
+				* rewardScale
+				* (1 + coinBonus / 100)
+				* DataService.GetBoostMultiplier(plr, "Coins")
+		)
 		xp = math.floor(score * GameConfig.XpPerPoint * rewardScale)
 	end
 
