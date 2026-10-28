@@ -23,7 +23,12 @@
 		FollowResponsiveness: how fast AlignPosition/AlignOrientation catch up, higher = snappier (number)
 		FollowMaxForce: maximum force AlignPosition may use (force)
 		FollowMaxTorque: maximum torque AlignOrientation may use (torque)
-		FollowOffsets: relative positions of the equipped pets around the character (studs, local space)
+		FollowOffsets: relative positions of the equipped pets around the character, kept to the sides so they never block the camera (studs, local space)
+		EyeColor: colour of the follower eyes (RGB)
+		EyeSize: eye diameter as a share of the pet size (0 to 1)
+		EyeSpread: sideways eye distance from the centre as a share of the pet size (0 to 1)
+		EyeHeight: eye height above the centre as a share of the pet size (0 to 1)
+		EyeDepth: how far forward the eyes sit as a share of the pet size (0 to 1)
 		Rarities: one table per rarity, keyed by rarity id
 			Id: unique rarity id saved inside pet definitions (string)
 			DisplayName: name shown in the UI (text)
@@ -73,13 +78,19 @@ PetConfig.FollowMaxForce = 100000
 PetConfig.FollowMaxTorque = 100000
 
 PetConfig.FollowOffsets = {
-	Vector3.new(2.4, 1.4, 2.4),
-	Vector3.new(-2.4, 1.4, 2.4),
-	Vector3.new(0, 2.2, 3.2),
-	Vector3.new(3.2, 1.4, 0),
-	Vector3.new(-3.2, 1.4, 0),
-	Vector3.new(0, 2.6, -3.0),
+	Vector3.new(3.4, 0.4, 0.6),
+	Vector3.new(-3.4, 0.4, 0.6),
+	Vector3.new(2.6, 0.4, -2.6),
+	Vector3.new(-2.6, 0.4, -2.6),
+	Vector3.new(4.8, 0.4, -0.8),
+	Vector3.new(-4.8, 0.4, -0.8),
 }
+
+PetConfig.EyeColor = Color3.fromRGB(30, 24, 20)
+PetConfig.EyeSize = 0.22
+PetConfig.EyeSpread = 0.22
+PetConfig.EyeHeight = 0.15
+PetConfig.EyeDepth = 0.45
 
 PetConfig.Rarities = {
 	Common = {
