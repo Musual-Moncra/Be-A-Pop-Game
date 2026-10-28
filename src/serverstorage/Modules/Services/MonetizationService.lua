@@ -27,14 +27,21 @@
 		MonetizationService.GetCoinMultiplier(plr) -> number
 		MonetizationService.GetGemMultiplier(plr) -> number
 		MonetizationService.GrantProduct -> { [kind: string]: (plr, entry, purchaseId) -> boolean }
+		MonetizationService.PassStateChanged -> Signal (plr) gamepass cache was refreshed
 
-	Dependencies: MarketplaceService, DataService, RunEvents, Outbound, ConfigLookup, MonetizationConfig
+	PetService is required inside the Newbie Pack handler instead of at the top of the file:
+	PetService requires this service for the Extra Pet Slots gamepass, so a top-level require
+	on both sides would be a cycle.
+
+	Dependencies: MarketplaceService, DataService, RunEvents, Outbound, ConfigLookup,
+		MonetizationConfig, Signal, PetService (lazily)
 ]]
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Signal = require(ReplicatedStorage.Packages.Signal)
 local DataService = require(script.Parent.DataService)
 local RunEvents = require(script.Parent.Parent.Shared.RunEvents)
 local Outbound = require(script.Parent.Parent.Remotes.Outbound)
@@ -42,6 +49,8 @@ local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local MonetizationConfig = require(ReplicatedStorage.Modules.Config.MonetizationConfig)
 
 local MonetizationService = {}
+
+MonetizationService.PassStateChanged = Signal.new()
 
 type PassCache = { [string]: boolean }
 
@@ -80,6 +89,7 @@ local function refreshPasses(plr: Player)
 	passCache[plr] = cache
 	passFetchedAt[plr] = os.clock()
 	Outbound.PassState(plr, collectOwnedPasses(cache))
+	MonetizationService.PassStateChanged:Fire(plr)
 end
 
 function MonetizationService.HasPass(plr: Player, passKey: string): boolean
@@ -123,6 +133,10 @@ function MonetizationService.GetGemMultiplier(plr: Player): number
 end
 
 local GrantProduct: { [string]: (Player, any, string) -> boolean } = {}
+
+local function getPetService(): any
+	return require(script.Parent.PetService)
+end
 
 GrantProduct.GemPack = function(plr: Player, entry: any, _purchaseId: string): boolean
 	if entry.Gems <= 0 then
@@ -168,8 +182,10 @@ end
 GrantProduct.NewbiePack = function(plr: Player, entry: any, _purchaseId: string): boolean
 	DataService.AddGems(plr, entry.Gems)
 	DataService.AddCoins(plr, entry.Coins)
-	if not DataService.HasGrantedPet(plr, entry.PetId) then
-		DataService.GrantPet(plr, entry.PetId)
+
+	local PetService = getPetService()
+	if not PetService.HasPet(plr, entry.PetId, entry.PetVariant) then
+		PetService.GrantPet(plr, entry.PetId, entry.PetVariant)
 	end
 
 	local data = DataService.Get(plr)
@@ -220,6 +236,7 @@ MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(plr: Player, 
 			end
 			cache[passKey] = true
 			Outbound.PassState(plr, collectOwnedPasses(cache))
+			MonetizationService.PassStateChanged:Fire(plr)
 			Outbound.Notify(plr, "Success", string.format(MonetizationConfig.Messages.PassPurchased, def.DisplayName))
 			return
 		end

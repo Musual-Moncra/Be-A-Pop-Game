@@ -5,13 +5,15 @@
 	Eggs, pets, rarities, variants and follower visuals for the pet system. Pure data, no functions.
 
 	Rules:
-		Every pet belongs to exactly one egg through EggId. An egg belongs to one map through MapId,
-		so buying an egg requires that map to be unlocked.
+		Every hatchable pet belongs to exactly one egg through EggId. A pet with EggId = ""
+		is never hatched and only arrives from a developer product or a legacy save grant.
+		An egg belongs to one map through MapId, so buying an egg requires that map unlocked.
 		Hatch rarity is weighted by the rarity Weight of the pets in the egg.
 		Merge chain is Variants[id].NextVariant; a variant without NextVariant cannot be merged.
 
 	Fields:
 		BaseSlots: equip slots every player has before ExtraSlots gamepasses (slots)
+		GrantVariant: variant used when a product or save grant names only a pet id (variant id)
 		MaxMergedFrom: number of identical pets consumed by one merge (count)
 		FollowFolderName: Workspace folder that holds the placeholder pet followers (string)
 		FollowModelPrefix: name prefix of every follower model (string)
@@ -47,7 +49,7 @@
 		Pets: list of pets, one table per pet
 			Id: unique pet id saved in player data (string)
 			DisplayName: name shown in the UI (text)
-			EggId: egg this pet hatches from (egg id)
+			EggId: egg this pet hatches from, "" = never hatched (egg id)
 			Rarity: rarity id from Rarities (rarity id)
 			CoinMultiplier: coins earned while equipped are multiplied by this (multiplier)
 			StinkMultiplier: stain score earned while equipped is multiplied by this (multiplier)
@@ -58,6 +60,7 @@
 local PetConfig = {}
 
 PetConfig.BaseSlots = 3
+PetConfig.GrantVariant = "Default"
 PetConfig.MaxMergedFrom = 5
 
 PetConfig.FollowFolderName = "PetFollowers"
@@ -453,6 +456,16 @@ PetConfig.Pets = {
 		StinkMultiplier = 2.3,
 		Size = 2.3,
 		Color = Color3.fromRGB(55, 35, 80),
+	},
+	{
+		Id = "GoldenPoopDoge",
+		DisplayName = "Golden Poop Doge",
+		EggId = "",
+		Rarity = "Legendary",
+		CoinMultiplier = 1.5,
+		StinkMultiplier = 1.5,
+		Size = 1.8,
+		Color = Color3.fromRGB(255, 205, 60),
 	},
 }
 

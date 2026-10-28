@@ -26,6 +26,7 @@
 		DataService.RecordPurchase(plr, purchaseId, maxHistory)
 		DataService.HasGrantedPet(plr, petId)   -> bool
 		DataService.GrantPet(plr, petId)
+		DataService.SetGrantedPets(plr, petIds)
 		DataService.SetCoinBoostUntil(plr, unixSeconds)
 		DataService.Changed                     -> Signal (plr, data)
 
@@ -334,6 +335,21 @@ function DataService.GrantPet(plr: Player, petId: string)
 		return
 	end
 	table.insert(data.GrantedPets, petId)
+	publish(plr)
+end
+
+function DataService.SetGrantedPets(plr: Player, petIds: { string })
+	local data = DataService.Get(plr)
+	if data == nil then
+		return
+	end
+	local cleaned = {}
+	for _, petId in petIds do
+		if type(petId) == "string" then
+			table.insert(cleaned, petId)
+		end
+	end
+	data.GrantedPets = cleaned
 	publish(plr)
 end
 

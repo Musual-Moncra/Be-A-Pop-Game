@@ -61,8 +61,8 @@
 				PriceRobux: planned price for the shop copy, informational only (Robux)
 				Gems: gems granted (gems)
 				Coins: coins granted (coins)
-				PetId: pet added to the player's granted pets, read by the pet system (pet id)
-				PetMultiplier: coin multiplier the granted pet will carry once pets exist (multiplier)
+				PetId: pet granted with the pack, must exist in PetConfig.Pets (pet id)
+				PetVariant: variant the pet is granted as, must exist in PetConfig.Variants (variant id)
 				CoinBoostMultiplier: run coins are multiplied by this while the boost runs (multiplier)
 				CoinBoostSeconds: how long the coin boost lasts (seconds)
 ]]
@@ -177,7 +177,7 @@ MonetizationConfig.DevProducts = {
 		Gems = 200,
 		Coins = 5000,
 		PetId = "GoldenPoopDoge",
-		PetMultiplier = 1.5,
+		PetVariant = "Default",
 		CoinBoostMultiplier = 2,
 		CoinBoostSeconds = 3600,
 	},
