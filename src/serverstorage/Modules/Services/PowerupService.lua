@@ -61,7 +61,6 @@ type PowerupSession = {
 	multipliers: Multipliers,
 	appliedScale: number,
 	nextSpawnTime: number,
-	nextSyncTime: number,
 }
 
 local PowerupService = {}
@@ -215,12 +214,12 @@ local function eat(session: PowerupSession, powerupId: string, now: number)
 	if duration > 0 then
 		session.boosts[powerupId] = { Duration = duration, ExpiresAt = now + duration }
 		recompute(session)
+		syncState(session, now)
 	end
 
 	DataService.IncrementStat(plr, "PowerupsEaten", 1)
 	RunEvents.PowerupEaten:Fire(plr, powerupId)
 	Outbound.PowerupPicked(plr, powerupId)
-	syncState(session, now)
 end
 
 local function step(session: PowerupSession, now: number)
@@ -257,11 +256,6 @@ local function step(session: PowerupSession, now: number)
 		if session.foodCount < PowerupConfig.MaxActivePerRun then
 			spawnFood(session, now)
 		end
-	end
-
-	if now >= session.nextSyncTime then
-		session.nextSyncTime = now + PowerupConfig.SyncInterval
-		syncState(session, now)
 	end
 end
 
@@ -310,7 +304,6 @@ function PowerupService.StartRun(plr: Player, mapModel: Model, mode: ConfigLooku
 		multipliers = NEUTRAL,
 		appliedScale = 1,
 		nextSpawnTime = now + PowerupConfig.FirstSpawnDelay,
-		nextSyncTime = now + PowerupConfig.SyncInterval,
 	}
 end
 
