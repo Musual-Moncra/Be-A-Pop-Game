@@ -61,6 +61,7 @@ export type ActiveRun = {
 	mapDef: ConfigLookup.MapDefinition,
 	modeDef: ConfigLookup.ModeDefinition,
 	mapModel: Model?,
+	propsFolder: Instance?,
 	npcsFolder: Instance?,
 	rayParams: RaycastParams,
 	hasTimer: boolean,
@@ -68,9 +69,14 @@ export type ActiveRun = {
 	elapsedTime: number,
 	score: number,
 	visitedCells: { [string]: boolean },
+	stainCells: number,
 	objectStains: { [Model]: number },
+	objectCache: { [Instance]: Model | false },
+	sentTint: { [Model]: number },
+	pendingTint: { [Model]: number },
 	objectsSoiled: number,
 	stainParts: { BasePart },
+	stainCursor: number,
 	stainFolder: Folder,
 	stainTimer: number,
 	syncTimer: number,
@@ -117,8 +123,18 @@ local function getSurfaceCFrame(position: Vector3, normal: Vector3): CFrame
 	return CFrame.fromMatrix(position, right, normal, forward)
 end
 
-local function findObjectType(hit: BasePart, mapModel: Model): (Model?, string?)
-	local props = mapModel:FindFirstChild("Props")
+local function findObjectType(hit: BasePart, props: Instance?, cache: { [Instance]: Model | false }): (Model?, string?)
+	local cached = cache[hit]
+	if cached ~= nil then
+		if cached == false then
+			return nil, nil
+		end
+		local cachedType = cached:GetAttribute("ObjectType")
+		if typeof(cachedType) == "string" then
+			return cached, cachedType
+		end
+		return nil, nil
+	end
 	if props == nil then
 		return nil, nil
 	end
@@ -127,44 +143,74 @@ local function findObjectType(hit: BasePart, mapModel: Model): (Model?, string?)
 		if current.Parent == props and current:IsA("Model") then
 			local objectType = current:GetAttribute("ObjectType")
 			if typeof(objectType) == "string" and ConfigLookup.GetObject(objectType) ~= nil then
+				cache[hit] = current
 				return current, objectType
 			end
+			cache[hit] = false
 			return nil, nil
 		end
 		current = current.Parent
 	end
+	cache[hit] = false
 	return nil, nil
 end
 
 local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stainSize: number, key: string)
-	if #run.stainParts >= GameConfig.MaxStainParts then
-		local oldest = table.remove(run.stainParts, 1)
-		if oldest ~= nil then
-			local oldKey = oldest:GetAttribute("StainCell")
-			if typeof(oldKey) == "string" then
-				run.visitedCells[oldKey :: string] = nil
-			end
-			oldest:Destroy()
-		end
-	end
-
 	local centerPos = position + normal * (RunConfig.StainThickness * 0.5 + RunConfig.StainSurfaceOffset)
-	local stain = Instance.new("Part")
-	stain.Name = "Stain"
-	stain.Anchored = true
-	stain.CanCollide = false
-	stain.CanTouch = false
-	stain.CanQuery = false
-	stain.CastShadow = false
-	stain.Material = RunConfig.StainMaterial
-	stain.Color = RunConfig.StainColor
-	stain.Transparency = RunConfig.StainTransparency
-	stain.Size = Vector3.new(stainSize, RunConfig.StainThickness, stainSize)
-	stain.CFrame = getSurfaceCFrame(centerPos, normal)
-	stain:SetAttribute("StainCell", key)
-	stain.Parent = run.stainFolder
+	local cframe = getSurfaceCFrame(centerPos, normal)
+	local size = Vector3.new(stainSize, RunConfig.StainThickness, stainSize)
 
-	table.insert(run.stainParts, stain)
+	local stain: BasePart
+	if #run.stainParts >= GameConfig.MaxStainParts then
+		run.stainCursor += 1
+		if run.stainCursor > #run.stainParts then
+			run.stainCursor = 1
+		end
+		stain = run.stainParts[run.stainCursor]
+		local oldKey = stain:GetAttribute("StainCell")
+		if typeof(oldKey) == "string" and run.visitedCells[oldKey] then
+			run.visitedCells[oldKey] = nil
+			run.stainCells -= 1
+		end
+		stain.Size = size
+		stain.CFrame = cframe
+		stain:SetAttribute("StainCell", key)
+	else
+		stain = Instance.new("Part")
+		stain.Name = "Stain"
+		stain.Anchored = true
+		stain.CanCollide = false
+		stain.CanTouch = false
+		stain.CanQuery = false
+		stain.CastShadow = false
+		stain.Material = RunConfig.StainMaterial
+		stain.Color = RunConfig.StainColor
+		stain.Transparency = RunConfig.StainTransparency
+		stain.Size = size
+		stain.CFrame = cframe
+		stain:SetAttribute("StainCell", key)
+		stain.Parent = run.stainFolder
+		table.insert(run.stainParts, stain)
+	end
+end
+
+local function queueTint(run: ActiveRun, objectModel: Model, step: number)
+	if step <= (run.sentTint[objectModel] or 0) then
+		return
+	end
+	run.sentTint[objectModel] = step
+	run.pendingTint[objectModel] = step
+end
+
+local function flushTints(run: ActiveRun)
+	local pending = run.pendingTint
+	if next(pending) == nil then
+		return
+	end
+	for objectModel, step in pending do
+		Outbound.ObjectStained(run.player, objectModel, step)
+	end
+	table.clear(pending)
 end
 
 local function retarget(patrol: Patrol, now: number, speed: number)
@@ -204,10 +250,7 @@ local function panicNpcs(run: ActiveRun, position: Vector3)
 end
 
 local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, pointsMultiplier: number)
-	local objectModel, objectType = nil, nil
-	if run.mapModel ~= nil then
-		objectModel, objectType = findObjectType(hitPart, run.mapModel)
-	end
+	local objectModel, objectType = findObjectType(hitPart, run.propsFolder, run.objectCache)
 
 	local objectDef = if objectType ~= nil then ConfigLookup.GetObject(objectType) else nil
 	local multiplier = if objectDef ~= nil then objectDef.PointsMultiplier else ObjectConfig.SurfacePointsMultiplier
@@ -226,7 +269,7 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, 
 
 	local tintStep =
 		math.clamp(math.ceil(count / objectDef.StainsToSoil * ObjectConfig.TintSteps), 1, ObjectConfig.TintSteps)
-	Outbound.ObjectStained(run.player, objectModel, tintStep)
+	queueTint(run, objectModel, tintStep)
 
 	if count == objectDef.StainsToSoil then
 		run.score += objectDef.SoilBonus
@@ -255,7 +298,7 @@ local function soilObject(run: ActiveRun, objectModel: Model)
 	run.objectStains[objectModel] = objectDef.StainsToSoil
 	run.score += objectDef.SoilBonus
 	run.objectsSoiled += 1
-	Outbound.ObjectStained(run.player, objectModel, ObjectConfig.TintSteps)
+	queueTint(run, objectModel, ObjectConfig.TintSteps)
 	Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
 	RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 	RunEvents.TargetSoiled:Fire(run.player, run.mapDef.Id, objectType)
@@ -305,6 +348,7 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 		return
 	end
 	run.visitedCells[key] = true
+	run.stainCells += 1
 
 	local potionStainMultiplier = PotionService.GetMultiplier(run.player, "StainSize")
 	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize * potionStainMultiplier
@@ -358,12 +402,18 @@ local function stepRun(run: ActiveRun, dt: number)
 		hum.WalkSpeed = walkSpeed
 	end
 
-	if run.stainTimer >= GameConfig.StainInterval then
+	local stains = 0
+	while run.stainTimer >= GameConfig.StainInterval and stains < GameConfig.MaxStainsPerStep do
 		run.stainTimer -= GameConfig.StainInterval
 		dropSurfaceStain(run, hrp, multipliers)
+		stains += 1
+	end
+	if run.stainTimer >= GameConfig.StainInterval then
+		run.stainTimer = GameConfig.StainInterval
 	end
 
 	checkNpcCatch(run, hrp)
+	flushTints(run)
 
 	if not run.targetReached and modeDef.TargetScore > 0 and run.score >= modeDef.TargetScore then
 		run.targetReached = true
@@ -612,6 +662,7 @@ function RunService.StartRun(plr: Player): boolean
 		mapDef = mapDef,
 		modeDef = modeDef,
 		mapModel = mapModel,
+		propsFolder = mapModel:FindFirstChild("Props"),
 		npcsFolder = mapModel:FindFirstChild("NPCs"),
 		rayParams = rayParams,
 		hasTimer = hasTimer,
@@ -619,9 +670,14 @@ function RunService.StartRun(plr: Player): boolean
 		elapsedTime = 0,
 		score = 0,
 		visitedCells = {},
+		stainCells = 0,
 		objectStains = {},
+		objectCache = {},
+		sentTint = {},
+		pendingTint = {},
 		objectsSoiled = 0,
 		stainParts = {},
+		stainCursor = 0,
 		stainFolder = stainFolder,
 		stainTimer = 0,
 		syncTimer = 0,

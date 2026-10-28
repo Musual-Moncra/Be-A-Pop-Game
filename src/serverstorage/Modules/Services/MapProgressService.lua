@@ -44,14 +44,6 @@ local sessions: { [Player]: Session } = {}
 local totals: { [string]: number } = {}
 local accumulator = 0
 
-local function countCells(cells: { [string]: boolean }): number
-	local count = 0
-	for _ in cells do
-		count += 1
-	end
-	return count
-end
-
 local function computeTotal(mapDef: ConfigLookup.MapDefinition): number
 	local model = Workspace:FindFirstChild(mapDef.ModelName)
 	if model == nil then
@@ -166,14 +158,14 @@ local function update(session: Session)
 		return
 	end
 
-	local stained = run.objectsSoiled + countCells(run.visitedCells)
+	local stained = run.objectsSoiled + run.stainCells
 	local percent = ConfigLookup.GetMapProgressPercent(stained, total)
 	if percent <= session.percent then
 		return
 	end
 	session.percent = percent
 
-	if percent - session.sent >= 0.1 then
+	if percent - session.sent >= EventConfig.MapProgress.MinSendDelta then
 		session.sent = percent
 		Outbound.MapProgress(session.player, session.mapId, percent)
 	end
