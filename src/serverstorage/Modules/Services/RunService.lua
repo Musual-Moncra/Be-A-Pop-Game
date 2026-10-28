@@ -18,7 +18,7 @@
 
 	Dependencies:
 		DataService, UpgradeService, MapService, PowerupService, PotionService, QuestService, MonetizationService,
-		EventService, PetService, GoldenTargetService, RunEvents, Outbound, ConfigLookup, EventConfig, GameConfig,
+		EventService, PetService, GoldenTargetService, RebirthService, RunEvents, Outbound, ConfigLookup, EventConfig, GameConfig,
 		MapConfig, ModeConfig, ObjectConfig, MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
@@ -39,6 +39,7 @@ local QuestService = require(Services.QuestService)
 local EventService = require(Services.EventService)
 local MonetizationService = require(Services.MonetizationService)
 local GoldenTargetService = require(Services.GoldenTargetService)
+local RebirthService = require(Services.RebirthService)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataConfig = require(ServerStorage.Modules.Config.DataConfig)
@@ -467,6 +468,7 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 				* DataService.GetBoostMultiplier(plr, "Coins")
 				* coinMultiplier
 				* PetService.GetMultipliers(plr).Coins
+				* RebirthService.GetMultiplier(plr)
 		)
 		xp = math.floor(score * GameConfig.XpPerPoint * rewardScale)
 	end

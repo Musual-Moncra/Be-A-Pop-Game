@@ -37,6 +37,13 @@ CosmeticConfig.Skins = {
 		Material = Enum.Material.SmoothPlastic,
 		TextureId = "",
 	},
+	DailyStreak7 = {
+		DisplayName = "Royal Stinker",
+		Rarity = "Mythical",
+		Color = Color3.fromRGB(170, 90, 255),
+		Material = Enum.Material.Neon,
+		TextureId = "",
+	},
 	Gold = {
 		DisplayName = "Gold",
 		Rarity = "Legendary",
