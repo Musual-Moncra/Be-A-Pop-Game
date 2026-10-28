@@ -22,6 +22,8 @@
 		Outbound.ObjectSoiled(plr, object, bonus)
 		Outbound.NpcCaught(plr, penaltySeconds)
 		Outbound.Notify(plr, kind, text)
+		Outbound.CosmeticState(plr, equippedSkin, equippedTrail, ownedSkins, ownedTrails)
+		Outbound.CrateResult(plr, result)
 
 	Dependencies: Net
 ]]
@@ -124,6 +126,18 @@ end
 function Outbound.Notify(plr: Player, kind: string, text: string)
 	if connected(plr) then
 		Net.Notify:FireClient(plr, kind, text)
+	end
+end
+
+function Outbound.CosmeticState(plr: Player, equippedSkin: string, equippedTrail: string, ownedSkins: any, ownedTrails: any)
+	if connected(plr) then
+		Net.CosmeticState:FireClient(plr, equippedSkin, equippedTrail, ownedSkins, ownedTrails)
+	end
+end
+
+function Outbound.CrateResult(plr: Player, result: any)
+	if connected(plr) then
+		Net.CrateResult:FireClient(plr, result)
 	end
 end
 

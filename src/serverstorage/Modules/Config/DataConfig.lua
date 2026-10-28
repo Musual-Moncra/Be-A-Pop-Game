@@ -22,6 +22,11 @@
 			Stats.ObjectsSoiled: objects fully soiled across all runs (count)
 			Stats.PowerupsEaten: food items eaten across all runs (count)
 			Stats.QuestsCompleted: quests completed across all runs (count)
+			Rebirths: number of rebirths completed (count)
+			OwnedSkins: table of owned skin ids mapped to true ({ [string]: boolean })
+			OwnedTrails: table of owned trail ids mapped to true ({ [string]: boolean })
+			EquippedSkin: currently equipped skin id (string)
+			EquippedTrail: currently equipped trail id (string)
 		ShutdownSaveWait: time the server waits for saves when it shuts down (seconds)
 		HumanoidWaitTimeout: how long to wait for a character's Humanoid to appear (seconds)
 		LoadFailedKick: kick message when the save cannot be loaded (text)
@@ -54,6 +59,13 @@ DataConfig.Template = {
 		PowerupsEaten = 0,
 		QuestsCompleted = 0,
 	},
+	Rebirths = 0,
+	OwnedSkins = {
+		Default = true,
+	},
+	OwnedTrails = {},
+	EquippedSkin = "Default",
+	EquippedTrail = "",
 }
 
 DataConfig.ShutdownSaveWait = 2

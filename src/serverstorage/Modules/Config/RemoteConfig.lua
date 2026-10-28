@@ -12,6 +12,9 @@
 			SelectRun: choosing map and mode
 			StartRun: starting a run from the Play window
 			LeaveRun: leaving a run from the HUD
+			Rebirth: executing a rebirth
+			OpenCrate: opening a cosmetic crate
+			EquipCosmetic: equipping or unequipping a skin or trail
 		DefaultRateLimit: limit used for a remote missing from RateLimits (seconds)
 ]]
 
@@ -23,6 +26,9 @@ RemoteConfig.RateLimits = {
 	SelectRun = 0.1,
 	StartRun = 0.5,
 	LeaveRun = 0.5,
+	Rebirth = 0.5,
+	OpenCrate = 0.3,
+	EquipCosmetic = 0.2,
 }
 
 RemoteConfig.DefaultRateLimit = 0.2

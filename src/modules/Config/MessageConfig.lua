@@ -20,6 +20,14 @@
 		TargetReached: Challenge target score reached (text)
 		LevelUp: player reached a new level, %d = new level (text)
 		NpcCaught: an NPC caught the poop, %d = seconds lost (text)
+		NotEnoughGems: not enough gems for a purchase (text)
+		RebirthSuccess: player rebirthed successfully, %d = new rebirth count (text)
+		CosmeticUnlocked: cosmetic unlocked from crate, %s = cosmetic name (text)
+		CosmeticDuplicate: duplicate cosmetic rolled, refunded coins (text)
+		CosmeticEquipped: cosmetic equipped, %s = cosmetic name (text)
+		CosmeticUnequipped: cosmetic unequipped (text)
+		CosmeticNotOwned: player does not own the cosmetic (text)
+		InvalidCrate: crate does not exist (text)
 ]]
 
 local MessageConfig = {}
@@ -38,5 +46,13 @@ MessageConfig.QuestCompleted = "Quest complete: %s"
 MessageConfig.TargetReached = "Target reached!"
 MessageConfig.LevelUp = "Level up! You are now level %d."
 MessageConfig.NpcCaught = "Caught! -%ds"
+MessageConfig.NotEnoughGems = "Not enough gems."
+MessageConfig.RebirthSuccess = "Rebirth #%d achieved! Multipliers boosted!"
+MessageConfig.CosmeticUnlocked = "Unlocked: %s!"
+MessageConfig.CosmeticDuplicate = "Duplicate! Refunded %d coins."
+MessageConfig.CosmeticEquipped = "%s equipped!"
+MessageConfig.CosmeticUnequipped = "Cosmetic unequipped."
+MessageConfig.CosmeticNotOwned = "You do not own this cosmetic."
+MessageConfig.InvalidCrate = "Invalid crate."
 
 return MessageConfig

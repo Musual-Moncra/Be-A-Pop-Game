@@ -21,8 +21,13 @@
 		ConfigLookup.GetObject(objectType) -> ObjectDefinition?
 		ConfigLookup.GetQuest(id) -> QuestDefinition?
 		ConfigLookup.FormatQuest(quest) -> string
+		ConfigLookup.GetRebirthCost(rebirths) -> number
+		ConfigLookup.GetRebirthMultiplier(rebirths) -> number
+		ConfigLookup.GetSkin(id) -> any
+		ConfigLookup.GetTrail(id) -> any
+		ConfigLookup.GetCrate(id) -> any
 
-	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig, QuestConfig
+	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig, QuestConfig, RebirthConfig, CosmeticConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -35,6 +40,8 @@ local ObjectConfig = require(Config.ObjectConfig)
 local PowerupConfig = require(Config.PowerupConfig)
 local QuestConfig = require(Config.QuestConfig)
 local UpgradeConfig = require(Config.UpgradeConfig)
+local RebirthConfig = require(Config.RebirthConfig)
+local CosmeticConfig = require(Config.CosmeticConfig)
 
 export type MapDefinition = {
 	Id: string,
@@ -219,6 +226,27 @@ end
 
 function ConfigLookup.FormatQuest(quest: QuestDefinition): string
 	return (string.gsub(quest.Description, "%%d", tostring(quest.Target)))
+end
+
+
+function ConfigLookup.GetRebirthCost(rebirths: number): number
+	return math.floor(RebirthConfig.BaseCost * (RebirthConfig.CostGrowth ^ rebirths))
+end
+
+function ConfigLookup.GetRebirthMultiplier(rebirths: number): number
+	return 1 + (rebirths * RebirthConfig.MultiplierPerRebirth)
+end
+
+function ConfigLookup.GetSkin(id: string)
+	return CosmeticConfig.Skins[id]
+end
+
+function ConfigLookup.GetTrail(id: string)
+	return CosmeticConfig.Trails[id]
+end
+
+function ConfigLookup.GetCrate(id: string)
+	return CosmeticConfig.Crates[id]
 end
 
 return ConfigLookup

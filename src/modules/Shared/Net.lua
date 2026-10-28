@@ -17,6 +17,9 @@
 		SelectRun(mapId, modeId)
 		StartRun()
 		LeaveRun()
+		Rebirth()
+		OpenCrate(crateId)
+		EquipCosmetic(kind, id)
 
 	Server -> Client:
 		SelectionSync(mapId, modeId)
@@ -30,6 +33,8 @@
 		QuestState(quests)                 { { Id, Text, Progress, Target, Done } }
 		NpcCaught(penaltySeconds)
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
+		CosmeticState(equippedSkin, equippedTrail, ownedSkins, ownedTrails)
+		CrateResult(crateId, kind, id, isNew, refund)
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -75,6 +80,14 @@ local RunSummary = {
 	OutOfTime = Packet.Boolean8,
 }
 
+local CrateResultStruct = {
+	CrateId = Packet.String,
+	Kind = Packet.String,
+	Id = Packet.String,
+	IsNew = Packet.Boolean8,
+	Refund = Packet.NumberU32,
+}
+
 local Net = {}
 
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
@@ -94,5 +107,13 @@ Net.ObjectSoiled = Packet.new("ObjectSoiled", Packet.Instance, Packet.NumberU32)
 Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
+
+-- Rebirth + Cosmetics
+Net.Rebirth = Packet.new("Rebirth")
+Net.OpenCrate = Packet.new("OpenCrate", Packet.String)
+Net.EquipCosmetic = Packet.new("EquipCosmetic", Packet.String, Packet.String)
+
+Net.CosmeticState = Packet.new("CosmeticState", Packet.String, Packet.String, Packet.Any, Packet.Any)
+Net.CrateResult = Packet.new("CrateResult", CrateResultStruct)
 
 return Net
