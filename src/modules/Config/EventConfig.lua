@@ -11,6 +11,7 @@
 		SpecialTime.PointsMultiplier: score multiplier while standing on the event map (multiplier)
 		SpecialTime.GemMultiplier: gem reward multiplier while playing the event map (multiplier)
 		MapProgress.SyncInterval: time between live map-percent sends to the client (seconds)
+		MapProgress.MinSendDelta: smallest percent change worth a live map-percent send (percent)
 		MapProgress.SaveStepPercent: best percent is checkpointed to the save every this many percent (percent)
 		TargetPanic.DurationSeconds: how long an NPC panics after a nearby prop is fully soiled (seconds)
 		TargetPanic.SpeedMultiplier: patrol speed of a panicking NPC (multiplier)
@@ -29,6 +30,7 @@ EventConfig.SpecialTime = {
 
 EventConfig.MapProgress = {
 	SyncInterval = 0.5,
+	MinSendDelta = 0.1,
 	SaveStepPercent = 10,
 }
 
