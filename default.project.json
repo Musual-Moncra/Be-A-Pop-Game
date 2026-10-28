@@ -77,14 +77,22 @@
     "Lighting": {
       "$properties": {
         "Ambient": [
-          0,
-          0,
-          0
+          0.56,
+          0.56,
+          0.62
         ],
-        "Brightness": 2,
+        "Brightness": 2.4,
         "GlobalShadows": true,
         "Outlines": false,
-        "Technology": "Voxel"
+        "Technology": "ShadowMap",
+        "OutdoorAmbient": [
+          0.6,
+          0.6,
+          0.66
+        ],
+        "EnvironmentDiffuseScale": 0.6,
+        "EnvironmentSpecularScale": 0.4,
+        "ShadowSoftness": 0.4
       }
     },
     "SoundService": {
