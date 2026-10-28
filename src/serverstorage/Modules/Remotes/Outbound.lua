@@ -23,6 +23,8 @@
 		Outbound.NpcCaught(plr, penaltySeconds)
 		Outbound.DailyState(plr, state)                  coalesced
 		Outbound.Notify(plr, kind, text)
+		Outbound.ReviveOffer(plr, productId, tier, windowSeconds)
+		Outbound.PassState(plr, ownedPassKeys)
 
 	Dependencies: Net
 ]]
@@ -130,6 +132,18 @@ end
 
 function Outbound.DailyState(plr: Player, state: any)
 	queue(Net.DailyState, plr, state)
+end
+
+function Outbound.ReviveOffer(plr: Player, productId: number, tier: number, windowSeconds: number)
+	if connected(plr) then
+		Net.ReviveOffer:FireClient(plr, math.floor(productId), math.clamp(tier, 1, 255), windowSeconds)
+	end
+end
+
+function Outbound.PassState(plr: Player, ownedPassKeys: { string })
+	if connected(plr) then
+		Net.PassState:FireClient(plr, ownedPassKeys)
+	end
 end
 
 Players.PlayerRemoving:Connect(function(plr)

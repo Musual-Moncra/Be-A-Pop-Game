@@ -17,8 +17,9 @@
 		RunService.GetRun(plr: Player): ActiveRun?
 
 	Dependencies:
-		DataService, UpgradeService, MapService, PowerupService, QuestService, RunEvents, Outbound,
-		ConfigLookup, GameConfig, MapConfig, ModeConfig, ObjectConfig, RunConfig, MessageConfig, DataConfig, Trove
+		DataService, UpgradeService, MapService, PowerupService, QuestService, MonetizationService,
+		RunEvents, Outbound, ConfigLookup, GameConfig, MapConfig, ModeConfig, ObjectConfig,
+		MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
 local Players = game:GetService("Players")
@@ -33,6 +34,7 @@ local UpgradeService = require(Services.UpgradeService)
 local MapService = require(Services.MapService)
 local PowerupService = require(Services.PowerupService)
 local QuestService = require(Services.QuestService)
+local MonetizationService = require(Services.MonetizationService)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataConfig = require(ServerStorage.Modules.Config.DataConfig)
@@ -41,6 +43,7 @@ local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
+local MonetizationConfig = require(ReplicatedStorage.Modules.Config.MonetizationConfig)
 local ObjectConfig = require(ReplicatedStorage.Modules.Config.ObjectConfig)
 local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
@@ -67,6 +70,7 @@ export type ActiveRun = {
 	syncTimer: number,
 	npcCooldown: number,
 	targetReached: boolean,
+	reviveDeadline: number,
 	active: boolean,
 }
 
@@ -85,6 +89,7 @@ local activeRuns: { [Player]: ActiveRun } = {}
 local portalDebounce: { [Player]: number } = {}
 local patrols: { [Model]: Patrol } = {}
 local stepAccumulator = 0
+local reviveEnabled = ConfigLookup.IsReviveAvailable()
 
 local function getUpgradeValue(plr: Player, id: string): number
 	local data = DataService.Get(plr)
@@ -176,6 +181,27 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, 
 		Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
 		RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 	end
+end
+
+local function soilObject(run: ActiveRun, objectModel: Model)
+	local objectType = objectModel:GetAttribute("ObjectType")
+	if typeof(objectType) ~= "string" then
+		return
+	end
+	local objectDef = ConfigLookup.GetObject(objectType)
+	if objectDef == nil then
+		return
+	end
+	if (run.objectStains[objectModel] or 0) >= objectDef.StainsToSoil then
+		return
+	end
+
+	run.objectStains[objectModel] = objectDef.StainsToSoil
+	run.score += objectDef.SoilBonus
+	run.objectsSoiled += 1
+	Outbound.ObjectStained(run.player, objectModel, ObjectConfig.TintSteps)
+	Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
+	RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 end
 
 local function cellKey(hitPos: Vector3, normal: Vector3): string
@@ -279,6 +305,16 @@ local function stepRun(run: ActiveRun, dt: number)
 
 	local timedOut = (run.hasTimer and run.timeLeft <= 0)
 		or (not run.hasTimer and modeDef.MaxDuration > 0 and run.elapsedTime >= modeDef.MaxDuration)
+	if timedOut and run.hasTimer and reviveEnabled and run.reviveDeadline == 0 then
+		run.reviveDeadline = run.elapsedTime + MonetizationConfig.ReviveWindow
+		RunEvents.TimeUp:Fire(plr)
+	end
+	if run.reviveDeadline > 0 then
+		if run.elapsedTime >= run.reviveDeadline then
+			RunService.EndRun(plr, true)
+		end
+		return
+	end
 	if timedOut then
 		RunService.EndRun(plr, true)
 	end
@@ -330,6 +366,9 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 	local baseCoins = 0
 	local xp = 0
 
+	local coinMultiplier = MonetizationService.GetCoinMultiplier(plr)
+	local gemMultiplier = MonetizationService.GetGemMultiplier(plr)
+
 	if modeDef.RewardMultiplier > 0 then
 		local rewardScale = mapDef.RewardMultiplier * modeDef.RewardMultiplier
 		local coinBonus = getUpgradeValue(plr, "CoinBonus")
@@ -339,12 +378,15 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 				* rewardScale
 				* (1 + coinBonus / 100)
 				* DataService.GetBoostMultiplier(plr, "Coins")
+				* coinMultiplier
 		)
 		xp = math.floor(score * GameConfig.XpPerPoint * rewardScale)
 	end
 
-	local bonusCoins = if run.targetReached then modeDef.TargetBonusCoins else 0
-	local bonusGems = if run.targetReached then modeDef.TargetBonusGems else 0
+	local bonusCoins = if run.targetReached then math.floor(modeDef.TargetBonusCoins * coinMultiplier) else 0
+	local bonusGems = if run.targetReached then math.floor(modeDef.TargetBonusGems * gemMultiplier) else 0
+	local questCoins = math.floor(questResult.Coins * coinMultiplier)
+	local questGems = math.floor(questResult.Gems * gemMultiplier)
 
 	DataService.RecordRun(plr, score)
 	if run.objectsSoiled > 0 then
@@ -356,6 +398,12 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 	if bonusGems > 0 then
 		DataService.AddGems(plr, bonusGems)
 	end
+	if questCoins > questResult.Coins then
+		DataService.AddCoins(plr, questCoins - questResult.Coins)
+	end
+	if questGems > questResult.Gems then
+		DataService.AddGems(plr, questGems - questResult.Gems)
+	end
 
 	local levelsGained = DataService.AddXp(plr, xp)
 	local data = DataService.Get(plr)
@@ -366,8 +414,8 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 
 	local summary = {
 		Score = score,
-		Coins = baseCoins + bonusCoins + questResult.Coins,
-		Gems = levelsGained * GameConfig.GemsPerLevelUp + bonusGems + questResult.Gems,
+		Coins = baseCoins + bonusCoins + questCoins,
+		Gems = levelsGained * GameConfig.GemsPerLevelUp + bonusGems + questGems,
 		Xp = xp,
 		MapId = mapDef.Id,
 		ModeId = modeDef.Id,
@@ -471,6 +519,7 @@ function RunService.StartRun(plr: Player): boolean
 		syncTimer = 0,
 		npcCooldown = 0,
 		targetReached = false,
+		reviveDeadline = 0,
 		active = true,
 	}
 	activeRuns[plr] = run
@@ -543,6 +592,38 @@ RunEvents.TimeBonus:Connect(function(plr: Player, seconds: number)
 	local run = activeRuns[plr]
 	if run ~= nil and run.active and run.hasTimer then
 		run.timeLeft += seconds
+	end
+end)
+
+RunEvents.ReviveActivated:Connect(function(plr: Player, seconds: number)
+	local run = activeRuns[plr]
+	if run ~= nil and run.active and run.reviveDeadline > 0 then
+		run.reviveDeadline = 0
+		run.timeLeft += seconds
+	end
+end)
+
+RunEvents.StainBomb:Connect(function(plr: Player)
+	local run = activeRuns[plr]
+	if run == nil or not run.active or run.mapModel == nil then
+		return
+	end
+
+	local character = plr.Character
+	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
+	if hrp == nil then
+		return
+	end
+	local props = run.mapModel:FindFirstChild("Props")
+	if props == nil then
+		return
+	end
+
+	local position = hrp.Position
+	for _, child in props:GetChildren() do
+		if child:IsA("Model") and (child:GetPivot().Position - position).Magnitude <= MonetizationConfig.StainBombRadius then
+			soilObject(run, child)
+		end
 	end
 end)
 

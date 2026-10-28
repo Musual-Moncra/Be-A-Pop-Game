@@ -26,6 +26,12 @@
 			Daily.Streak: days claimed in the current 7-day cycle, 1..7, 0 after a reset (days)
 			Boosts: active timed boosts, boost id = unix time the boost ends (unix seconds)
 			OwnedSkins: owned cosmetics, skin id = true (skin ids)
+			Purchases: receipt ids already granted, keeps developer product receipts idempotent
+				(purchase ids, oldest first)
+			GrantedPets: pet ids delivered by a developer product, read by the pet system
+				(pet ids)
+			CoinBoostUntil: unix time the purchased coin boost stops working, 0 = no boost
+				(unix seconds)
 		ShutdownSaveWait: time the server waits for saves when it shuts down (seconds)
 		HumanoidWaitTimeout: how long to wait for a character's Humanoid to appear (seconds)
 		LoadFailedKick: kick message when the save cannot be loaded (text)
@@ -64,6 +70,9 @@ DataConfig.Template = {
 	},
 	Boosts = {},
 	OwnedSkins = {},
+	Purchases = {},
+	GrantedPets = {},
+	CoinBoostUntil = 0,
 }
 
 DataConfig.ShutdownSaveWait = 2

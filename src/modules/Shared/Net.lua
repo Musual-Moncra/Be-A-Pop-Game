@@ -32,6 +32,8 @@
 		NpcCaught(penaltySeconds)
 		DailyState(state)                  { Day, CanClaim, SecondsUntilNext, Streak }
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
+		ReviveOffer(productId, tier, windowSeconds)  timed run hit zero, revive is buyable
+		PassState(ownedPassKeys)           { "DoubleCoins", "Magnet", ... } owned gamepasses
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -106,5 +108,8 @@ local DailyStateEntry = {
 
 Net.ClaimDaily = Packet.new("ClaimDaily")
 Net.DailyState = Packet.new("DailyState", DailyStateEntry)
+
+Net.ReviveOffer = Packet.new("ReviveOffer", Packet.NumberU32, Packet.NumberU8, Packet.NumberF32)
+Net.PassState = Packet.new("PassState", { Packet.String })
 
 return Net
