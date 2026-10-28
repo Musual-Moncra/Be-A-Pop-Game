@@ -32,6 +32,7 @@
 		Outbound.CrateResult(plr, result)
 		Outbound.PetInventory(plr, state)                coalesced, { Pets, Equipped, Slots }
 		Outbound.HatchResult(plr, petId, variantId)
+		Outbound.LeaderboardData(plr, period, entries)
 
 	Dependencies: Net
 ]]
@@ -186,6 +187,12 @@ end
 function Outbound.HatchResult(plr: Player, petId: string, variantId: string)
 	if connected(plr) then
 		Net.HatchResult:FireClient(plr, petId, variantId)
+	end
+end
+
+function Outbound.LeaderboardData(plr: Player, period: string, entries: { any })
+	if connected(plr) then
+		Net.LeaderboardData:FireClient(plr, { Period = period, Entries = entries })
 	end
 end
 

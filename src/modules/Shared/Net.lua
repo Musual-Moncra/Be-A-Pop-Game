@@ -51,6 +51,7 @@
 		CrateResult(crateId, kind, id, isNew, refund)
 		PetInventory(state)                { Pets = { PetEntry }, Equipped = { uid }, Slots }
 		HatchResult(petId, variantId)      pet that came out of the last egg
+		LeaderboardData(Period, Entries)   Entries { { Rank, Name, Value } }, Period "Daily" | "Weekly" | "AllTime"
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -126,6 +127,17 @@ local PetInventoryState = {
 	Slots = Packet.NumberU8,
 }
 
+local LeaderboardEntry = {
+	Rank = Packet.NumberU8,
+	Name = Packet.String,
+	Value = Packet.NumberU32,
+}
+
+local LeaderboardDataPayload = {
+	Period = Packet.String,
+	Entries = { LeaderboardEntry },
+}
+
 local Net = {}
 
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
@@ -181,5 +193,6 @@ Net.PetInventory = Packet.new("PetInventory", PetInventoryState)
 Net.HatchResult = Packet.new("HatchResult", Packet.String, Packet.String)
 
 Net.GoldenTargets = Packet.new("GoldenTargets", { Packet.String })
+Net.LeaderboardData = Packet.new("LeaderboardData", LeaderboardDataPayload)
 
 return Net
