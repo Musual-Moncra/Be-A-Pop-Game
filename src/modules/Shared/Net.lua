@@ -17,6 +17,7 @@
 		SelectRun(mapId, modeId)
 		StartRun()
 		LeaveRun()
+		UsePotion(potionId)
 
 	Server -> Client:
 		SelectionSync(mapId, modeId)
@@ -94,5 +95,8 @@ Net.ObjectSoiled = Packet.new("ObjectSoiled", Packet.Instance, Packet.NumberU32)
 Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
+
+-- Potion
+Net.UsePotion = Packet.new("UsePotion", Packet.String)
 
 return Net

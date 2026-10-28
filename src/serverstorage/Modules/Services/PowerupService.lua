@@ -116,6 +116,12 @@ local function recompute(session: PowerupSession)
 			scale = math.max(scale, def.CharacterScale)
 		end
 	end
+
+	speed = math.min(speed, PowerupConfig.MaxSpeedMultiplier)
+	stainSize = math.min(stainSize, PowerupConfig.MaxStainSizeMultiplier)
+	points = math.min(points, PowerupConfig.MaxPointsMultiplier)
+	scale = math.min(scale, PowerupConfig.MaxCharacterScale)
+
 	session.multipliers = { Speed = speed, StainSize = stainSize, Points = points }
 
 	if scale ~= session.appliedScale and setCharacterScale(session.player, scale) then
@@ -186,6 +192,20 @@ local function eat(session: PowerupSession, powerupId: string, now: number)
 
 	if def.TimeBonus > 0 then
 		RunEvents.TimeBonus:Fire(plr, def.TimeBonus)
+	end
+
+	if def.IsComboSaver then
+		for _, boost in session.boosts do
+			boost.ExpiresAt = now + boost.Duration
+		end
+	end
+
+	if def.IsMiniBomb then
+		local character = plr.Character
+		local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
+		if hrp ~= nil then
+			RunEvents.MiniBombDetonated:Fire(plr, hrp.Position, PowerupConfig.MiniBombRadius)
+		end
 	end
 
 	local duration = def.Duration * getDurationMultiplier(plr)

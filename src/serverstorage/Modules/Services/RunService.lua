@@ -17,7 +17,7 @@
 		RunService.GetRun(plr: Player): ActiveRun?
 
 	Dependencies:
-		DataService, UpgradeService, MapService, PowerupService, QuestService, RunEvents, Outbound,
+		DataService, UpgradeService, MapService, PowerupService, PotionService, QuestService, RunEvents, Outbound,
 		ConfigLookup, GameConfig, MapConfig, ModeConfig, ObjectConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
@@ -32,6 +32,7 @@ local DataService = require(Services.DataService)
 local UpgradeService = require(Services.UpgradeService)
 local MapService = require(Services.MapService)
 local PowerupService = require(Services.PowerupService)
+local PotionService = require(Services.PotionService)
 local QuestService = require(Services.QuestService)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
@@ -209,7 +210,8 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 	end
 	run.visitedCells[key] = true
 
-	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize
+	local potionStainMultiplier = PotionService.GetMultiplier(run.player, "StainSize")
+	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize * potionStainMultiplier
 	addStain(run, rayResult.Position, normal, stainSize)
 	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points)
 end
@@ -254,7 +256,8 @@ local function stepRun(run: ActiveRun, dt: number)
 	end
 
 	local multipliers = PowerupService.GetMultipliers(plr)
-	local walkSpeed = getUpgradeValue(plr, "Speed") * multipliers.Speed
+	local potionSpeedMultiplier = PotionService.GetMultiplier(plr, "Speed")
+	local walkSpeed = getUpgradeValue(plr, "Speed") * multipliers.Speed * potionSpeedMultiplier
 	if hum.WalkSpeed ~= walkSpeed then
 		hum.WalkSpeed = walkSpeed
 	end
@@ -425,10 +428,11 @@ function RunService.StartRun(plr: Player): boolean
 	end
 
 	local hasTimer = modeDef.Duration ~= -1
+	local potionLifespanMultiplier = PotionService.GetMultiplier(plr, "Lifespan")
 	local initialTimeLeft = if modeDef.Duration == 0
-		then getUpgradeValue(plr, "Lifespan")
+		then getUpgradeValue(plr, "Lifespan") * potionLifespanMultiplier
 		elseif modeDef.Duration == -1 then RunConfig.PracticeTimeLeft
-		else modeDef.Duration
+		else modeDef.Duration * potionLifespanMultiplier
 
 	UpgradeService.ApplyStats(plr, character)
 	character:PivotTo(CFrame.new(mapDef.Spawn))
@@ -537,6 +541,65 @@ RunEvents.TimeBonus:Connect(function(plr: Player, seconds: number)
 	local run = activeRuns[plr]
 	if run ~= nil and run.active and run.hasTimer then
 		run.timeLeft += seconds
+	end
+end)
+
+RunEvents.MiniBombDetonated:Connect(function(plr: Player, origin: Vector3, radius: number)
+	local run = activeRuns[plr]
+	if run == nil or not run.active or run.mapModel == nil then
+		return
+	end
+
+	local multipliers = PowerupService.GetMultipliers(plr)
+	local props = run.mapModel:FindFirstChild("Props")
+	if props ~= nil then
+		for _, descendant in props:GetDescendants() do
+			if descendant:IsA("Model") and descendant.Parent == props then
+				local objectType = descendant:GetAttribute("ObjectType")
+				if typeof(objectType) == "string" and ConfigLookup.GetObject(objectType) ~= nil then
+					local pivot = descendant:GetPivot().Position
+					if (pivot - origin).Magnitude <= radius then
+						local objectDef = ConfigLookup.GetObject(objectType)
+						if objectDef ~= nil then
+							local currentCount = run.objectStains[descendant] or 0
+							local needed = math.max(1, objectDef.StainsToSoil - currentCount)
+							run.objectStains[descendant] = objectDef.StainsToSoil
+
+							local points = needed
+								* (getUpgradeValue(plr, "StainSize") ^ 2)
+								* GameConfig.PointsPerStud
+								* objectDef.PointsMultiplier
+								* multipliers.Points
+							run.score += points
+							RunEvents.Stained:Fire(plr, points, objectType)
+
+							Outbound.ObjectStained(plr, descendant, ObjectConfig.TintSteps)
+
+							if currentCount < objectDef.StainsToSoil then
+								run.score += objectDef.SoilBonus
+								run.objectsSoiled += 1
+								Outbound.ObjectSoiled(plr, descendant, objectDef.SoilBonus)
+								RunEvents.ObjectSoiled:Fire(plr, objectType, objectDef.SoilBonus)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	local npcsFolder = run.npcsFolder
+	if npcsFolder ~= nil then
+		for _, npc in npcsFolder:GetChildren() do
+			if npc:IsA("Model") then
+				local npcPos = npc:GetPivot().Position
+				if (npcPos - origin).Magnitude <= radius then
+					local points = 100 * multipliers.Points
+					run.score += points
+					RunEvents.Stained:Fire(plr, points, "NPC")
+				end
+			end
+		end
 	end
 end)
 

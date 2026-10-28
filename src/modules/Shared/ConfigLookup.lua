@@ -21,8 +21,10 @@
 		ConfigLookup.GetObject(objectType) -> ObjectDefinition?
 		ConfigLookup.GetQuest(id) -> QuestDefinition?
 		ConfigLookup.FormatQuest(quest) -> string
+		ConfigLookup.GetPotion(id) -> PotionDefinition?
+		ConfigLookup.GetSortedPotionIds() -> { string }
 
-	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig, QuestConfig
+	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig, QuestConfig, PotionConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -35,6 +37,7 @@ local ObjectConfig = require(Config.ObjectConfig)
 local PowerupConfig = require(Config.PowerupConfig)
 local QuestConfig = require(Config.QuestConfig)
 local UpgradeConfig = require(Config.UpgradeConfig)
+local PotionConfig = require(Config.PotionConfig)
 
 export type MapDefinition = {
 	Id: string,
@@ -91,6 +94,17 @@ export type PowerupDefinition = {
 	CharacterScale: number,
 	PointsMultiplier: number,
 	TimeBonus: number,
+	IsComboSaver: boolean,
+	IsMiniBomb: boolean,
+}
+
+export type PotionDefinition = {
+	DisplayName: string,
+	Icon: string,
+	Duration: number,
+	Multiplier: number,
+	Stat: string,
+	Description: string,
 }
 
 export type ObjectDefinition = {
@@ -219,6 +233,19 @@ end
 
 function ConfigLookup.FormatQuest(quest: QuestDefinition): string
 	return (string.gsub(quest.Description, "%%d", tostring(quest.Target)))
+end
+
+function ConfigLookup.GetPotion(id: string): PotionDefinition?
+	return (PotionConfig.Potions :: { [string]: PotionDefinition })[id]
+end
+
+function ConfigLookup.GetSortedPotionIds(): { string }
+	local ids = {}
+	for id in PotionConfig.Potions do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	return ids
 end
 
 return ConfigLookup

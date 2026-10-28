@@ -12,6 +12,7 @@
 		RunEvents.PowerupEaten(plr, powerupId)
 		RunEvents.TimeBonus(plr, seconds)
 		RunEvents.RunEnded(plr, summary)
+		RunEvents.MiniBombDetonated(plr, originPosition, radius)
 
 	Dependencies: Signal
 ]]
@@ -28,5 +29,6 @@ RunEvents.ObjectSoiled = Signal.new()
 RunEvents.PowerupEaten = Signal.new()
 RunEvents.TimeBonus = Signal.new()
 RunEvents.RunEnded = Signal.new()
+RunEvents.MiniBombDetonated = Signal.new()
 
 return RunEvents

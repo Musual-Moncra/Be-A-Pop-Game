@@ -24,6 +24,15 @@
 		IconSize: size of the floating emoji shown above each food (studs)
 		IconHeight: how far above the food the emoji floats (studs)
 
+	Caps:
+		MaxSpeedMultiplier: maximum combined speed multiplier from all active perks (multiplier)
+		MaxStainSizeMultiplier: maximum combined stain size multiplier from all active perks (multiplier)
+		MaxPointsMultiplier: maximum combined points multiplier from all active perks (multiplier)
+		MaxCharacterScale: maximum character scale from all active perks (multiplier)
+
+	Bomb:
+		MiniBombRadius: blast radius for Mini Bomb stain detonation (studs)
+
 	Powerups: one table per food, keyed by powerup id
 		DisplayName: name shown in the HUD and pickup popup (text)
 		Icon: emoji or short text shown in the HUD (text)
@@ -35,6 +44,8 @@
 		CharacterScale: poop body size is multiplied by this while active (multiplier)
 		PointsMultiplier: score from staining is multiplied by this while active (multiplier)
 		TimeBonus: seconds added to the run timer when eaten (seconds)
+		IsComboSaver: whether picking up this perk refreshes remaining duration of all active perks (boolean)
+		IsMiniBomb: whether picking up this perk instantly soils all props/NPCs within MiniBombRadius (boolean)
 ]]
 
 local PowerupConfig = {}
@@ -58,66 +69,110 @@ PowerupConfig.FolderPrefix = "Powerups_"
 PowerupConfig.IconSize = 3.5
 PowerupConfig.IconHeight = 2.5
 
+PowerupConfig.MaxSpeedMultiplier = 4
+PowerupConfig.MaxStainSizeMultiplier = 4
+PowerupConfig.MaxPointsMultiplier = 8
+PowerupConfig.MaxCharacterScale = 3
+PowerupConfig.MiniBombRadius = 25
+
 PowerupConfig.Powerups = {
-	Chili = {
-		DisplayName = "Hot Chili",
-		Icon = "🌶",
-		Color = Color3.fromRGB(230, 50, 40),
-		Weight = 30,
-		Duration = 8,
-		SpeedMultiplier = 1.6,
+	SpeedBoost = {
+		DisplayName = "Speed Boost",
+		Icon = "⚡",
+		Color = Color3.fromRGB(240, 200, 30),
+		Weight = 25,
+		Duration = 10,
+		SpeedMultiplier = 2,
 		StainSizeMultiplier = 1,
 		CharacterScale = 1,
 		PointsMultiplier = 1,
 		TimeBonus = 0,
+		IsComboSaver = false,
+		IsMiniBomb = false,
 	},
-	Burger = {
-		DisplayName = "Mega Burger",
-		Icon = "🍔",
-		Color = Color3.fromRGB(214, 150, 60),
+	TimeBonus = {
+		DisplayName = "Time Bonus",
+		Icon = "⏰",
+		Color = Color3.fromRGB(80, 200, 240),
+		Weight = 20,
+		Duration = 0,
+		SpeedMultiplier = 1,
+		StainSizeMultiplier = 1,
+		CharacterScale = 1,
+		PointsMultiplier = 1,
+		TimeBonus = 60,
+		IsComboSaver = false,
+		IsMiniBomb = false,
+	},
+	BigSplat = {
+		DisplayName = "Big Splat",
+		Icon = "💥",
+		Color = Color3.fromRGB(160, 60, 220),
 		Weight = 20,
 		Duration = 10,
-		SpeedMultiplier = 0.9,
+		SpeedMultiplier = 1,
 		StainSizeMultiplier = 2,
-		CharacterScale = 2,
+		CharacterScale = 1,
 		PointsMultiplier = 1,
 		TimeBonus = 0,
+		IsComboSaver = false,
+		IsMiniBomb = false,
 	},
-	Beans = {
-		DisplayName = "Magic Beans",
-		Icon = "🫘",
-		Color = Color3.fromRGB(150, 90, 200),
-		Weight = 20,
+	CoinRush = {
+		DisplayName = "Coin Rush",
+		Icon = "🪙",
+		Color = Color3.fromRGB(255, 215, 0),
+		Weight = 15,
 		Duration = 10,
 		SpeedMultiplier = 1,
 		StainSizeMultiplier = 1,
 		CharacterScale = 1,
 		PointsMultiplier = 2,
 		TimeBonus = 0,
+		IsComboSaver = false,
+		IsMiniBomb = false,
 	},
-	Water = {
-		DisplayName = "Water Bottle",
-		Icon = "💧",
-		Color = Color3.fromRGB(90, 180, 250),
+	MegaSize = {
+		DisplayName = "Mega Size",
+		Icon = "🐘",
+		Color = Color3.fromRGB(220, 120, 40),
 		Weight = 15,
+		Duration = 10,
+		SpeedMultiplier = 0.9,
+		StainSizeMultiplier = 2,
+		CharacterScale = 2,
+		PointsMultiplier = 1.5,
+		TimeBonus = 0,
+		IsComboSaver = false,
+		IsMiniBomb = false,
+	},
+	ComboSaver = {
+		DisplayName = "Combo Saver",
+		Icon = "🔄",
+		Color = Color3.fromRGB(50, 220, 120),
+		Weight = 10,
 		Duration = 0,
 		SpeedMultiplier = 1,
 		StainSizeMultiplier = 1,
 		CharacterScale = 1,
 		PointsMultiplier = 1,
-		TimeBonus = 8,
+		TimeBonus = 0,
+		IsComboSaver = true,
+		IsMiniBomb = false,
 	},
-	GoldenCorn = {
-		DisplayName = "Golden Corn",
-		Icon = "🌽",
-		Color = Color3.fromRGB(255, 210, 40),
-		Weight = 5,
-		Duration = 6,
-		SpeedMultiplier = 1.3,
-		StainSizeMultiplier = 1.5,
-		CharacterScale = 1.4,
-		PointsMultiplier = 3,
-		TimeBonus = 3,
+	MiniBomb = {
+		DisplayName = "Mini Bomb",
+		Icon = "💣",
+		Color = Color3.fromRGB(240, 50, 50),
+		Weight = 10,
+		Duration = 0,
+		SpeedMultiplier = 1,
+		StainSizeMultiplier = 1,
+		CharacterScale = 1,
+		PointsMultiplier = 1,
+		TimeBonus = 0,
+		IsComboSaver = false,
+		IsMiniBomb = true,
 	},
 }
 
