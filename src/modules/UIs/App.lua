@@ -34,6 +34,7 @@ local ResultWindow = require(Screens.ResultWindow)
 local ShopWindow = require(Screens.ShopWindow)
 local SideRail = require(Screens.SideRail)
 local SkinsWindow = require(Screens.SkinsWindow)
+local RunExtras = require(Screens.RunExtras)
 local RunHud = require(Screens.RunHud)
 local StatsWindow = require(Screens.StatsWindow)
 local Toasts = require(Screens.Toasts)
@@ -127,6 +128,7 @@ local function App(props: any)
 			Scale = e("UIScale", { Scale = ui.scale }),
 			Wallet = layer(ui, "Wallet", e(Wallet, { data = data, ui = ui })),
 			RunHud = layer(ui, "RunHud", if inRun then e(RunHud, { data = data, ui = ui }) else nil),
+			Extras = layer(ui, "Extras", e(RunExtras, { data = data, inRun = inRun, ui = ui })),
 			LobbyMenu = layer(
 				ui,
 				"LobbyMenu",

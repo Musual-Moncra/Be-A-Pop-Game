@@ -148,7 +148,7 @@
 	PowerupSwatch: colour of power-up icons in the run HUD (Swatches key)
 	ToastSwatches: per toast kind (Info, Success, Error), the Swatches key used
 
-	Layers: drawing order, higher = on top (number): Wallet, RunHud, LobbyMenu, Backdrop (full-screen
+	Layers: drawing order, higher = on top (number): Wallet, RunHud, Extras (map meter, Special Time, revive), LobbyMenu, Backdrop (full-screen
 		dimmer behind open windows), Window, Result, Toasts
 
 	Text (every word the UI shows; %s = text, %d = whole number, %.1f = one decimal):
@@ -486,9 +486,9 @@ UIConfig.MenuRadius = 170
 
 UIConfig.MapVisuals = {
 	Zone1 = { Icon = "🍳", Swatch = "Orange" },
-	Zone2 = { Icon = "🛋️", Swatch = "Blue" },
-	Zone3 = { Icon = "🍽️", Swatch = "Purple" },
-	Zone4 = { Icon = "🛍️", Swatch = "Pink" },
+	Zone2 = { Icon = "🛍️", Swatch = "Pink" },
+	Zone3 = { Icon = "🌳", Swatch = "Green" },
+	Zone4 = { Icon = "🏨", Swatch = "Gold" },
 }
 
 UIConfig.ModeVisuals = {
@@ -510,6 +510,7 @@ UIConfig.ToastSwatches = {
 UIConfig.Layers = {
 	Wallet = 1,
 	RunHud = 2,
+	Extras = 2,
 	LobbyMenu = 3,
 	Backdrop = 4,
 	Window = 5,
