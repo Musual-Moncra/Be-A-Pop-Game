@@ -42,6 +42,7 @@ local PetService = {}
 
 local followers: { [Player]: { Instance } } = {}
 local synced: { [Player]: boolean } = {}
+local multiplierCache: { [Player]: ConfigLookup.PetMultipliers } = {}
 local uidCounter = 0
 
 local function getPets(plr: Player): any
@@ -245,6 +246,7 @@ local function rebuild(plr: Player)
 end
 
 local function publish(plr: Player)
+	multiplierCache[plr] = nil
 	DataService.MarkChanged(plr)
 	PetService.Sync(plr)
 end
@@ -258,6 +260,10 @@ function PetService.Sync(plr: Player)
 end
 
 function PetService.GetMultipliers(plr: Player): ConfigLookup.PetMultipliers
+	local cached = multiplierCache[plr]
+	if cached ~= nil then
+		return cached
+	end
 	local pets = getPets(plr)
 	if pets == nil then
 		return { Coins = 1, Stink = 1 }
@@ -275,7 +281,9 @@ function PetService.GetMultipliers(plr: Player): ConfigLookup.PetMultipliers
 			end
 		end
 	end
-	return { Coins = 1 + coins, Stink = 1 + stink }
+	local result = { Coins = 1 + coins, Stink = 1 + stink }
+	multiplierCache[plr] = result
+	return result
 end
 
 function PetService.HasPet(plr: Player, petId: string, variantId: string): boolean
@@ -526,6 +534,7 @@ Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(function(plr)
 	clearFollowers(plr)
 	synced[plr] = nil
+	multiplierCache[plr] = nil
 end)
 
 for _, plr in Players:GetPlayers() do
