@@ -16,7 +16,8 @@
 		PowerupService.StopRun(plr: Player)
 		PowerupService.GetMultipliers(plr: Player) -> Multipliers { Speed, StainSize, Points }
 
-	Dependencies: PowerupConfig, ConfigLookup, RunEvents, DataService, Outbound
+	Dependencies: PowerupConfig, ConfigLookup, RunEvents, DataService, MonetizationService,
+		MonetizationConfig, Outbound
 ]]
 
 local Players = game:GetService("Players")
@@ -26,10 +27,12 @@ local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
 local PowerupConfig = require(ReplicatedStorage.Modules.Config.PowerupConfig)
+local MonetizationConfig = require(ReplicatedStorage.Modules.Config.MonetizationConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataService = require(script.Parent.DataService)
+local MonetizationService = require(script.Parent.MonetizationService)
 
 export type Multipliers = {
 	Speed: number,
@@ -116,6 +119,12 @@ local function recompute(session: PowerupSession)
 			scale = math.max(scale, def.CharacterScale)
 		end
 	end
+
+	speed = math.min(speed, PowerupConfig.MaxSpeedMultiplier)
+	stainSize = math.min(stainSize, PowerupConfig.MaxStainSizeMultiplier)
+	points = math.min(points, PowerupConfig.MaxPointsMultiplier)
+	scale = math.min(scale, PowerupConfig.MaxCharacterScale)
+
 	session.multipliers = { Speed = speed, StainSize = stainSize, Points = points }
 
 	if scale ~= session.appliedScale and setCharacterScale(session.player, scale) then
@@ -188,6 +197,20 @@ local function eat(session: PowerupSession, powerupId: string, now: number)
 		RunEvents.TimeBonus:Fire(plr, def.TimeBonus)
 	end
 
+	if def.IsComboSaver then
+		for _, boost in session.boosts do
+			boost.ExpiresAt = now + boost.Duration
+		end
+	end
+
+	if def.IsMiniBomb then
+		local character = plr.Character
+		local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
+		if hrp ~= nil then
+			RunEvents.MiniBombDetonated:Fire(plr, hrp.Position, PowerupConfig.MiniBombRadius)
+		end
+	end
+
 	local duration = def.Duration * getDurationMultiplier(plr)
 	if duration > 0 then
 		session.boosts[powerupId] = { Duration = duration, ExpiresAt = now + duration }
@@ -204,6 +227,9 @@ local function step(session: PowerupSession, now: number)
 	local character = session.player.Character
 	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
 	local reach = PowerupConfig.PickupRadius * session.appliedScale
+	if MonetizationService.HasPass(session.player, "Magnet") then
+		reach = MonetizationConfig.MagnetPickupRadius * session.appliedScale
+	end
 
 	for part, food in session.foods do
 		if hrp ~= nil and (hrp.Position - part.Position).Magnitude <= reach then

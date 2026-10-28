@@ -27,6 +27,7 @@ local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local UpgradeService = {}
 
 local StatsApplied: { [Player]: boolean } = {}
+local PlayerConnections: { [Player]: { RBXScriptConnection } } = {}
 
 local function getLevel(data, id: string): number
 	local upgrades = data.Upgrades
@@ -43,7 +44,12 @@ function UpgradeService.ApplyStats(plr: Player, character: Model?)
 	end
 
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
-		or character:WaitForChild("Humanoid", DataConfig.HumanoidWaitTimeout) :: Humanoid?
+	if humanoid == nil then
+		if character.Parent == nil then
+			return
+		end
+		humanoid = character:WaitForChild("Humanoid", DataConfig.HumanoidWaitTimeout) :: Humanoid?
+	end
 	if humanoid == nil then
 		return
 	end
@@ -56,7 +62,7 @@ end
 function UpgradeService.Purchase(plr: Player, id: string): boolean
 	local definition = ConfigLookup.GetUpgrade(id)
 	local data = DataService.Get(plr)
-	if definition == nil or data == nil then
+	if definition == nil or data == nil or data.Upgrades == nil then
 		return false
 	end
 
@@ -83,9 +89,14 @@ function UpgradeService.Purchase(plr: Player, id: string): boolean
 end
 
 local function trackPlayer(plr: Player)
-	plr.CharacterAdded:Connect(function(character)
-		UpgradeService.ApplyStats(plr, character)
-	end)
+	if PlayerConnections[plr] ~= nil then
+		return
+	end
+	PlayerConnections[plr] = {
+		plr.CharacterAdded:Connect(function(character)
+			UpgradeService.ApplyStats(plr, character)
+		end),
+	}
 	if plr.Character ~= nil then
 		task.spawn(UpgradeService.ApplyStats, plr, plr.Character)
 	end
@@ -102,6 +113,13 @@ end)
 Players.PlayerAdded:Connect(trackPlayer)
 Players.PlayerRemoving:Connect(function(plr)
 	StatsApplied[plr] = nil
+	local connections = PlayerConnections[plr]
+	if connections ~= nil then
+		for _, connection in connections do
+			connection:Disconnect()
+		end
+		PlayerConnections[plr] = nil
+	end
 end)
 
 for _, plr in Players:GetPlayers() do

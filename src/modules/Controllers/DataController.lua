@@ -12,6 +12,10 @@
 		DataController.PushToast(kind, text) client-only notification toast
 		DataController.PushPopup(kind, text) client-only in-run popup
 		DataController.DismissResult() clears the last run summary
+		DataController.Stained -> Signal ()            a stain step was painted
+		DataController.Soiled -> Signal ()             a prop became fully soiled
+		DataController.PowerupPicked -> Signal ()      a food item was eaten
+		DataController.NpcCaught -> Signal ()          an NPC caught the player
 
 	State:
 		Coins: coins owned (coins)
@@ -28,6 +32,21 @@
 		Score: current run score (points)
 		Powerups: active powerups { Id, TimeLeft, Duration, ExpiresAt } (seconds)
 		Quests: rolled quests { Id, Text, Progress, Target, Done } (counts)
+		Daily: daily streak { Day, CanClaim, SecondsUntilNext, Streak }, nil until the server sends it
+		GoldenTargets: golden prop paths relative to the map model (name paths)
+		Pets: owned and equipped pets { Pets, Equipped, Slots } (pet entries / uids / slots)
+		LastHatch: last hatched pet { PetId, Variant, At }, At = os.clock(), nil until a hatch
+		Cosmetics: { EquippedSkin, EquippedTrail, OwnedSkins, OwnedTrails } (ids / owned maps)
+		LastCrate: last crate reward { CrateId, Kind, Id, IsNew, Refund }, nil until a crate opens
+		Rebirths: rebirths completed (count)
+		Potions: active potion expiries, potion id -> unix time it ends (unix seconds)
+		PotionInventory: owned potion counts, potion id -> count (counts)
+		OwnedPasses: owned gamepass key -> true (pass keys)
+		ReviveOffer: open revive offer { ProductId, Tier, ExpiresAt }, ExpiresAt = os.clock(), nil = none
+		MapProgress: live percent of the current run { MapId, Percent } (percent 0..100)
+		BestMapProgress: best percent per map, map id -> percent (percent 0..100)
+		SpecialEvent: active Special Time { MapId, EndsAt }, EndsAt = Workspace server clock, nil = none
+		Leaderboards: { Daily, Weekly, AllTime }, each { { Rank, Name, Value } }
 		LastRun: last RunSummary, nil until a run ends (table)
 		Toasts: notification toasts { Id, Kind, Text } (newest last)
 		Popups: in-run popups { Id, Kind, Text } (newest last)
@@ -44,6 +63,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local DailyRewardConfig = require(ReplicatedStorage.Modules.Config.DailyRewardConfig)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
@@ -72,6 +92,13 @@ export type QuestState = {
 	Progress: number,
 	Target: number,
 	Done: boolean,
+}
+
+export type DailyState = {
+	Day: number,
+	CanClaim: boolean,
+	SecondsUntilNext: number,
+	Streak: number,
 }
 
 export type RunSummary = {
@@ -105,6 +132,67 @@ export type Popup = {
 	Text: string,
 }
 
+export type PetEntry = {
+	Uid: string,
+	PetId: string,
+	Variant: string,
+}
+
+export type Pets = {
+	Pets: { PetEntry },
+	Equipped: { string },
+	Slots: number,
+}
+
+export type LastHatch = {
+	PetId: string,
+	Variant: string,
+	At: number,
+}
+
+export type Cosmetics = {
+	EquippedSkin: string,
+	EquippedTrail: string,
+	OwnedSkins: { [string]: boolean },
+	OwnedTrails: { [string]: boolean },
+}
+
+export type CrateResult = {
+	CrateId: string,
+	Kind: string,
+	Id: string,
+	IsNew: boolean,
+	Refund: number,
+}
+
+export type ReviveOffer = {
+	ProductId: number,
+	Tier: number,
+	ExpiresAt: number,
+}
+
+export type MapProgress = {
+	MapId: string,
+	Percent: number,
+}
+
+export type SpecialEvent = {
+	MapId: string,
+	EndsAt: number,
+}
+
+export type LeaderboardEntry = {
+	Rank: number,
+	Name: string,
+	Value: number,
+}
+
+export type Leaderboards = {
+	Daily: { LeaderboardEntry },
+	Weekly: { LeaderboardEntry },
+	AllTime: { LeaderboardEntry },
+}
+
 export type State = {
 	Coins: number,
 	Gems: number,
@@ -120,6 +208,21 @@ export type State = {
 	Score: number,
 	Powerups: { PowerupState },
 	Quests: { QuestState },
+	Daily: DailyState?,
+	GoldenTargets: { string },
+	Pets: Pets,
+	LastHatch: LastHatch?,
+	Cosmetics: Cosmetics,
+	LastCrate: CrateResult?,
+	Rebirths: number,
+	Potions: { [string]: number },
+	PotionInventory: { [string]: number },
+	OwnedPasses: { [string]: boolean },
+	ReviveOffer: ReviveOffer?,
+	MapProgress: MapProgress,
+	BestMapProgress: { [string]: number },
+	SpecialEvent: SpecialEvent?,
+	Leaderboards: Leaderboards,
 	LastRun: RunSummary?,
 	Toasts: { Toast },
 	Popups: { Popup },
@@ -128,6 +231,10 @@ export type State = {
 local DataController = {}
 
 DataController.Changed = Signal.new()
+DataController.Stained = Signal.new()
+DataController.Soiled = Signal.new()
+DataController.PowerupPicked = Signal.new()
+DataController.NpcCaught = Signal.new()
 
 local nextToastId = 0
 local nextPopupId = 0
@@ -158,6 +265,26 @@ local function defaultState(): State
 		Score = 0,
 		Powerups = {},
 		Quests = {},
+		Daily = nil,
+		GoldenTargets = {},
+		Pets = { Pets = {}, Equipped = {}, Slots = ConfigLookup.GetMaxEquippedSlots(0) },
+		LastHatch = nil,
+		Cosmetics = {
+			EquippedSkin = "Default",
+			EquippedTrail = "",
+			OwnedSkins = { Default = true },
+			OwnedTrails = {},
+		},
+		LastCrate = nil,
+		Rebirths = 0,
+		Potions = {},
+		PotionInventory = {},
+		OwnedPasses = {},
+		ReviveOffer = nil,
+		MapProgress = { MapId = "", Percent = 0 },
+		BestMapProgress = {},
+		SpecialEvent = nil,
+		Leaderboards = { Daily = {}, Weekly = {}, AllTime = {} },
 		LastRun = nil,
 		Toasts = {},
 		Popups = {},
@@ -217,6 +344,80 @@ local function cleanStats(source: any): Stats
 	stats.PowerupsEaten = tonumber(source.PowerupsEaten) or stats.PowerupsEaten
 	stats.QuestsCompleted = tonumber(source.QuestsCompleted) or stats.QuestsCompleted
 	return stats
+end
+
+local function cleanNumberMap(source: any): { [string]: number }
+	local cleaned = {}
+	if type(source) ~= "table" then
+		return cleaned
+	end
+	for id, value in source do
+		if type(id) == "string" and type(value) == "number" then
+			cleaned[id] = value
+		end
+	end
+	return cleaned
+end
+
+local function cleanOwned(source: any): { [string]: boolean }
+	local owned = {}
+	if type(source) ~= "table" then
+		return owned
+	end
+	for id, value in source do
+		if type(id) == "string" and value == true then
+			owned[id] = true
+		end
+	end
+	return owned
+end
+
+local function cleanPetEntries(source: any): { PetEntry }
+	local entries: { PetEntry } = {}
+	if type(source) ~= "table" then
+		return entries
+	end
+	for _, entry in source do
+		if
+			type(entry) == "table"
+			and type(entry.Uid) == "string"
+			and type(entry.PetId) == "string"
+			and type(entry.Variant) == "string"
+		then
+			table.insert(entries, { Uid = entry.Uid, PetId = entry.PetId, Variant = entry.Variant })
+		end
+	end
+	return entries
+end
+
+local function cleanUids(source: any): { string }
+	local uids: { string } = {}
+	if type(source) ~= "table" then
+		return uids
+	end
+	for _, uid in source do
+		if type(uid) == "string" then
+			table.insert(uids, uid)
+		end
+	end
+	return uids
+end
+
+local function cleanLeaderboardEntries(source: any): { LeaderboardEntry }
+	local entries: { LeaderboardEntry } = {}
+	if type(source) ~= "table" then
+		return entries
+	end
+	for index, entry in source do
+		if type(entry) == "table" and type(entry.Name) == "string" then
+			table.insert(entries, {
+				Rank = math.floor(tonumber(entry.Rank) or index),
+				Name = entry.Name,
+				Value = math.floor(tonumber(entry.Value) or 0),
+			})
+		end
+	end
+	return entries
 end
 
 local function removeToast(id: number)
@@ -306,6 +507,41 @@ Net.DataSync.OnClientEvent:Connect(function(snapshot: any)
 	end
 	state.Stats = cleanStats(snapshot.Stats)
 
+	state.Rebirths = math.max(0, math.floor(tonumber(snapshot.Rebirths) or state.Rebirths))
+	if type(snapshot.Potions) == "table" then
+		state.Potions = cleanNumberMap(snapshot.Potions)
+	end
+	if type(snapshot.PotionInventory) == "table" then
+		state.PotionInventory = cleanNumberMap(snapshot.PotionInventory)
+	end
+	if type(snapshot.MapProgress) == "table" then
+		state.BestMapProgress = cleanNumberMap(snapshot.MapProgress)
+	end
+	if type(snapshot.OwnedSkins) == "table" or type(snapshot.OwnedTrails) == "table" then
+		state.Cosmetics = {
+			EquippedSkin = if type(snapshot.EquippedSkin) == "string" and snapshot.EquippedSkin ~= ""
+				then snapshot.EquippedSkin
+				else state.Cosmetics.EquippedSkin,
+			EquippedTrail = if type(snapshot.EquippedTrail) == "string"
+				then snapshot.EquippedTrail
+				else state.Cosmetics.EquippedTrail,
+			OwnedSkins = if type(snapshot.OwnedSkins) == "table"
+				then cleanOwned(snapshot.OwnedSkins)
+				else state.Cosmetics.OwnedSkins,
+			OwnedTrails = if type(snapshot.OwnedTrails) == "table"
+				then cleanOwned(snapshot.OwnedTrails)
+				else state.Cosmetics.OwnedTrails,
+		}
+	end
+	if type(snapshot.Pets) == "table" then
+		local pets = snapshot.Pets
+		state.Pets = {
+			Pets = cleanPetEntries(pets.Inventory),
+			Equipped = cleanUids(pets.Equipped),
+			Slots = ConfigLookup.GetMaxEquippedSlots(tonumber(pets.ExtraSlots) or 0),
+		}
+	end
+
 	publish()
 end)
 
@@ -325,12 +561,16 @@ Net.RunState.OnClientEvent:Connect(function(runState: any, timeLeft: any, score:
 		state.LastRun = nil
 		state.Powerups = {}
 		state.Quests = {}
+		state.GoldenTargets = {}
 		state.Popups = {}
 	end
 	state.RunState = nextState
 	local nextTimeLeft = tonumber(timeLeft) or 0
 	state.TimeLeft = if nextTimeLeft < 0 then -1 else nextTimeLeft
 	state.Score = tonumber(score) or 0
+	if nextState == GameConfig.RunStates.Running and state.TimeLeft > 0 then
+		state.ReviveOffer = nil
+	end
 	publish()
 end)
 
@@ -361,6 +601,11 @@ Net.PowerupPicked.OnClientEvent:Connect(function(powerupId: any)
 	local definition = ConfigLookup.GetPowerup(powerupId)
 	local name = if definition ~= nil then definition.DisplayName else powerupId
 	DataController.PushPopup(UIConfig.Text.ToastSuccessKind, string.format(UIConfig.Text.PowerupPickedFormat, name))
+	DataController.PowerupPicked:Fire()
+end)
+
+Net.ObjectStained.OnClientEvent:Connect(function(_object: any, _step: any)
+	DataController.Stained:Fire()
 end)
 
 Net.ObjectSoiled.OnClientEvent:Connect(function(object: any, bonus: any)
@@ -379,6 +624,7 @@ Net.ObjectSoiled.OnClientEvent:Connect(function(object: any, bonus: any)
 		UIConfig.Text.ToastSuccessKind,
 		string.format(UIConfig.Text.ObjectSoiledFormat, name, math.floor(tonumber(bonus) or 0))
 	)
+	DataController.Soiled:Fire()
 end)
 
 Net.NpcCaught.OnClientEvent:Connect(function(penaltySeconds: any)
@@ -386,6 +632,7 @@ Net.NpcCaught.OnClientEvent:Connect(function(penaltySeconds: any)
 		UIConfig.Text.ToastErrorKind,
 		string.format(MessageConfig.NpcCaught, math.ceil(tonumber(penaltySeconds) or 0))
 	)
+	DataController.NpcCaught:Fire()
 end)
 
 Net.QuestState.OnClientEvent:Connect(function(quests: any)
@@ -453,6 +700,22 @@ Net.RunEnded.OnClientEvent:Connect(function(summary: any)
 	state.Score = 0
 	state.Powerups = {}
 	state.Quests = {}
+	state.GoldenTargets = {}
+	state.ReviveOffer = nil
+	publish()
+end)
+
+Net.GoldenTargets.OnClientEvent:Connect(function(paths: any)
+	if type(paths) ~= "table" then
+		return
+	end
+	local cleaned: { string } = {}
+	for _, path in paths do
+		if type(path) == "string" and path ~= "" then
+			table.insert(cleaned, path)
+		end
+	end
+	state.GoldenTargets = cleaned
 	publish()
 end)
 
@@ -461,6 +724,141 @@ Net.Notify.OnClientEvent:Connect(function(kind: any, text: any)
 		if type(kind) == "string" then kind else UIConfig.Text.ToastInfoKind,
 		if type(text) == "string" then text else ""
 	)
+end)
+
+Net.DailyState.OnClientEvent:Connect(function(payload: any)
+	if type(payload) ~= "table" then
+		return
+	end
+	local streakLength = DailyRewardConfig.StreakLength
+	state.Daily = {
+		Day = math.clamp(math.floor(tonumber(payload.Day) or 1), 1, streakLength),
+		CanClaim = payload.CanClaim == true,
+		SecondsUntilNext = math.max(0, tonumber(payload.SecondsUntilNext) or 0),
+		Streak = math.clamp(math.floor(tonumber(payload.Streak) or 0), 0, streakLength),
+	}
+	publish()
+end)
+
+Net.PetInventory.OnClientEvent:Connect(function(payload: any)
+	if type(payload) ~= "table" then
+		return
+	end
+	state.Pets = {
+		Pets = cleanPetEntries(payload.Pets),
+		Equipped = cleanUids(payload.Equipped),
+		Slots = math.max(0, math.floor(tonumber(payload.Slots) or state.Pets.Slots)),
+	}
+	publish()
+end)
+
+Net.HatchResult.OnClientEvent:Connect(function(petId: any, variantId: any)
+	if type(petId) ~= "string" or type(variantId) ~= "string" then
+		return
+	end
+	state.LastHatch = { PetId = petId, Variant = variantId, At = os.clock() }
+	publish()
+end)
+
+Net.CosmeticState.OnClientEvent:Connect(function(equippedSkin: any, equippedTrail: any, ownedSkins: any, ownedTrails: any)
+	state.Cosmetics = {
+		EquippedSkin = if type(equippedSkin) == "string" and equippedSkin ~= ""
+			then equippedSkin
+			else state.Cosmetics.EquippedSkin,
+		EquippedTrail = if type(equippedTrail) == "string"
+			then equippedTrail
+			else state.Cosmetics.EquippedTrail,
+		OwnedSkins = if type(ownedSkins) == "table" then cleanOwned(ownedSkins) else state.Cosmetics.OwnedSkins,
+		OwnedTrails = if type(ownedTrails) == "table" then cleanOwned(ownedTrails) else state.Cosmetics.OwnedTrails,
+	}
+	publish()
+end)
+
+Net.CrateResult.OnClientEvent:Connect(function(payload: any)
+	if type(payload) ~= "table" then
+		return
+	end
+	state.LastCrate = {
+		CrateId = if type(payload.CrateId) == "string" then payload.CrateId else "",
+		Kind = if type(payload.Kind) == "string" then payload.Kind else "",
+		Id = if type(payload.Id) == "string" then payload.Id else "",
+		IsNew = payload.IsNew == true,
+		Refund = math.max(0, math.floor(tonumber(payload.Refund) or 0)),
+	}
+	publish()
+end)
+
+Net.PassState.OnClientEvent:Connect(function(passes: any)
+	if type(passes) ~= "table" then
+		return
+	end
+	local owned = {}
+	for _, passKey in passes do
+		if type(passKey) == "string" and passKey ~= "" then
+			owned[passKey] = true
+		end
+	end
+	state.OwnedPasses = owned
+	publish()
+end)
+
+Net.ReviveOffer.OnClientEvent:Connect(function(productId: any, tier: any, windowSeconds: any)
+	local product = math.floor(tonumber(productId) or 0)
+	if product <= 0 then
+		return
+	end
+	state.ReviveOffer = {
+		ProductId = product,
+		Tier = math.max(1, math.floor(tonumber(tier) or 1)),
+		ExpiresAt = os.clock() + math.max(0, tonumber(windowSeconds) or 0),
+	}
+	publish()
+end)
+
+Net.MapProgress.OnClientEvent:Connect(function(payload: any)
+	if type(payload) ~= "table" then
+		return
+	end
+	state.MapProgress = {
+		MapId = if type(payload.MapId) == "string" then payload.MapId else state.MapProgress.MapId,
+		Percent = math.clamp(tonumber(payload.Percent) or 0, 0, 100),
+	}
+	publish()
+end)
+
+Net.SpecialEvent.OnClientEvent:Connect(function(payload: any)
+	if type(payload) ~= "table" then
+		return
+	end
+	local mapId = if type(payload.MapId) == "string" then payload.MapId else ""
+	if mapId == "" then
+		state.SpecialEvent = nil
+	else
+		state.SpecialEvent = { MapId = mapId, EndsAt = tonumber(payload.EndsAt) or 0 }
+	end
+	publish()
+end)
+
+Net.LeaderboardData.OnClientEvent:Connect(function(payload: any)
+	if type(payload) ~= "table" then
+		return
+	end
+	local period = payload.Period
+	local entries = cleanLeaderboardEntries(payload.Entries)
+	local daily = state.Leaderboards.Daily
+	local weekly = state.Leaderboards.Weekly
+	local allTime = state.Leaderboards.AllTime
+	if period == "Daily" then
+		daily = entries
+	elseif period == "Weekly" then
+		weekly = entries
+	elseif period == "AllTime" then
+		allTime = entries
+	else
+		return
+	end
+	state.Leaderboards = { Daily = daily, Weekly = weekly, AllTime = allTime }
+	publish()
 end)
 
 return DataController

@@ -50,10 +50,25 @@ function MapService.GetSelection(plr: Player): Selection
 end
 
 function MapService.UnlockMap(plr: Player, mapId: string): boolean
+	if DataService.Get(plr) == nil then
+		return false
+	end
 	local mapDef = ConfigLookup.GetMap(mapId)
 	if mapDef == nil then
 		Outbound.Notify(plr, "Error", MessageConfig.MapUnavailable)
 		return false
+	end
+
+	if mapDef.RequirePreviousComplete then
+		local previous = ConfigLookup.GetPreviousMap(mapId)
+		local data = DataService.Get(plr)
+		local previousProgress = if previous ~= nil and data ~= nil and data.MapProgress ~= nil
+			then tonumber(data.MapProgress[previous.Id]) or 0
+			else 0
+		if previous ~= nil and previousProgress < 100 then
+			Outbound.Notify(plr, "Error", string.format(MessageConfig.NeedPreviousComplete, previous.DisplayName))
+			return false
+		end
 	end
 
 	local ok, reason = DataService.UnlockMap(plr, mapId)
@@ -79,6 +94,9 @@ function MapService.UnlockMap(plr: Player, mapId: string): boolean
 end
 
 function MapService.SelectRun(plr: Player, mapId: string, modeId: string): boolean
+	if DataService.Get(plr) == nil then
+		return false
+	end
 	local mapDef = ConfigLookup.GetMap(mapId)
 	if mapDef == nil or not mapDef.Enabled then
 		Outbound.Notify(plr, "Error", MessageConfig.MapUnavailable)

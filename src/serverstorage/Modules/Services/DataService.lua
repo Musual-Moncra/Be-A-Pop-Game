@@ -13,12 +13,21 @@
 		DataService.AddCoins(plr, n)
 		DataService.AddGems(plr, n)
 		DataService.SpendCoins(plr, n)          -> bool
+		DataService.SpendGems(plr, n)           -> bool
 		DataService.AddXp(plr, xp)              -> levelsGained
 		DataService.UnlockMap(plr, mapId)       -> ok, reason
 		DataService.IsMapUnlocked(plr, mapId)   -> bool
 		DataService.IncrementStat(plr, key, n)
 		DataService.RecordRun(plr, score)
+		DataService.GetBoostMultiplier(plr, kind) -> number
+		DataService.RecordDailyClaim(plr, streak, boostId, boostDuration, skinId)
 		DataService.MarkChanged(plr)            re-publish after an external mutation
+		DataService.HasPurchase(plr, purchaseId) -> bool
+		DataService.RecordPurchase(plr, purchaseId, maxHistory)
+		DataService.HasGrantedPet(plr, petId)   -> bool
+		DataService.GrantPet(plr, petId)
+		DataService.SetGrantedPets(plr, petIds)
+		DataService.SetCoinBoostUntil(plr, unixSeconds)
 		DataService.Changed                     -> Signal (plr, data)
 
 	Every mutation marks the player dirty; one deferred publish per frame then fires Changed,
@@ -74,11 +83,13 @@ end
 local function flush()
 	flushScheduled = false
 	for plr in Dirty do
-		local data = DataService.Get(plr)
-		if data ~= nil then
-			DataService.Changed:Fire(plr, data)
-			updateLeaderstats(plr, data)
-			Outbound.DataSync(plr, data)
+		if plr.Parent == Players then
+			local data = DataService.Get(plr)
+			if data ~= nil then
+				DataService.Changed:Fire(plr, data)
+				updateLeaderstats(plr, data)
+				Outbound.DataSync(plr, data)
+			end
 		end
 	end
 	table.clear(Dirty)
@@ -150,6 +161,19 @@ function DataService.SpendCoins(plr: Player, amount: number): boolean
 	return true
 end
 
+function DataService.SpendGems(plr: Player, amount: number): boolean
+	local data = DataService.Get(plr)
+	if data == nil then
+		return false
+	end
+	if amount < 0 or data.Gems < amount then
+		return false
+	end
+	data.Gems -= amount
+	publish(plr)
+	return true
+end
+
 function DataService.RecordRun(plr: Player, score: number)
 	local data = DataService.Get(plr)
 	if data == nil or data.Stats == nil then
@@ -170,12 +194,16 @@ function DataService.UnlockMap(plr: Player, mapId: string): (boolean, string?)
 	if mapDef == nil or not mapDef.Enabled then
 		return false, "Unavailable"
 	end
-	if data.UnlockedMaps[mapId] == true then
+	local unlocked = data.UnlockedMaps
+	if unlocked == nil then
+		return false, "Unavailable"
+	end
+	if unlocked[mapId] == true then
 		return false, "AlreadyUnlocked"
 	end
 
 	local previous = ConfigLookup.GetPreviousMap(mapId)
-	if previous ~= nil and data.UnlockedMaps[previous.Id] ~= true then
+	if previous ~= nil and unlocked[previous.Id] ~= true then
 		return false, "NeedPrevious"
 	end
 	if data.Level < mapDef.RequiredLevel then
@@ -185,14 +213,14 @@ function DataService.UnlockMap(plr: Player, mapId: string): (boolean, string?)
 		return false, "NotEnoughCoins"
 	end
 
-	data.UnlockedMaps[mapId] = true
+	unlocked[mapId] = true
 	publish(plr)
 	return true, nil
 end
 
 function DataService.IsMapUnlocked(plr: Player, mapId: string): boolean
 	local data = DataService.Get(plr)
-	if data == nil then
+	if data == nil or data.UnlockedMaps == nil then
 		return false
 	end
 	return data.UnlockedMaps[mapId] == true
@@ -212,6 +240,125 @@ function DataService.MarkChanged(plr: Player)
 	if data == nil then
 		return
 	end
+	publish(plr)
+end
+
+function DataService.GetBoostMultiplier(plr: Player, kind: string): number
+	local data = DataService.Get(plr)
+	if data == nil or data.Boosts == nil then
+		return 1
+	end
+	local expiresAt = data.Boosts[kind]
+	if type(expiresAt) ~= "number" or expiresAt <= os.time() then
+		return 1
+	end
+	local boost = ConfigLookup.GetDailyBoost(kind)
+	if boost == nil then
+		return 1
+	end
+	return boost.Multiplier
+end
+
+function DataService.RecordDailyClaim(
+	plr: Player,
+	streak: number,
+	boostId: string?,
+	boostDuration: number,
+	skinId: string?
+)
+	local data = DataService.Get(plr)
+	if data == nil or data.Daily == nil then
+		return
+	end
+	local now = os.time()
+	data.Daily.LastClaim = now
+	data.Daily.Streak = streak
+	if boostId ~= nil and boostDuration > 0 then
+		if data.Boosts == nil then
+			data.Boosts = {}
+		end
+		data.Boosts[boostId] = now + boostDuration
+	end
+	if skinId ~= nil and skinId ~= "" then
+		if data.OwnedSkins == nil then
+			data.OwnedSkins = {}
+		end
+		data.OwnedSkins[skinId] = true
+	end
+	publish(plr)
+end
+
+function DataService.HasPurchase(plr: Player, purchaseId: string): boolean
+	local data = DataService.Get(plr)
+	if data == nil or data.Purchases == nil then
+		return false
+	end
+	return table.find(data.Purchases, purchaseId) ~= nil
+end
+
+function DataService.RecordPurchase(plr: Player, purchaseId: string, maxHistory: number)
+	local data = DataService.Get(plr)
+	if data == nil then
+		return
+	end
+	if data.Purchases == nil then
+		data.Purchases = {}
+	end
+	if table.find(data.Purchases, purchaseId) ~= nil then
+		return
+	end
+
+	table.insert(data.Purchases, purchaseId)
+	while #data.Purchases > maxHistory do
+		table.remove(data.Purchases, 1)
+	end
+	publish(plr)
+end
+
+function DataService.HasGrantedPet(plr: Player, petId: string): boolean
+	local data = DataService.Get(plr)
+	if data == nil or data.GrantedPets == nil then
+		return false
+	end
+	return table.find(data.GrantedPets, petId) ~= nil
+end
+
+function DataService.GrantPet(plr: Player, petId: string)
+	local data = DataService.Get(plr)
+	if data == nil then
+		return
+	end
+	if data.GrantedPets == nil then
+		data.GrantedPets = {}
+	end
+	if table.find(data.GrantedPets, petId) ~= nil then
+		return
+	end
+	table.insert(data.GrantedPets, petId)
+	publish(plr)
+end
+
+function DataService.SetGrantedPets(plr: Player, petIds: { string })
+	local data = DataService.Get(plr)
+	if data == nil then
+		return
+	end
+	local cleaned = {}
+	for _, petId in petIds do
+		if type(petId) == "string" then
+			table.insert(cleaned, petId)
+		end
+	end
+	data.GrantedPets = cleaned
+	publish(plr)
+end
+
+function DataService.SetCoinBoostUntil(plr: Player, unixSeconds: number)
+	local data = DataService.Get(plr)
+	if data == nil then
+		return
+	end
+	data.CoinBoostUntil = unixSeconds
 	publish(plr)
 end
 
@@ -266,6 +413,7 @@ local function onPlayerAdded(plr: Player)
 		Profiles[plr] = nil
 		CoinsValues[plr] = nil
 		LevelValues[plr] = nil
+		Dirty[plr] = nil
 
 		local isLeaving = Leaving[plr] == true
 		Leaving[plr] = nil
@@ -307,11 +455,18 @@ for _, plr in Players:GetPlayers() do
 end
 
 game:BindToClose(function()
+	local sessions = {}
 	for plr, profile in Profiles do
 		Leaving[plr] = true
-		Profiles[plr] = nil
+		Dirty[plr] = nil
 		CoinsValues[plr] = nil
 		LevelValues[plr] = nil
+		table.insert(sessions, profile)
+	end
+	table.clear(Profiles)
+	table.clear(Dirty)
+
+	for _, profile in sessions do
 		profile:EndSession()
 	end
 	task.wait(DataConfig.ShutdownSaveWait)

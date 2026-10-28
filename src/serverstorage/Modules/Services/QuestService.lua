@@ -3,7 +3,8 @@
 --[[
 	QuestService
 	Rolls the objectives for a Quests-mode run, tracks them from RunEvents and pays each
-	reward the moment its objective completes.
+	reward the moment its objective completes. SoilType quests only roll when the map
+	actually holds a prop with that ObjectType; the freed slots go to other quest kinds.
 
 	API:
 		QuestService.StartRun(plr, map, mode)
@@ -14,6 +15,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local DataService = require(script.Parent.DataService)
 local RunEvents = require(script.Parent.Parent.Shared.RunEvents)
@@ -49,12 +51,42 @@ local QuestService = {}
 
 local runs: { [Player]: QuestRun } = {}
 
-local function rollQuests(mapOrder: number, count: number): { ActiveQuest }
+local function collectObjectTypes(mapModelName: string): { [string]: boolean }
+	local types: { [string]: boolean } = {}
+	local mapModel = Workspace:FindFirstChild(mapModelName)
+	local props = if mapModel ~= nil then mapModel:FindFirstChild("Props") else nil
+	if props == nil then
+		return types
+	end
+	for _, descendant in props:GetDescendants() do
+		local objectType = descendant:GetAttribute("ObjectType")
+		if typeof(objectType) == "string" then
+			types[objectType] = true
+		end
+	end
+	return types
+end
+
+local function rollQuests(mapModelName: string, mapOrder: number, count: number): { ActiveQuest }
+	local availableTypes = collectObjectTypes(mapModelName)
 	local eligible: { ConfigLookup.QuestDefinition } = {}
+	local fillers: { ConfigLookup.QuestDefinition } = {}
+
 	for _, quest in QuestConfig.Quests :: { ConfigLookup.QuestDefinition } do
 		if quest.MinMapOrder <= mapOrder then
-			table.insert(eligible, quest)
+			if quest.Kind ~= "SoilType" then
+				table.insert(eligible, quest)
+				table.insert(fillers, quest)
+			elseif availableTypes[quest.ObjectType] == true then
+				table.insert(eligible, quest)
+			end
 		end
+	end
+
+	local fillerIndex = 0
+	while #eligible < count and #fillers > 0 do
+		fillerIndex = (fillerIndex % #fillers) + 1
+		table.insert(eligible, fillers[fillerIndex])
 	end
 
 	local random = Random.new()
@@ -145,7 +177,7 @@ local function applyProgress(plr: Player, run: QuestRun, quest: ActiveQuest, amo
 end
 
 function QuestService.StartRun(plr: Player, map: ConfigLookup.MapDefinition, mode: ConfigLookup.ModeDefinition)
-	local quests = if mode.QuestCount > 0 then rollQuests(map.Order, mode.QuestCount) else {}
+	local quests = if mode.QuestCount > 0 then rollQuests(map.ModelName, map.Order, mode.QuestCount) else {}
 	local run: QuestRun = {
 		quests = quests,
 		completed = 0,

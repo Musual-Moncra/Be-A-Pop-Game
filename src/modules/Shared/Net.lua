@@ -17,6 +17,16 @@
 		SelectRun(mapId, modeId)
 		StartRun()
 		LeaveRun()
+		ClaimDaily()
+		UsePotion(potionId)
+		Rebirth()
+		OpenCrate(crateId)
+		EquipCosmetic(kind, id)
+		HatchEgg(eggId)
+		EquipPet(uid)
+		UnequipPet(uid)
+		DeletePet(uid)
+		MergePet(uid)
 
 	Server -> Client:
 		SelectionSync(mapId, modeId)
@@ -28,8 +38,20 @@
 		ObjectStained(object, step)        object Model, step 1..ObjectConfig.TintSteps
 		ObjectSoiled(object, bonus)        object Model fully soiled, bonus points
 		QuestState(quests)                 { { Id, Text, Progress, Target, Done } }
+		GoldenTargets(paths)               prop name paths relative to the map model
 		NpcCaught(penaltySeconds)
+		DailyState(state)                  { Day, CanClaim, SecondsUntilNext, Streak }
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
+		ReviveOffer(productId, tier, windowSeconds)  timed run hit zero, revive is buyable
+		PassState(ownedPassKeys)           { "DoubleCoins", "Magnet", ... } owned gamepasses
+		MapProgress(MapId, Percent)        live percent of the current run on that map
+		SpecialEvent(MapId, EndsAt)        Special Time map, EndsAt = server clock time it ends,
+		                                   MapId "" means the event just ended
+		CosmeticState(equippedSkin, equippedTrail, ownedSkins, ownedTrails)
+		CrateResult(crateId, kind, id, isNew, refund)
+		PetInventory(state)                { Pets = { PetEntry }, Equipped = { uid }, Slots }
+		HatchResult(petId, variantId)      pet that came out of the last egg
+		LeaderboardData(Period, Entries)   Entries { { Rank, Name, Value } }, Period "Daily" | "Weekly" | "AllTime"
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -75,6 +97,47 @@ local RunSummary = {
 	OutOfTime = Packet.Boolean8,
 }
 
+local MapProgressPayload = {
+	MapId = Packet.String,
+	Percent = Packet.NumberF32,
+}
+
+local SpecialEventPayload = {
+	MapId = Packet.String,
+	EndsAt = Packet.NumberF64,
+}
+
+local CrateResultStruct = {
+	CrateId = Packet.String,
+	Kind = Packet.String,
+	Id = Packet.String,
+	IsNew = Packet.Boolean8,
+	Refund = Packet.NumberU32,
+}
+
+local PetEntry = {
+	Uid = Packet.String,
+	PetId = Packet.String,
+	Variant = Packet.String,
+}
+
+local PetInventoryState = {
+	Pets = { PetEntry },
+	Equipped = { Packet.String },
+	Slots = Packet.NumberU8,
+}
+
+local LeaderboardEntry = {
+	Rank = Packet.NumberU8,
+	Name = Packet.String,
+	Value = Packet.NumberU32,
+}
+
+local LeaderboardDataPayload = {
+	Period = Packet.String,
+	Entries = { LeaderboardEntry },
+}
+
 local Net = {}
 
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
@@ -94,5 +157,42 @@ Net.ObjectSoiled = Packet.new("ObjectSoiled", Packet.Instance, Packet.NumberU32)
 Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
+Net.MapProgress = Packet.new("MapProgress", MapProgressPayload)
+Net.SpecialEvent = Packet.new("SpecialEvent", SpecialEventPayload)
+
+local DailyStateEntry = {
+	Day = Packet.NumberU8,
+	CanClaim = Packet.Boolean8,
+	SecondsUntilNext = Packet.NumberU32,
+	Streak = Packet.NumberU8,
+}
+
+Net.ClaimDaily = Packet.new("ClaimDaily")
+Net.DailyState = Packet.new("DailyState", DailyStateEntry)
+
+Net.ReviveOffer = Packet.new("ReviveOffer", Packet.NumberU32, Packet.NumberU8, Packet.NumberF32)
+Net.PassState = Packet.new("PassState", { Packet.String })
+
+-- Potion
+Net.UsePotion = Packet.new("UsePotion", Packet.String)
+
+Net.Rebirth = Packet.new("Rebirth")
+Net.OpenCrate = Packet.new("OpenCrate", Packet.String)
+Net.EquipCosmetic = Packet.new("EquipCosmetic", Packet.String, Packet.String)
+
+Net.CosmeticState = Packet.new("CosmeticState", Packet.String, Packet.String, Packet.Any, Packet.Any)
+Net.CrateResult = Packet.new("CrateResult", CrateResultStruct)
+
+Net.HatchEgg = Packet.new("HatchEgg", Packet.String)
+Net.EquipPet = Packet.new("EquipPet", Packet.String)
+Net.UnequipPet = Packet.new("UnequipPet", Packet.String)
+Net.DeletePet = Packet.new("DeletePet", Packet.String)
+Net.MergePet = Packet.new("MergePet", Packet.String)
+
+Net.PetInventory = Packet.new("PetInventory", PetInventoryState)
+Net.HatchResult = Packet.new("HatchResult", Packet.String, Packet.String)
+
+Net.GoldenTargets = Packet.new("GoldenTargets", { Packet.String })
+Net.LeaderboardData = Packet.new("LeaderboardData", LeaderboardDataPayload)
 
 return Net

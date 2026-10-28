@@ -26,9 +26,15 @@ local useUIScale = require(ReplicatedStorage.Modules.UIComponents.useUIScale)
 local UIScaleContext = require(ReplicatedStorage.Modules.UIComponents.UIScaleContext)
 
 local Screens = ReplicatedStorage.Modules.Screens
-local LobbyMenu = require(Screens.LobbyMenu)
+local DailyWindow = require(Screens.DailyWindow)
+local PetsWindow = require(Screens.PetsWindow)
+local RebirthWindow = require(Screens.RebirthWindow)
 local PlayWindow = require(Screens.PlayWindow)
 local ResultWindow = require(Screens.ResultWindow)
+local ShopWindow = require(Screens.ShopWindow)
+local SideRail = require(Screens.SideRail)
+local SkinsWindow = require(Screens.SkinsWindow)
+local RunExtras = require(Screens.RunExtras)
 local RunHud = require(Screens.RunHud)
 local StatsWindow = require(Screens.StatsWindow)
 local Toasts = require(Screens.Toasts)
@@ -100,6 +106,16 @@ local function App(props: any)
 			lobbyWindow = e(UpgradeWindow, { data = data, ui = ui, onClose = close })
 		elseif route == Routes.Stats then
 			lobbyWindow = e(StatsWindow, { data = data, ui = ui, onClose = close })
+		elseif route == Routes.Daily then
+			lobbyWindow = e(DailyWindow, { data = data, ui = ui, onClose = close })
+		elseif route == Routes.Shop then
+			lobbyWindow = e(ShopWindow, { data = data, ui = ui, onClose = close })
+		elseif route == Routes.Pets then
+			lobbyWindow = e(PetsWindow, { data = data, ui = ui, onClose = close })
+		elseif route == Routes.Skins then
+			lobbyWindow = e(SkinsWindow, { data = data, ui = ui, onClose = close })
+		elseif route == Routes.Rebirth then
+			lobbyWindow = e(RebirthWindow, { data = data, ui = ui, onClose = close })
 		end
 	end
 
@@ -112,10 +128,11 @@ local function App(props: any)
 			Scale = e("UIScale", { Scale = ui.scale }),
 			Wallet = layer(ui, "Wallet", e(Wallet, { data = data, ui = ui })),
 			RunHud = layer(ui, "RunHud", if inRun then e(RunHud, { data = data, ui = ui }) else nil),
+			Extras = layer(ui, "Extras", e(RunExtras, { data = data, inRun = inRun, ui = ui })),
 			LobbyMenu = layer(
 				ui,
 				"LobbyMenu",
-				if not inRun and not showResult and lobbyWindow == nil then e(LobbyMenu, { ui = ui }) else nil
+				if not inRun and not showResult and lobbyWindow == nil then e(SideRail, { data = data, ui = ui }) else nil
 			),
 			Backdrop = if showResult then backdrop(nil) elseif lobbyWindow ~= nil then backdrop(close) else nil,
 			Window = layer(ui, "Window", lobbyWindow),

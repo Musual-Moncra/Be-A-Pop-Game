@@ -12,6 +12,8 @@
 		GroundStickSpeed: speed pressing the poop into the surface while grounded (studs/s)
 		JumpVelocity: launch speed along GravityUp when jumping (studs/s)
 		JumpCooldown: time after a jump before a surface can grab the poop again (seconds)
+		GroundCoyoteTime: time the poop keeps its last surface after losing contact, so walking over
+			convex edges does not flicker between grounded and airborne (seconds)
 		AirGravityHoldTime: time airborne before GravityUp blends back to world up (seconds)
 		AirControl: fraction of walking speed the player can steer with while airborne (0 to 1)
 		MoveInputDeadzone: smallest stick/thumbstick magnitude treated as movement (0 to 1)
@@ -64,6 +66,7 @@ MovementConfig.MaxAcceleration = 900
 MovementConfig.GroundStickSpeed = 8
 MovementConfig.JumpVelocity = 50
 MovementConfig.JumpCooldown = 0.2
+MovementConfig.GroundCoyoteTime = 0.12
 MovementConfig.AirGravityHoldTime = 0.35
 MovementConfig.AirControl = 0.45
 MovementConfig.MoveInputDeadzone = 0.08

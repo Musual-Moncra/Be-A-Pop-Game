@@ -20,8 +20,19 @@
 		Outbound.PowerupPicked(plr, powerupId)
 		Outbound.ObjectStained(plr, object, step)
 		Outbound.ObjectSoiled(plr, object, bonus)
+		Outbound.GoldenTargets(plr, paths)              coalesced
 		Outbound.NpcCaught(plr, penaltySeconds)
+		Outbound.DailyState(plr, state)                  coalesced
 		Outbound.Notify(plr, kind, text)
+		Outbound.ReviveOffer(plr, productId, tier, windowSeconds)
+		Outbound.PassState(plr, ownedPassKeys)
+		Outbound.MapProgress(plr, mapId, percent)         coalesced
+		Outbound.SpecialEvent(plr, mapId, endsAt)
+		Outbound.CosmeticState(plr, equippedSkin, equippedTrail, ownedSkins, ownedTrails)
+		Outbound.CrateResult(plr, result)
+		Outbound.PetInventory(plr, state)                coalesced, { Pets, Equipped, Slots }
+		Outbound.HatchResult(plr, petId, variantId)
+		Outbound.LeaderboardData(plr, period, entries)
 
 	Dependencies: Net
 ]]
@@ -121,9 +132,67 @@ function Outbound.NpcCaught(plr: Player, penaltySeconds: number)
 	end
 end
 
+function Outbound.GoldenTargets(plr: Player, paths: { string })
+	queue(Net.GoldenTargets, plr, paths)
+end
+
 function Outbound.Notify(plr: Player, kind: string, text: string)
 	if connected(plr) then
 		Net.Notify:FireClient(plr, kind, text)
+	end
+end
+
+function Outbound.DailyState(plr: Player, state: any)
+	queue(Net.DailyState, plr, state)
+end
+
+function Outbound.ReviveOffer(plr: Player, productId: number, tier: number, windowSeconds: number)
+	if connected(plr) then
+		Net.ReviveOffer:FireClient(plr, math.floor(productId), math.clamp(tier, 1, 255), windowSeconds)
+	end
+end
+
+function Outbound.PassState(plr: Player, ownedPassKeys: { string })
+	if connected(plr) then
+		Net.PassState:FireClient(plr, ownedPassKeys)
+	end
+end
+
+function Outbound.MapProgress(plr: Player, mapId: string, percent: number)
+	queue(Net.MapProgress, plr, { MapId = mapId, Percent = percent })
+end
+
+function Outbound.SpecialEvent(plr: Player, mapId: string, endsAt: number)
+	if connected(plr) then
+		Net.SpecialEvent:FireClient(plr, { MapId = mapId, EndsAt = endsAt })
+	end
+end
+
+function Outbound.CosmeticState(plr: Player, equippedSkin: string, equippedTrail: string, ownedSkins: any, ownedTrails: any)
+	if connected(plr) then
+		Net.CosmeticState:FireClient(plr, equippedSkin, equippedTrail, ownedSkins, ownedTrails)
+	end
+end
+
+function Outbound.CrateResult(plr: Player, result: any)
+	if connected(plr) then
+		Net.CrateResult:FireClient(plr, result)
+	end
+end
+
+function Outbound.PetInventory(plr: Player, state: any)
+	queue(Net.PetInventory, plr, state)
+end
+
+function Outbound.HatchResult(plr: Player, petId: string, variantId: string)
+	if connected(plr) then
+		Net.HatchResult:FireClient(plr, petId, variantId)
+	end
+end
+
+function Outbound.LeaderboardData(plr: Player, period: string, entries: { any })
+	if connected(plr) then
+		Net.LeaderboardData:FireClient(plr, { Period = period, Entries = entries })
 	end
 end
 

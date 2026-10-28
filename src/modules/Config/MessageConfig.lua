@@ -20,6 +20,28 @@
 		TargetReached: Challenge target score reached (text)
 		LevelUp: player reached a new level, %d = new level (text)
 		NpcCaught: an NPC caught the poop, %d = seconds lost (text)
+		NeedPreviousComplete: previous map is not 100% stained yet, %s = that map's name (text)
+		MapComplete: a map reached 100% for the first time, %s = map name, %d = gems (text)
+		SpecialTimeStart: Special Time began, %s = map name, %d = gem multiplier, %d = duration (text)
+		NotEnoughGems: not enough gems for a purchase (text)
+		RebirthSuccess: player rebirthed successfully, %d = new rebirth count (text)
+		CosmeticUnlocked: cosmetic unlocked from crate, %s = cosmetic name (text)
+		CosmeticDuplicate: duplicate cosmetic rolled, refunded coins (text)
+		CosmeticEquipped: cosmetic equipped, %s = cosmetic name (text)
+		CosmeticUnequipped: cosmetic unequipped (text)
+		CosmeticNotOwned: player does not own the cosmetic (text)
+		InvalidCrate: crate does not exist (text)
+		RunUnavailable: the selected map has no world model loaded so a run cannot start (text)
+		DataLoading: a run was requested before the player's save finished loading (text)
+		PetHatched: a pet came out of an egg, %s = pet name (text)
+		PetHatchedVariant: a variant pet came out of an egg, first %s = pet name, second %s = variant name (text)
+		PetInventoryFull: hatching blocked because the pet inventory is full (text)
+		PetEggLocked: egg map is not unlocked, %s = map name (text)
+		PetSlotsFull: equipping blocked because every slot is taken (text)
+		PetMergeNeed: merging blocked because there are not enough identical pets (text)
+		PetMaxVariant: merging blocked because the pet is already at its final variant (text)
+		PetMerged: merge succeeded, first %s = pet name, second %s = new variant name (text)
+		GoldenSoiled: a golden target was fully soiled, %s = object name, %d = gems paid (text)
 ]]
 
 local MessageConfig = {}
@@ -38,5 +60,27 @@ MessageConfig.QuestCompleted = "Quest complete: %s"
 MessageConfig.TargetReached = "Target reached!"
 MessageConfig.LevelUp = "Level up! You are now level %d."
 MessageConfig.NpcCaught = "Caught! -%ds"
+MessageConfig.NeedPreviousComplete = "Stain 100%% of %s first."
+MessageConfig.MapComplete = "%s fully stained! +%d gems"
+MessageConfig.SpecialTimeStart = "Special Time on %s! x%d gems for %ds"
+MessageConfig.NotEnoughGems = "Not enough gems."
+MessageConfig.RebirthSuccess = "Rebirth #%d achieved! Multipliers boosted!"
+MessageConfig.CosmeticUnlocked = "Unlocked: %s!"
+MessageConfig.CosmeticDuplicate = "Duplicate! Refunded %d coins."
+MessageConfig.CosmeticEquipped = "%s equipped!"
+MessageConfig.CosmeticUnequipped = "Cosmetic unequipped."
+MessageConfig.CosmeticNotOwned = "You do not own this cosmetic."
+MessageConfig.InvalidCrate = "Invalid crate."
+MessageConfig.RunUnavailable = "This map is not ready yet. Try again later."
+MessageConfig.DataLoading = "Your save is still loading. Try again in a moment."
+MessageConfig.PetHatched = "%s hatched!"
+MessageConfig.PetHatchedVariant = "%s hatched! (%s)"
+MessageConfig.PetInventoryFull = "Pet inventory is full."
+MessageConfig.PetEggLocked = "Unlock %s first."
+MessageConfig.PetSlotsFull = "All pet slots are full."
+MessageConfig.PetMergeNeed = "You need 5 identical pets to merge."
+MessageConfig.PetMaxVariant = "This pet is already at its final variant."
+MessageConfig.PetMerged = "%s merged into a %s!"
+MessageConfig.GoldenSoiled = "Golden %s! +%d gems"
 
 return MessageConfig

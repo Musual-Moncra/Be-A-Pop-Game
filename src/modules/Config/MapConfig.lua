@@ -19,6 +19,8 @@
 			RewardMultiplier: multiplies coins and xp earned on this map (multiplier)
 			SizeLabel: size text shown on the map card (text)
 			Enabled: false hides the map as COMING SOON and blocks play (true/false)
+			CompletionGems: gems paid the first time this map is stained to 100% (gems)
+			RequirePreviousComplete: true means the map before it must be at 100% before this map can be unlocked (true/false)
 ]]
 
 local MapConfig = {}
@@ -29,7 +31,7 @@ MapConfig.Maps = {
 	{
 		Id = "Zone1",
 		DisplayName = "Kitchen",
-		Description = "Small kitchen full of counters, a fridge and hungry chefs.",
+		Description = "Stud-tiled kitchen with a stove, a fridge, chefs and a sneaky cat.",
 		ModelName = "Zone1",
 		Spawn = Vector3.new(500, 5, 0),
 		Order = 1,
@@ -38,45 +40,53 @@ MapConfig.Maps = {
 		RewardMultiplier = 1,
 		SizeLabel = "S",
 		Enabled = true,
+		CompletionGems = 5,
+		RequirePreviousComplete = false,
 	},
 	{
 		Id = "Zone2",
-		DisplayName = "Living Room",
-		Description = "Sofas, a giant TV and a carpet begging to be ruined.",
+		DisplayName = "Shopping Mall",
+		Description = "Neon shops, mannequins, a pink fountain and mall guards.",
 		ModelName = "Zone2",
 		Spawn = Vector3.new(1000, 5, 0),
 		Order = 2,
-		UnlockCost = 2500,
+		UnlockCost = 5000,
 		RequiredLevel = 5,
-		RewardMultiplier = 2,
+		RewardMultiplier = 2.5,
 		SizeLabel = "M",
 		Enabled = true,
+		CompletionGems = 15,
+		RequirePreviousComplete = false,
 	},
 	{
 		Id = "Zone3",
-		DisplayName = "Restaurant",
-		Description = "Huge dining hall with tables, a bar and a buffet line.",
+		DisplayName = "Park",
+		Description = "Open-air park with a carousel, slide, ice cream cart and joggers.",
 		ModelName = "Zone3",
 		Spawn = Vector3.new(1600, 5, 0),
 		Order = 3,
-		UnlockCost = 25000,
+		UnlockCost = 40000,
 		RequiredLevel = 15,
-		RewardMultiplier = 4,
+		RewardMultiplier = 6,
 		SizeLabel = "L",
 		Enabled = true,
+		CompletionGems = 40,
+		RequirePreviousComplete = false,
 	},
 	{
 		Id = "Zone4",
-		DisplayName = "Shopping Mall",
-		Description = "Coming soon.",
+		DisplayName = "Grand Hotel",
+		Description = "Marble lobby, chandeliers, luggage carts and fancy butlers.",
 		ModelName = "Zone4",
 		Spawn = Vector3.new(2400, 5, 0),
 		Order = 4,
 		UnlockCost = 250000,
 		RequiredLevel = 30,
-		RewardMultiplier = 8,
+		RewardMultiplier = 15,
 		SizeLabel = "XL",
-		Enabled = false,
+		Enabled = true,
+		CompletionGems = 100,
+		RequirePreviousComplete = false,
 	},
 }
 
