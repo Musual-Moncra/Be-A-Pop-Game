@@ -13,6 +13,7 @@
 			StartRun: starting a run from the Play window
 			LeaveRun: leaving a run from the HUD
 		DefaultRateLimit: limit used for a remote missing from RateLimits (seconds)
+		MaxStringLength: longest string argument a client may send on any remote (characters)
 ]]
 
 local RemoteConfig = {}
@@ -26,5 +27,6 @@ RemoteConfig.RateLimits = {
 }
 
 RemoteConfig.DefaultRateLimit = 0.2
+RemoteConfig.MaxStringLength = 64
 
 return RemoteConfig
