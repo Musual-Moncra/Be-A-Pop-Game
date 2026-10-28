@@ -5,6 +5,7 @@
 	Timed world events, map completion reporting and target panic tuning. Pure data, no functions.
 
 	Fields:
+		StepInterval: heartbeat check interval for timed events (seconds)
 		SpecialTime.IntervalSeconds: time between the end of one Special Time and the start of the next (seconds)
 		SpecialTime.FirstDelaySeconds: delay before the first Special Time after the server starts (seconds)
 		SpecialTime.DurationSeconds: how long one Special Time lasts (seconds)
@@ -18,6 +19,8 @@
 ]]
 
 local EventConfig = {}
+
+EventConfig.StepInterval = 0.5
 
 EventConfig.SpecialTime = {
 	IntervalSeconds = 240,

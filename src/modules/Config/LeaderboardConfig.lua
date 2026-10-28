@@ -27,6 +27,8 @@
 		RowTextColor: default color for ranking rows (Color3)
 		RowTextSize: font size for ranking rows (pixels)
 		RowHeight: height allocated to each row entry (pixels)
+		NameWidth: width ratio for the name column in leaderboard rows (scale 0-1)
+		ScoreWidth: width ratio for the score column in leaderboard rows (scale 0-1)
 		Top1Color: highlight text color for 1st place (Color3)
 		Top2Color: highlight text color for 2nd place (Color3)
 		Top3Color: highlight text color for 3rd place (Color3)
@@ -72,6 +74,8 @@ LeaderboardConfig.TitleHeight = 56
 LeaderboardConfig.RowTextColor = Color3.fromRGB(240, 240, 245)
 LeaderboardConfig.RowTextSize = 26
 LeaderboardConfig.RowHeight = 36
+LeaderboardConfig.NameWidth = 0.68
+LeaderboardConfig.ScoreWidth = 0.32
 LeaderboardConfig.Top1Color = Color3.fromRGB(255, 215, 0)
 LeaderboardConfig.Top2Color = Color3.fromRGB(210, 215, 225)
 LeaderboardConfig.Top3Color = Color3.fromRGB(215, 145, 80)

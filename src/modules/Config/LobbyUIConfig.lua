@@ -102,7 +102,11 @@
 		Rebirth: rebirth window
 			Width / Height / Swatch / Title: window size, header colour, title
 			Icon: big emoji (text)
-			Lines: info lines (formats: count; multiplier; gems; cost)
+			Lines: info lines
+				Count: rebirth count line (format: count)
+				Multiplier: coin bonus comparison line (format: current multiplier, next multiplier)
+				Gems: gems reward line (format: gems)
+				Cost: coins cost line (format: coins cost)
 			Button: rebirth button text (text)
 			Warning: line explaining what resets (text)
 ]]
