@@ -46,28 +46,24 @@ function RebirthService.Rebirth(plr: Player): boolean
 	data.Coins = 0
 	data.Rebirths = currentRebirths + 1
 
-	-- Reset upgrades
 	local upgrades = data.Upgrades or {}
 	for upgradeId in UpgradeConfig.Upgrades do
 		upgrades[upgradeId] = 0
 	end
 	data.Upgrades = upgrades
 
-	-- Optional map reset
 	if RebirthConfig.ResetUnlockedMaps then
 		data.UnlockedMaps = {
 			Zone1 = true,
 		}
 	end
 
-	-- Grant gems
 	if RebirthConfig.GemsPerRebirth > 0 then
 		data.Gems = (data.Gems or 0) + RebirthConfig.GemsPerRebirth
 	end
 
 	DataService.MarkChanged(plr)
 
-	-- Re-apply base upgrade stats (e.g. speed reset to base)
 	local UpgradeService = require(ServerStorage.Modules.Services.UpgradeService)
 	UpgradeService.ApplyStats(plr, plr.Character)
 

@@ -37,6 +37,10 @@ local function rollDrop(crateDef: any): { Kind: string, Id: string }?
 		totalWeight += entry.Weight
 	end
 
+	if totalWeight <= 0 then
+		return nil
+	end
+
 	local roll = math.random() * totalWeight
 	local cumulative = 0
 	for _, entry in drops do
@@ -57,22 +61,31 @@ function CosmeticService.OpenCrate(plr: Player, crateId: string): boolean
 		return false
 	end
 
-	if crate.CostType == "Coins" then
-		if not DataService.SpendCoins(plr, crate.Cost) then
-			Outbound.Notify(plr, "Error", MessageConfig.NotEnoughCoins)
-			return false
-		end
-	elseif crate.CostType == "Gems" then
-		if not DataService.SpendGems(plr, crate.Cost) then
-			Outbound.Notify(plr, "Error", MessageConfig.NotEnoughGems)
-			return false
-		end
-	else
+	if crate.Drops == nil or #crate.Drops == 0 then
+		Outbound.Notify(plr, "Error", MessageConfig.InvalidCrate)
 		return false
 	end
 
 	local drop = rollDrop(crate)
 	if drop == nil then
+		Outbound.Notify(plr, "Error", MessageConfig.InvalidCrate)
+		return false
+	end
+
+	local spent = false
+	if crate.CostType == "Coins" then
+		spent = DataService.SpendCoins(plr, crate.Cost)
+		if not spent then
+			Outbound.Notify(plr, "Error", MessageConfig.NotEnoughCoins)
+			return false
+		end
+	elseif crate.CostType == "Gems" then
+		spent = DataService.SpendGems(plr, crate.Cost)
+		if not spent then
+			Outbound.Notify(plr, "Error", MessageConfig.NotEnoughGems)
+			return false
+		end
+	else
 		return false
 	end
 
@@ -192,7 +205,6 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 	local skinId = data.EquippedSkin or "Default"
 	local skinDef = ConfigLookup.GetSkin(skinId) or ConfigLookup.GetSkin("Default")
 
-	-- Apply skin to body parts
 	local body = character:FindFirstChild("Body")
 	if body ~= nil and skinDef ~= nil then
 		local tierParts = { "TierBottom", "TierMiddle", "TierTop", "Tip" }
@@ -205,7 +217,6 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 		end
 	end
 
-	-- Apply trail to HumanoidRootPart
 	local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if hrp ~= nil and hrp:IsA("BasePart") then
 		local existingTrail = hrp:FindFirstChild("CosmeticTrail")

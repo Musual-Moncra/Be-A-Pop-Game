@@ -108,7 +108,6 @@ Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
 
--- Rebirth + Cosmetics
 Net.Rebirth = Packet.new("Rebirth")
 Net.OpenCrate = Packet.new("OpenCrate", Packet.String)
 Net.EquipCosmetic = Packet.new("EquipCosmetic", Packet.String, Packet.String)
