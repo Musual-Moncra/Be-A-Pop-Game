@@ -19,6 +19,8 @@
 			RewardMultiplier: multiplies coins and xp earned on this map (multiplier)
 			SizeLabel: size text shown on the map card (text)
 			Enabled: false hides the map as COMING SOON and blocks play (true/false)
+			CompletionGems: gems paid the first time this map is stained to 100% (gems)
+			RequirePreviousComplete: true means the map before it must be at 100% before this map can be unlocked (true/false)
 ]]
 
 local MapConfig = {}
@@ -38,6 +40,8 @@ MapConfig.Maps = {
 		RewardMultiplier = 1,
 		SizeLabel = "S",
 		Enabled = true,
+		CompletionGems = 5,
+		RequirePreviousComplete = false,
 	},
 	{
 		Id = "Zone2",
@@ -51,6 +55,8 @@ MapConfig.Maps = {
 		RewardMultiplier = 2,
 		SizeLabel = "M",
 		Enabled = true,
+		CompletionGems = 15,
+		RequirePreviousComplete = false,
 	},
 	{
 		Id = "Zone3",
@@ -64,6 +70,8 @@ MapConfig.Maps = {
 		RewardMultiplier = 4,
 		SizeLabel = "L",
 		Enabled = true,
+		CompletionGems = 40,
+		RequirePreviousComplete = false,
 	},
 	{
 		Id = "Zone4",
@@ -77,6 +85,8 @@ MapConfig.Maps = {
 		RewardMultiplier = 8,
 		SizeLabel = "XL",
 		Enabled = false,
+		CompletionGems = 100,
+		RequirePreviousComplete = false,
 	},
 }
 

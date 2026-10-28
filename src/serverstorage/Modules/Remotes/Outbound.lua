@@ -22,6 +22,8 @@
 		Outbound.ObjectSoiled(plr, object, bonus)
 		Outbound.NpcCaught(plr, penaltySeconds)
 		Outbound.Notify(plr, kind, text)
+		Outbound.MapProgress(plr, mapId, percent)         coalesced
+		Outbound.SpecialEvent(plr, mapId, endsAt)
 
 	Dependencies: Net
 ]]
@@ -124,6 +126,16 @@ end
 function Outbound.Notify(plr: Player, kind: string, text: string)
 	if connected(plr) then
 		Net.Notify:FireClient(plr, kind, text)
+	end
+end
+
+function Outbound.MapProgress(plr: Player, mapId: string, percent: number)
+	queue(Net.MapProgress, plr, { MapId = mapId, Percent = percent })
+end
+
+function Outbound.SpecialEvent(plr: Player, mapId: string, endsAt: number)
+	if connected(plr) then
+		Net.SpecialEvent:FireClient(plr, { MapId = mapId, EndsAt = endsAt })
 	end
 end
 

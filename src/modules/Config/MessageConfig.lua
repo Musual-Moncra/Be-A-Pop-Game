@@ -20,6 +20,9 @@
 		TargetReached: Challenge target score reached (text)
 		LevelUp: player reached a new level, %d = new level (text)
 		NpcCaught: an NPC caught the poop, %d = seconds lost (text)
+		NeedPreviousComplete: previous map is not 100% stained yet, %s = that map's name (text)
+		MapComplete: a map reached 100% for the first time, %s = map name, %d = gems (text)
+		SpecialTimeStart: Special Time began, %s = map name, %d = gem multiplier, %d = duration (text)
 ]]
 
 local MessageConfig = {}
@@ -38,5 +41,8 @@ MessageConfig.QuestCompleted = "Quest complete: %s"
 MessageConfig.TargetReached = "Target reached!"
 MessageConfig.LevelUp = "Level up! You are now level %d."
 MessageConfig.NpcCaught = "Caught! -%ds"
+MessageConfig.NeedPreviousComplete = "Stain 100%% of %s first."
+MessageConfig.MapComplete = "%s fully stained! +%d gems"
+MessageConfig.SpecialTimeStart = "Special Time on %s! x%d gems for %ds"
 
 return MessageConfig

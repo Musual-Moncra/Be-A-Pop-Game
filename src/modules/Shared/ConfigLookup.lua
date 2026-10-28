@@ -21,6 +21,9 @@
 		ConfigLookup.GetObject(objectType) -> ObjectDefinition?
 		ConfigLookup.GetQuest(id) -> QuestDefinition?
 		ConfigLookup.FormatQuest(quest) -> string
+		ConfigLookup.GetEnabledMaps() -> { MapDefinition }
+		ConfigLookup.GetMapCellCount(size) -> number        stain cells covering a footprint
+		ConfigLookup.GetMapProgressPercent(stained, total) -> number
 
 	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig, QuestConfig
 ]]
@@ -48,6 +51,8 @@ export type MapDefinition = {
 	RewardMultiplier: number,
 	SizeLabel: string,
 	Enabled: boolean,
+	CompletionGems: number,
+	RequirePreviousComplete: boolean,
 }
 
 export type ModeDefinition = {
@@ -219,6 +224,31 @@ end
 
 function ConfigLookup.FormatQuest(quest: QuestDefinition): string
 	return (string.gsub(quest.Description, "%%d", tostring(quest.Target)))
+end
+
+function ConfigLookup.GetEnabledMaps(): { MapDefinition }
+	local maps = {}
+	for _, map in ConfigLookup.GetSortedMaps() do
+		if map.Enabled then
+			table.insert(maps, map)
+		end
+	end
+	return maps
+end
+
+function ConfigLookup.GetMapCellCount(size: Vector3): number
+	local cellSize = GameConfig.StainCellSize
+	if cellSize <= 0 then
+		return 0
+	end
+	return math.max(1, math.floor(size.X * size.Z / (cellSize * cellSize)))
+end
+
+function ConfigLookup.GetMapProgressPercent(stained: number, total: number): number
+	if total <= 0 then
+		return 0
+	end
+	return math.clamp(stained / total * 100, 0, 100)
 end
 
 return ConfigLookup

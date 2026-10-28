@@ -17,8 +17,8 @@
 		RunService.GetRun(plr: Player): ActiveRun?
 
 	Dependencies:
-		DataService, UpgradeService, MapService, PowerupService, QuestService, RunEvents, Outbound,
-		ConfigLookup, GameConfig, MapConfig, ModeConfig, ObjectConfig, RunConfig, MessageConfig, DataConfig, Trove
+		DataService, UpgradeService, MapService, PowerupService, QuestService, EventService, RunEvents, Outbound,
+		ConfigLookup, EventConfig, GameConfig, MapConfig, ModeConfig, ObjectConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
 local Players = game:GetService("Players")
@@ -33,6 +33,7 @@ local UpgradeService = require(Services.UpgradeService)
 local MapService = require(Services.MapService)
 local PowerupService = require(Services.PowerupService)
 local QuestService = require(Services.QuestService)
+local EventService = require(Services.EventService)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataConfig = require(ServerStorage.Modules.Config.DataConfig)
@@ -42,6 +43,7 @@ local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
 local ObjectConfig = require(ReplicatedStorage.Modules.Config.ObjectConfig)
+local EventConfig = require(ReplicatedStorage.Modules.Config.EventConfig)
 local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local Trove = require(ReplicatedStorage.Packages.Trove)
@@ -72,11 +74,16 @@ export type ActiveRun = {
 
 type Patrol = {
 	model: Model,
+	aPos: Vector3,
+	bPos: Vector3,
 	fromPos: Vector3,
 	toPos: Vector3,
+	baseSpeed: number,
+	speed: number,
 	travelTime: number,
 	startedAt: number,
 	pausedUntil: number,
+	panicUntil: number,
 }
 
 local RunService = {}
@@ -146,6 +153,42 @@ local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stai
 	table.insert(run.stainParts, stain)
 end
 
+local function retarget(patrol: Patrol, now: number, speed: number)
+	local current = patrol.model:GetPivot().Position
+	local distance = (patrol.toPos - current).Magnitude
+	patrol.fromPos = current
+	patrol.startedAt = now
+	patrol.pausedUntil = 0
+	patrol.speed = speed
+	patrol.travelTime = if distance > 0 then distance / speed else RunConfig.RunLoopStepInterval
+end
+
+local function panicNpcs(run: ActiveRun, position: Vector3)
+	local npcsFolder = run.npcsFolder
+	if npcsFolder == nil then
+		return
+	end
+
+	local character = run.player.Character
+	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
+	local fleeFrom = if hrp ~= nil then hrp.Position else position
+	local now = os.clock()
+
+	for _, npc in npcsFolder:GetChildren() do
+		if npc:IsA("Model") then
+			local patrol = patrols[npc]
+			if patrol ~= nil and (npc:GetPivot().Position - position).Magnitude <= EventConfig.TargetPanic.Radius then
+				local fleeTo = if (patrol.aPos - fleeFrom).Magnitude > (patrol.bPos - fleeFrom).Magnitude
+					then patrol.aPos
+					else patrol.bPos
+				patrol.toPos = fleeTo
+				retarget(patrol, now, patrol.baseSpeed * EventConfig.TargetPanic.SpeedMultiplier)
+				patrol.panicUntil = now + EventConfig.TargetPanic.DurationSeconds
+			end
+		end
+	end
+end
+
 local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, pointsMultiplier: number)
 	local objectModel, objectType = nil, nil
 	if run.mapModel ~= nil then
@@ -154,8 +197,9 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, 
 
 	local objectDef = if objectType ~= nil then ConfigLookup.GetObject(objectType) else nil
 	local multiplier = if objectDef ~= nil then objectDef.PointsMultiplier else ObjectConfig.SurfacePointsMultiplier
+	local eventMultiplier = EventService.GetMultipliers(run.mapDef.Id).Points
 
-	local points = stainSize * stainSize * GameConfig.PointsPerStud * multiplier * pointsMultiplier
+	local points = stainSize * stainSize * GameConfig.PointsPerStud * multiplier * pointsMultiplier * eventMultiplier
 	run.score += points
 	RunEvents.Stained:Fire(run.player, points, objectType)
 
@@ -175,6 +219,8 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, 
 		run.objectsSoiled += 1
 		Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
 		RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
+		RunEvents.TargetSoiled:Fire(run.player, run.mapDef.Id, objectType)
+		panicNpcs(run, objectModel:GetPivot().Position)
 	end
 end
 
@@ -289,6 +335,10 @@ local function stepPatrol(patrol: Patrol, now: number)
 		patrols[patrol.model] = nil
 		return
 	end
+	if patrol.panicUntil > 0 and now >= patrol.panicUntil then
+		patrol.panicUntil = 0
+		retarget(patrol, now, patrol.baseSpeed)
+	end
 	if now < patrol.pausedUntil then
 		return
 	end
@@ -299,7 +349,12 @@ local function stepPatrol(patrol: Patrol, now: number)
 	patrol.model:PivotTo(CFrame.lookAt(position, position + Vector3.new(heading.X, 0, heading.Z)))
 
 	if alpha >= 1 then
-		patrol.fromPos, patrol.toPos = patrol.toPos, patrol.fromPos
+		local arrived = patrol.toPos
+		local other = if (arrived - patrol.aPos).Magnitude <= (arrived - patrol.bPos).Magnitude
+			then patrol.bPos
+			else patrol.aPos
+		patrol.fromPos = arrived
+		patrol.toPos = other
 		patrol.pausedUntil = now + RunConfig.NpcTurnaroundPause
 		patrol.startedAt = patrol.pausedUntil
 	end
@@ -339,6 +394,7 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 
 	local bonusCoins = if run.targetReached then modeDef.TargetBonusCoins else 0
 	local bonusGems = if run.targetReached then modeDef.TargetBonusGems else 0
+	local gemMultiplier = EventService.GetMultipliers(mapDef.Id).Gems
 
 	DataService.RecordRun(plr, score)
 	if run.objectsSoiled > 0 then
@@ -358,10 +414,16 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 		Outbound.Notify(plr, "Success", string.format(MessageConfig.LevelUp, newLevel))
 	end
 
+	local baseGems = levelsGained * GameConfig.GemsPerLevelUp + bonusGems
+	local eventGems = math.floor(baseGems * (gemMultiplier - 1))
+	if eventGems > 0 then
+		DataService.AddGems(plr, eventGems)
+	end
+
 	local summary = {
 		Score = score,
 		Coins = baseCoins + bonusCoins + questResult.Coins,
-		Gems = levelsGained * GameConfig.GemsPerLevelUp + bonusGems + questResult.Gems,
+		Gems = baseGems + eventGems + questResult.Gems,
 		Xp = xp,
 		MapId = mapDef.Id,
 		ModeId = modeDef.Id,
@@ -501,11 +563,16 @@ local function setupNpcsForMap(mapDef: ConfigLookup.MapDefinition)
 		if model ~= nil and model:IsA("Model") and distance > 0 and patrols[model] == nil then
 			patrols[model] = {
 				model = model,
+				aPos = patrolDef.startPos,
+				bPos = patrolDef.endPos,
 				fromPos = patrolDef.startPos,
 				toPos = patrolDef.endPos,
+				baseSpeed = patrolDef.speed,
+				speed = patrolDef.speed,
 				travelTime = distance / patrolDef.speed,
 				startedAt = now,
 				pausedUntil = 0,
+				panicUntil = 0,
 			}
 		end
 	end

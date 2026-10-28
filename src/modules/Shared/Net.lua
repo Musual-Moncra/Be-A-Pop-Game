@@ -30,6 +30,9 @@
 		QuestState(quests)                 { { Id, Text, Progress, Target, Done } }
 		NpcCaught(penaltySeconds)
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
+		MapProgress(MapId, Percent)        live percent of the current run on that map
+		SpecialEvent(MapId, EndsAt)        Special Time map, EndsAt = server clock time it ends,
+		                                   MapId "" means the event just ended
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -75,6 +78,16 @@ local RunSummary = {
 	OutOfTime = Packet.Boolean8,
 }
 
+local MapProgressPayload = {
+	MapId = Packet.String,
+	Percent = Packet.NumberF32,
+}
+
+local SpecialEventPayload = {
+	MapId = Packet.String,
+	EndsAt = Packet.NumberF64,
+}
+
 local Net = {}
 
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
@@ -94,5 +107,7 @@ Net.ObjectSoiled = Packet.new("ObjectSoiled", Packet.Instance, Packet.NumberU32)
 Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
+Net.MapProgress = Packet.new("MapProgress", MapProgressPayload)
+Net.SpecialEvent = Packet.new("SpecialEvent", SpecialEventPayload)
 
 return Net
