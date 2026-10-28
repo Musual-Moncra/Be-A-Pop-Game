@@ -346,10 +346,15 @@ def build_lobby():
         part("Prompt", [14, 10, 14], [0, FT + 5, -46], "#ffffff", collide=False, Transparency=1,
              attrs={"LobbyStation": "Rebirth"}),
     ]))
-    kids.append(model("LeaderboardBoard", [
-        box("Frame", [1.2, 20, 26], 58.6, -30, "#a0602e"),
-        box("Board", [0.5, 18, 24], 57.8, -30, "#28384f", y=FT + 1, children=[sign("TOP POOPERS", "Left", "#ffffff")]),
-    ]))
+    def board(name, z, title, color):
+        return model(name, [
+            box("Frame", [1.2, 22, 26], 58.6, z, color),
+            box("Header", [1.4, 3, 26], 58.4, z, color, y=FT + 22, children=[sign(title, "Left", "#ffffff")]),
+            box("Board", [0.5, 18, 24], 57.8, z, "#28384f", y=FT + 2, children=[sign("", "Left", "#ffffff")]),
+        ])
+    kids.append(board("LeaderboardBoard", -34, "ALL TIME", "#c070ff"))
+    kids.append(board("LeaderboardDaily", -4, "TODAY", "#ff9a3c"))
+    kids.append(board("LeaderboardWeekly", 26, "THIS WEEK", "#5ad1ff"))
     kids.append(folder("Lights", [lamp(f"Lamp{i}", x, FT + h - 4, z) for i, (x, z) in
                                   enumerate(((-30, -30), (30, -30), (-30, 30), (30, 30)))]))
     return model("Lobby", kids)
