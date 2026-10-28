@@ -19,6 +19,9 @@
 		LeaveRun()
 		ClaimDaily()
 		UsePotion(potionId)
+		Rebirth()
+		OpenCrate(crateId)
+		EquipCosmetic(kind, id)
 
 	Server -> Client:
 		SelectionSync(mapId, modeId)
@@ -38,6 +41,8 @@
 		MapProgress(MapId, Percent)        live percent of the current run on that map
 		SpecialEvent(MapId, EndsAt)        Special Time map, EndsAt = server clock time it ends,
 		                                   MapId "" means the event just ended
+		CosmeticState(equippedSkin, equippedTrail, ownedSkins, ownedTrails)
+		CrateResult(crateId, kind, id, isNew, refund)
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -93,6 +98,14 @@ local SpecialEventPayload = {
 	EndsAt = Packet.NumberF64,
 }
 
+local CrateResultStruct = {
+	CrateId = Packet.String,
+	Kind = Packet.String,
+	Id = Packet.String,
+	IsNew = Packet.Boolean8,
+	Refund = Packet.NumberU32,
+}
+
 local Net = {}
 
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
@@ -130,5 +143,12 @@ Net.PassState = Packet.new("PassState", { Packet.String })
 
 -- Potion
 Net.UsePotion = Packet.new("UsePotion", Packet.String)
+
+Net.Rebirth = Packet.new("Rebirth")
+Net.OpenCrate = Packet.new("OpenCrate", Packet.String)
+Net.EquipCosmetic = Packet.new("EquipCosmetic", Packet.String, Packet.String)
+
+Net.CosmeticState = Packet.new("CosmeticState", Packet.String, Packet.String, Packet.Any, Packet.Any)
+Net.CrateResult = Packet.new("CrateResult", CrateResultStruct)
 
 return Net

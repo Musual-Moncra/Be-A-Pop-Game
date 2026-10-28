@@ -32,9 +32,14 @@
 		ConfigLookup.GetMapProgressPercent(stained, total) -> number
 		ConfigLookup.GetPotion(id) -> PotionDefinition?
 		ConfigLookup.GetSortedPotionIds() -> { string }
+		ConfigLookup.GetRebirthCost(rebirths) -> number
+		ConfigLookup.GetRebirthMultiplier(rebirths) -> number
+		ConfigLookup.GetSkin(id) -> any
+		ConfigLookup.GetTrail(id) -> any
+		ConfigLookup.GetCrate(id) -> any
 
 	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig,
-		QuestConfig, DailyRewardConfig, MonetizationConfig, PotionConfig
+		QuestConfig, DailyRewardConfig, MonetizationConfig, PotionConfig, RebirthConfig, CosmeticConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -50,6 +55,8 @@ local PowerupConfig = require(Config.PowerupConfig)
 local QuestConfig = require(Config.QuestConfig)
 local UpgradeConfig = require(Config.UpgradeConfig)
 local PotionConfig = require(Config.PotionConfig)
+local RebirthConfig = require(Config.RebirthConfig)
+local CosmeticConfig = require(Config.CosmeticConfig)
 
 export type MapDefinition = {
 	Id: string,
@@ -356,6 +363,27 @@ function ConfigLookup.GetSortedPotionIds(): { string }
 	end
 	table.sort(ids)
 	return ids
+end
+
+
+function ConfigLookup.GetRebirthCost(rebirths: number): number
+	return math.floor(RebirthConfig.BaseCost * (RebirthConfig.CostGrowth ^ rebirths))
+end
+
+function ConfigLookup.GetRebirthMultiplier(rebirths: number): number
+	return 1 + (rebirths * RebirthConfig.MultiplierPerRebirth)
+end
+
+function ConfigLookup.GetSkin(id: string)
+	return CosmeticConfig.Skins[id]
+end
+
+function ConfigLookup.GetTrail(id: string)
+	return CosmeticConfig.Trails[id]
+end
+
+function ConfigLookup.GetCrate(id: string)
+	return CosmeticConfig.Crates[id]
 end
 
 return ConfigLookup

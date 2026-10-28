@@ -13,6 +13,7 @@
 		DataService.AddCoins(plr, n)
 		DataService.AddGems(plr, n)
 		DataService.SpendCoins(plr, n)          -> bool
+		DataService.SpendGems(plr, n)           -> bool
 		DataService.AddXp(plr, xp)              -> levelsGained
 		DataService.UnlockMap(plr, mapId)       -> ok, reason
 		DataService.IsMapUnlocked(plr, mapId)   -> bool
@@ -153,6 +154,19 @@ function DataService.SpendCoins(plr: Player, amount: number): boolean
 		return false
 	end
 	data.Coins -= amount
+	publish(plr)
+	return true
+end
+
+function DataService.SpendGems(plr: Player, amount: number): boolean
+	local data = DataService.Get(plr)
+	if data == nil then
+		return false
+	end
+	if amount < 0 or data.Gems < amount then
+		return false
+	end
+	data.Gems -= amount
 	publish(plr)
 	return true
 end

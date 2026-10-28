@@ -13,6 +13,9 @@
 			StartRun: starting a run from the Play window
 			LeaveRun: leaving a run from the HUD
 			ClaimDaily: claiming the daily login reward
+			Rebirth: executing a rebirth
+			OpenCrate: opening a cosmetic crate
+			EquipCosmetic: equipping or unequipping a skin or trail
 		DefaultRateLimit: limit used for a remote missing from RateLimits (seconds)
 ]]
 
@@ -25,6 +28,9 @@ RemoteConfig.RateLimits = {
 	StartRun = 0.5,
 	LeaveRun = 0.5,
 	ClaimDaily = 1,
+	Rebirth = 0.5,
+	OpenCrate = 0.3,
+	EquipCosmetic = 0.2,
 }
 
 RemoteConfig.DefaultRateLimit = 0.2

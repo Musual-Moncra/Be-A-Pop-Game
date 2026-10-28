@@ -23,6 +23,14 @@
 		NeedPreviousComplete: previous map is not 100% stained yet, %s = that map's name (text)
 		MapComplete: a map reached 100% for the first time, %s = map name, %d = gems (text)
 		SpecialTimeStart: Special Time began, %s = map name, %d = gem multiplier, %d = duration (text)
+		NotEnoughGems: not enough gems for a purchase (text)
+		RebirthSuccess: player rebirthed successfully, %d = new rebirth count (text)
+		CosmeticUnlocked: cosmetic unlocked from crate, %s = cosmetic name (text)
+		CosmeticDuplicate: duplicate cosmetic rolled, refunded coins (text)
+		CosmeticEquipped: cosmetic equipped, %s = cosmetic name (text)
+		CosmeticUnequipped: cosmetic unequipped (text)
+		CosmeticNotOwned: player does not own the cosmetic (text)
+		InvalidCrate: crate does not exist (text)
 ]]
 
 local MessageConfig = {}
@@ -44,5 +52,13 @@ MessageConfig.NpcCaught = "Caught! -%ds"
 MessageConfig.NeedPreviousComplete = "Stain 100%% of %s first."
 MessageConfig.MapComplete = "%s fully stained! +%d gems"
 MessageConfig.SpecialTimeStart = "Special Time on %s! x%d gems for %ds"
+MessageConfig.NotEnoughGems = "Not enough gems."
+MessageConfig.RebirthSuccess = "Rebirth #%d achieved! Multipliers boosted!"
+MessageConfig.CosmeticUnlocked = "Unlocked: %s!"
+MessageConfig.CosmeticDuplicate = "Duplicate! Refunded %d coins."
+MessageConfig.CosmeticEquipped = "%s equipped!"
+MessageConfig.CosmeticUnequipped = "Cosmetic unequipped."
+MessageConfig.CosmeticNotOwned = "You do not own this cosmetic."
+MessageConfig.InvalidCrate = "Invalid crate."
 
 return MessageConfig

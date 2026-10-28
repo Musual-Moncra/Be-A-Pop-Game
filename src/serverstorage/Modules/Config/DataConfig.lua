@@ -25,7 +25,6 @@
 			Daily.LastClaim: server unix time of the last daily claim, 0 = never claimed (unix seconds)
 			Daily.Streak: days claimed in the current 7-day cycle, 1..7, 0 after a reset (days)
 			Boosts: active timed boosts, boost id = unix time the boost ends (unix seconds)
-			OwnedSkins: owned cosmetics, skin id = true (skin ids)
 			Purchases: receipt ids already granted, keeps developer product receipts idempotent
 				(purchase ids, oldest first)
 			GrantedPets: pet ids delivered by a developer product, read by the pet system
@@ -35,6 +34,11 @@
 			MapProgress: best percent reached per map, map id = 0..100 (percent)
 			Potions: active potion expiries keyed by potion id (Unix timestamp)
 			PotionInventory: inventory counts of owned potions keyed by potion id (count)
+			Rebirths: number of rebirths completed (count)
+			OwnedSkins: table of owned skin ids mapped to true ({ [string]: boolean })
+			OwnedTrails: table of owned trail ids mapped to true ({ [string]: boolean })
+			EquippedSkin: currently equipped skin id (string)
+			EquippedTrail: currently equipped trail id (string)
 		ShutdownSaveWait: time the server waits for saves when it shuts down (seconds)
 		HumanoidWaitTimeout: how long to wait for a character's Humanoid to appear (seconds)
 		LoadFailedKick: kick message when the save cannot be loaded (text)
@@ -72,7 +76,6 @@ DataConfig.Template = {
 		Streak = 0,
 	},
 	Boosts = {},
-	OwnedSkins = {},
 	Purchases = {},
 	GrantedPets = {},
 	CoinBoostUntil = 0,
@@ -83,6 +86,13 @@ DataConfig.Template = {
 		SpeedPotion = 1,
 		StinkPotion = 1,
 	},
+	Rebirths = 0,
+	OwnedSkins = {
+		Default = true,
+	},
+	OwnedTrails = {},
+	EquippedSkin = "Default",
+	EquippedTrail = "",
 }
 
 DataConfig.ShutdownSaveWait = 2

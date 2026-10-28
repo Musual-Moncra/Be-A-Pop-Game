@@ -27,6 +27,8 @@
 		Outbound.PassState(plr, ownedPassKeys)
 		Outbound.MapProgress(plr, mapId, percent)         coalesced
 		Outbound.SpecialEvent(plr, mapId, endsAt)
+		Outbound.CosmeticState(plr, equippedSkin, equippedTrail, ownedSkins, ownedTrails)
+		Outbound.CrateResult(plr, result)
 
 	Dependencies: Net
 ]]
@@ -155,6 +157,18 @@ end
 function Outbound.SpecialEvent(plr: Player, mapId: string, endsAt: number)
 	if connected(plr) then
 		Net.SpecialEvent:FireClient(plr, { MapId = mapId, EndsAt = endsAt })
+	end
+end
+
+function Outbound.CosmeticState(plr: Player, equippedSkin: string, equippedTrail: string, ownedSkins: any, ownedTrails: any)
+	if connected(plr) then
+		Net.CosmeticState:FireClient(plr, equippedSkin, equippedTrail, ownedSkins, ownedTrails)
+	end
+end
+
+function Outbound.CrateResult(plr: Player, result: any)
+	if connected(plr) then
+		Net.CrateResult:FireClient(plr, result)
 	end
 end
 
