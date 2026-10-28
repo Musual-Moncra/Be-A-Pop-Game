@@ -76,7 +76,8 @@
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Passes", "Gems", "Coins" or "Potions"
 			RobuxFormat: price text (format: robux)
 			OwnedText / SoonText / UseText: button text when owned / product id not set / potion use (text)
-			ActiveFormat: potion card text while active (format: mm:ss left)
+			ActiveFormat: potion card text while active (format: time left)
+			TimeFormat: time left on a potion (format: minutes, seconds)
 			CountFormat: potion count (format: count)
 		Pets: pets window
 			Width / Height / Swatch / Title: window size, header colour, title
@@ -107,7 +108,7 @@
 local LobbyUIConfig = {}
 
 LobbyUIConfig.Rail = {
-	ButtonSize = 92,
+	ButtonSize = 84,
 	LabelHeight = 26,
 	Gap = 12,
 	PerColumn = 4,
@@ -155,11 +156,11 @@ LobbyUIConfig.Badge = {
 
 LobbyUIConfig.Layouts = {
 	PC = {
-		Rail = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 290) },
+		Rail = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 350) },
 		PlayButton = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -34) },
 	},
 	Mobile = {
-		Rail = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 262) },
+		Rail = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 300) },
 		PlayButton = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -24, 1, -20) },
 	},
 }
@@ -239,6 +240,7 @@ LobbyUIConfig.Shop = {
 	SoonText = "SOON",
 	UseText = "USE",
 	ActiveFormat = "ACTIVE %s",
+	TimeFormat = "%d:%02d",
 	CountFormat = "x%d",
 }
 

@@ -119,7 +119,7 @@ local function potionCards(data: any): ({ [string]: any }, number)
 			buttonText = if left > 0
 				then string.format(
 					Shop.ActiveFormat,
-					string.format("%d:%02d", left // SECONDS_PER_MINUTE, left % SECONDS_PER_MINUTE)
+					string.format(Shop.TimeFormat, left // SECONDS_PER_MINUTE, left % SECONDS_PER_MINUTE)
 				)
 				else Shop.UseText,
 			icon = potion.Icon,

@@ -27,9 +27,13 @@ local UIScaleContext = require(ReplicatedStorage.Modules.UIComponents.UIScaleCon
 
 local Screens = ReplicatedStorage.Modules.Screens
 local DailyWindow = require(Screens.DailyWindow)
+local PetsWindow = require(Screens.PetsWindow)
+local RebirthWindow = require(Screens.RebirthWindow)
 local PlayWindow = require(Screens.PlayWindow)
 local ResultWindow = require(Screens.ResultWindow)
+local ShopWindow = require(Screens.ShopWindow)
 local SideRail = require(Screens.SideRail)
+local SkinsWindow = require(Screens.SkinsWindow)
 local RunHud = require(Screens.RunHud)
 local StatsWindow = require(Screens.StatsWindow)
 local Toasts = require(Screens.Toasts)
@@ -103,6 +107,14 @@ local function App(props: any)
 			lobbyWindow = e(StatsWindow, { data = data, ui = ui, onClose = close })
 		elseif route == Routes.Daily then
 			lobbyWindow = e(DailyWindow, { data = data, ui = ui, onClose = close })
+		elseif route == Routes.Shop then
+			lobbyWindow = e(ShopWindow, { data = data, ui = ui, onClose = close })
+		elseif route == Routes.Pets then
+			lobbyWindow = e(PetsWindow, { data = data, ui = ui, onClose = close })
+		elseif route == Routes.Skins then
+			lobbyWindow = e(SkinsWindow, { data = data, ui = ui, onClose = close })
+		elseif route == Routes.Rebirth then
+			lobbyWindow = e(RebirthWindow, { data = data, ui = ui, onClose = close })
 		end
 	end
 
