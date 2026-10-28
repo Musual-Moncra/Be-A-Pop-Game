@@ -17,6 +17,8 @@
 	Vision test: triangle on the floor with its tip at the NPC, ViewLength deep along the look
 	direction and ViewWidth wide at the far edge (half width grows linearly with distance),
 	widened by LoseMargin when losing a target. Chase speed is capped by NpcConfig.ChaseMax.
+	Height counts: a player more than ViewHeight above or below the NPC is not seen, and more
+	than CatchHeight away vertically is not caught (standing on furniture is safe).
 	A chasing NPC that catches its target gives up and ignores everyone for RestTime, so it never camps.
 	The NpcState attribute is "Patrol", "Chase" or "Return"; NpcVisionController draws it.
 
@@ -120,6 +122,9 @@ local function closestOnLine(npc: Npc, point: Vector3): Vector3
 end
 
 local function inView(pivot: CFrame, position: Vector3, margin: number): boolean
+	if math.abs(position.Y - pivot.Position.Y) > NpcConfig.ViewHeight + margin then
+		return false
+	end
 	local localPos = pivot:PointToObjectSpace(position)
 	local ahead = -localPos.Z
 	if ahead < -margin or ahead > NpcConfig.ViewLength + margin then
@@ -332,8 +337,9 @@ function NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
 	local position = hrp.Position
 	for _, npc in npcs do
 		if npc.mapId == run.mapDef.Id and npc.model.Parent ~= nil then
-			local distance = (npc.model:GetPivot().Position - position).Magnitude
-			if distance <= NpcConfig.CatchRadius then
+			local npcPosition = npc.model:GetPivot().Position
+			local flat = Vector3.new(npcPosition.X - position.X, 0, npcPosition.Z - position.Z).Magnitude
+			if flat <= NpcConfig.CatchRadius and math.abs(npcPosition.Y - position.Y) <= NpcConfig.CatchHeight then
 				local caught = if npc.state == CHASE then npc.target == run.player else true
 				if caught then
 					if npc.state == CHASE then
