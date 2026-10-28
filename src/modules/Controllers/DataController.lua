@@ -12,6 +12,10 @@
 		DataController.PushToast(kind, text) client-only notification toast
 		DataController.PushPopup(kind, text) client-only in-run popup
 		DataController.DismissResult() clears the last run summary
+		DataController.Stained -> Signal ()            a stain step was painted
+		DataController.Soiled -> Signal ()             a prop became fully soiled
+		DataController.PowerupPicked -> Signal ()      a food item was eaten
+		DataController.NpcCaught -> Signal ()          an NPC caught the player
 
 	State:
 		Coins: coins owned (coins)
@@ -128,6 +132,10 @@ export type State = {
 local DataController = {}
 
 DataController.Changed = Signal.new()
+DataController.Stained = Signal.new()
+DataController.Soiled = Signal.new()
+DataController.PowerupPicked = Signal.new()
+DataController.NpcCaught = Signal.new()
 
 local nextToastId = 0
 local nextPopupId = 0
@@ -361,6 +369,11 @@ Net.PowerupPicked.OnClientEvent:Connect(function(powerupId: any)
 	local definition = ConfigLookup.GetPowerup(powerupId)
 	local name = if definition ~= nil then definition.DisplayName else powerupId
 	DataController.PushPopup(UIConfig.Text.ToastSuccessKind, string.format(UIConfig.Text.PowerupPickedFormat, name))
+	DataController.PowerupPicked:Fire()
+end)
+
+Net.ObjectStained.OnClientEvent:Connect(function(_object: any, _step: any)
+	DataController.Stained:Fire()
 end)
 
 Net.ObjectSoiled.OnClientEvent:Connect(function(object: any, bonus: any)
@@ -379,6 +392,7 @@ Net.ObjectSoiled.OnClientEvent:Connect(function(object: any, bonus: any)
 		UIConfig.Text.ToastSuccessKind,
 		string.format(UIConfig.Text.ObjectSoiledFormat, name, math.floor(tonumber(bonus) or 0))
 	)
+	DataController.Soiled:Fire()
 end)
 
 Net.NpcCaught.OnClientEvent:Connect(function(penaltySeconds: any)
@@ -386,6 +400,7 @@ Net.NpcCaught.OnClientEvent:Connect(function(penaltySeconds: any)
 		UIConfig.Text.ToastErrorKind,
 		string.format(MessageConfig.NpcCaught, math.ceil(tonumber(penaltySeconds) or 0))
 	)
+	DataController.NpcCaught:Fire()
 end)
 
 Net.QuestState.OnClientEvent:Connect(function(quests: any)
