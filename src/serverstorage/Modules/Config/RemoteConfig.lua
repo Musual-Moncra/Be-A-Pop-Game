@@ -12,6 +12,7 @@
 			SelectRun: choosing map and mode
 			StartRun: starting a run from the Play window
 			LeaveRun: leaving a run from the HUD
+			ClaimDaily: claiming the daily login reward
 		DefaultRateLimit: limit used for a remote missing from RateLimits (seconds)
 ]]
 
@@ -23,6 +24,7 @@ RemoteConfig.RateLimits = {
 	SelectRun = 0.1,
 	StartRun = 0.5,
 	LeaveRun = 0.5,
+	ClaimDaily = 1,
 }
 
 RemoteConfig.DefaultRateLimit = 0.2

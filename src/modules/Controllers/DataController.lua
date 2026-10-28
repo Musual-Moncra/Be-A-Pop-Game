@@ -28,6 +28,7 @@
 		Score: current run score (points)
 		Powerups: active powerups { Id, TimeLeft, Duration, ExpiresAt } (seconds)
 		Quests: rolled quests { Id, Text, Progress, Target, Done } (counts)
+		Daily: daily streak { Day, CanClaim, SecondsUntilNext, Streak }, nil until the server sends it
 		LastRun: last RunSummary, nil until a run ends (table)
 		Toasts: notification toasts { Id, Kind, Text } (newest last)
 		Popups: in-run popups { Id, Kind, Text } (newest last)
@@ -44,6 +45,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local DailyRewardConfig = require(ReplicatedStorage.Modules.Config.DailyRewardConfig)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
@@ -72,6 +74,13 @@ export type QuestState = {
 	Progress: number,
 	Target: number,
 	Done: boolean,
+}
+
+export type DailyState = {
+	Day: number,
+	CanClaim: boolean,
+	SecondsUntilNext: number,
+	Streak: number,
 }
 
 export type RunSummary = {
@@ -120,6 +129,7 @@ export type State = {
 	Score: number,
 	Powerups: { PowerupState },
 	Quests: { QuestState },
+	Daily: DailyState?,
 	LastRun: RunSummary?,
 	Toasts: { Toast },
 	Popups: { Popup },
@@ -158,6 +168,7 @@ local function defaultState(): State
 		Score = 0,
 		Powerups = {},
 		Quests = {},
+		Daily = nil,
 		LastRun = nil,
 		Toasts = {},
 		Popups = {},
@@ -461,6 +472,20 @@ Net.Notify.OnClientEvent:Connect(function(kind: any, text: any)
 		if type(kind) == "string" then kind else UIConfig.Text.ToastInfoKind,
 		if type(text) == "string" then text else ""
 	)
+end)
+
+Net.DailyState.OnClientEvent:Connect(function(payload: any)
+	if type(payload) ~= "table" then
+		return
+	end
+	local streakLength = DailyRewardConfig.StreakLength
+	state.Daily = {
+		Day = math.clamp(math.floor(tonumber(payload.Day) or 1), 1, streakLength),
+		CanClaim = payload.CanClaim == true,
+		SecondsUntilNext = math.max(0, tonumber(payload.SecondsUntilNext) or 0),
+		Streak = math.clamp(math.floor(tonumber(payload.Streak) or 0), 0, streakLength),
+	}
+	publish()
 end)
 
 return DataController

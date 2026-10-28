@@ -22,6 +22,10 @@
 			Stats.ObjectsSoiled: objects fully soiled across all runs (count)
 			Stats.PowerupsEaten: food items eaten across all runs (count)
 			Stats.QuestsCompleted: quests completed across all runs (count)
+			Daily.LastClaim: server unix time of the last daily claim, 0 = never claimed (unix seconds)
+			Daily.Streak: days claimed in the current 7-day cycle, 1..7, 0 after a reset (days)
+			Boosts: active timed boosts, boost id = unix time the boost ends (unix seconds)
+			OwnedSkins: owned cosmetics, skin id = true (skin ids)
 		ShutdownSaveWait: time the server waits for saves when it shuts down (seconds)
 		HumanoidWaitTimeout: how long to wait for a character's Humanoid to appear (seconds)
 		LoadFailedKick: kick message when the save cannot be loaded (text)
@@ -54,6 +58,12 @@ DataConfig.Template = {
 		PowerupsEaten = 0,
 		QuestsCompleted = 0,
 	},
+	Daily = {
+		LastClaim = 0,
+		Streak = 0,
+	},
+	Boosts = {},
+	OwnedSkins = {},
 }
 
 DataConfig.ShutdownSaveWait = 2

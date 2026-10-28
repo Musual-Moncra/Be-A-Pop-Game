@@ -17,6 +17,7 @@
 		SelectRun(mapId, modeId)
 		StartRun()
 		LeaveRun()
+		ClaimDaily()
 
 	Server -> Client:
 		SelectionSync(mapId, modeId)
@@ -29,6 +30,7 @@
 		ObjectSoiled(object, bonus)        object Model fully soiled, bonus points
 		QuestState(quests)                 { { Id, Text, Progress, Target, Done } }
 		NpcCaught(penaltySeconds)
+		DailyState(state)                  { Day, CanClaim, SecondsUntilNext, Streak }
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
 
 	RunSummary:
@@ -94,5 +96,15 @@ Net.ObjectSoiled = Packet.new("ObjectSoiled", Packet.Instance, Packet.NumberU32)
 Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
+
+local DailyStateEntry = {
+	Day = Packet.NumberU8,
+	CanClaim = Packet.Boolean8,
+	SecondsUntilNext = Packet.NumberU32,
+	Streak = Packet.NumberU8,
+}
+
+Net.ClaimDaily = Packet.new("ClaimDaily")
+Net.DailyState = Packet.new("DailyState", DailyStateEntry)
 
 return Net
