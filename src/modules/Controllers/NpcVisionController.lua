@@ -2,11 +2,12 @@
 
 --[[
 	NpcVisionController
-	Draws a flat vision oval on the floor in front of every patrolling NPC and recolours it while
-	that NPC chases. The server NpcService moves the NPCs and sets the NpcState attribute
-	("Patrol" | "Chase" | "Return"); this controller reads each NPC model pivot, places a
-	client-only Neon ellipsoid (Part + Sphere SpecialMesh) ViewOffset ahead along the look
-	direction and snaps it to the map floor with a downward raycast, once per frame.
+	Draws, for every patrolling NPC, a red catch circle (CatchRadius) around its feet and a flat
+	vision triangle on the floor in front of it (tip at the NPC, ViewLength deep, ViewWidth wide
+	at the far edge, built from two mirrored WedgeParts), recoloured while that NPC chases. The
+	server NpcService moves the NPCs and sets the NpcState attribute ("Patrol" | "Chase" |
+	"Return"); this controller reads each NPC pivot, snaps the shapes to the map floor with a
+	downward raycast and moves all of them with one Workspace:BulkMoveTo per frame.
 
 	Dependencies: Workspace, RunService, MapConfig, NpcConfig, RunConfig
 ]]
@@ -26,7 +27,9 @@ type MapDefinition = {
 }
 
 type Zone = {
-	part: Part,
+	left: WedgePart,
+	right: WedgePart,
+	ring: Part,
 	params: RaycastParams?,
 	floorY: number,
 }
@@ -34,15 +37,29 @@ type Zone = {
 local zones: { [Model]: Zone } = {}
 local zonesFolder: Folder? = nil
 
-local function floorFor(zone: Zone, center: Vector3): number
+local function floorFor(zone: Zone, origin: Vector3): number
 	if zone.params == nil then
 		return zone.floorY
 	end
-	local result = Workspace:Raycast(center + Vector3.new(0, 30, 0), Vector3.new(0, -60, 0), zone.params)
+	local height = NpcConfig.FloorRayHeight
+	local result = Workspace:Raycast(origin + Vector3.new(0, height, 0), Vector3.new(0, -height * 2, 0), zone.params)
 	if result ~= nil then
 		zone.floorY = result.Position.Y
 	end
 	return zone.floorY
+end
+
+local function flatPart<T>(part: T & BasePart, color: Color3, transparency: number): T
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Material = Enum.Material.Neon
+	part.Color = color
+	part.Transparency = transparency
+	part.Parent = zonesFolder
+	return part
 end
 
 local function addZone(npc: Model, params: RaycastParams?)
@@ -50,25 +67,22 @@ local function addZone(npc: Model, params: RaycastParams?)
 		return
 	end
 
-	local part = Instance.new("Part")
-	part.Name = "NpcVisionZone"
-	part.Anchored = true
-	part.CanCollide = false
-	part.CanQuery = false
-	part.CanTouch = false
-	part.CastShadow = false
-	part.Material = Enum.Material.Neon
-	part.Color = NpcConfig.ZoneColor
-	part.Transparency = NpcConfig.ZoneTransparency
-	part.Size = Vector3.new(NpcConfig.ViewWidth, NpcConfig.ZoneHeight, NpcConfig.ViewLength)
+	local halfSize = Vector3.new(NpcConfig.ZoneHeight, NpcConfig.ViewWidth * 0.5, NpcConfig.ViewLength)
+	local left = flatPart(Instance.new("WedgePart"), NpcConfig.ZoneColor, NpcConfig.ZoneTransparency)
+	left.Name = "NpcViewLeft"
+	left.Size = halfSize
+	local right = flatPart(Instance.new("WedgePart"), NpcConfig.ZoneColor, NpcConfig.ZoneTransparency)
+	right.Name = "NpcViewRight"
+	right.Size = halfSize
+	local ring = flatPart(Instance.new("Part"), NpcConfig.RingColor, NpcConfig.RingTransparency)
+	ring.Name = "NpcCatchRing"
+	ring.Shape = Enum.PartType.Cylinder
+	ring.Size = Vector3.new(NpcConfig.ZoneHeight, NpcConfig.CatchRadius * 2, NpcConfig.CatchRadius * 2)
 
-	local mesh = Instance.new("SpecialMesh")
-	mesh.MeshType = Enum.MeshType.Sphere
-	mesh.Parent = part
-
-	part.Parent = zonesFolder
 	zones[npc] = {
-		part = part,
+		left = left,
+		right = right,
+		ring = ring,
 		params = params,
 		floorY = npc:GetPivot().Position.Y,
 	}
@@ -103,30 +117,48 @@ local function setupMap(mapDef: MapDefinition)
 	end
 end
 
+local UP = Vector3.yAxis
+local moveParts: { BasePart } = {}
+local moveCFrames: { CFrame } = {}
+
+local function halfCFrame(tip: Vector3, forward: Vector3, side: Vector3): CFrame
+	local center = tip + forward * (NpcConfig.ViewLength * 0.5) + side * (NpcConfig.ViewWidth * 0.25)
+	return CFrame.fromMatrix(center, side:Cross(forward), side)
+end
+
 local function update()
+	table.clear(moveParts)
+	table.clear(moveCFrames)
 	for npc, zone in zones do
 		if not npc:IsDescendantOf(Workspace) then
-			zone.part:Destroy()
+			zone.left:Destroy()
+			zone.right:Destroy()
+			zone.ring:Destroy()
 			zones[npc] = nil
 			continue
 		end
 
 		local pivot = npc:GetPivot()
 		local look = pivot.LookVector
-		local flat = Vector3.new(look.X, 0, look.Z)
-		if flat.Magnitude < 1e-3 then
-			flat = Vector3.new(0, 0, -1)
-		else
-			flat = flat.Unit
-		end
+		local forward = Vector3.new(look.X, 0, look.Z)
+		forward = if forward.Magnitude > 0 then forward.Unit else Vector3.new(0, 0, -1)
+		local rightSide = forward:Cross(UP)
 
-		local center = pivot.Position + flat * NpcConfig.ViewOffset
-		local y = floorFor(zone, center) + NpcConfig.ZoneHeight * 0.5
-		local position = Vector3.new(center.X, y, center.Z)
-		zone.part.CFrame = CFrame.lookAt(position, position + flat)
-		zone.part.Color = if npc:GetAttribute("NpcState") == "Chase"
-			then NpcConfig.ChaseColor
-			else NpcConfig.ZoneColor
+		local y = floorFor(zone, pivot.Position) + NpcConfig.ZoneHeight * 0.5
+		local tip = Vector3.new(pivot.Position.X, y, pivot.Position.Z)
+		local color = if npc:GetAttribute("NpcState") == "Chase" then NpcConfig.ChaseColor else NpcConfig.ZoneColor
+		zone.left.Color = color
+		zone.right.Color = color
+
+		table.insert(moveParts, zone.left)
+		table.insert(moveCFrames, halfCFrame(tip, forward, -rightSide))
+		table.insert(moveParts, zone.right)
+		table.insert(moveCFrames, halfCFrame(tip, forward, rightSide))
+		table.insert(moveParts, zone.ring)
+		table.insert(moveCFrames, CFrame.new(tip) * CFrame.Angles(0, 0, math.pi / 2))
+	end
+	if #moveParts > 0 then
+		Workspace:BulkMoveTo(moveParts, moveCFrames, Enum.BulkMoveMode.FireCFrameChanged)
 	end
 end
 

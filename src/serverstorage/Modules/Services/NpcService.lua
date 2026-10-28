@@ -2,7 +2,7 @@
 
 --[[
 	NpcService
-	Owns every patrolling NPC: line patrol walk, vision oval test, chase, walk back, the state
+	Owns every patrolling NPC: line patrol walk, vision triangle test, chase, walk back, the state
 	attribute the client vision zones read, panic flees and the catch penalty. RunService calls
 	SetupMap when a map appears, Step from the shared run heartbeat, CheckCatch for every active
 	run and Panic when an object is soiled. Patrol, panic and catch behave as before; Chase and
@@ -14,8 +14,9 @@
 		NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
 		NpcService.Panic(mapId: string, plr: Player, position: Vector3)
 
-	Vision test: ellipse in the NPC's local XZ (forward = look direction), centered ViewOffset
-	ahead with radii ViewWidth/2 and ViewLength/2, inflated by LoseMargin when losing a target.
+	Vision test: triangle on the floor with its tip at the NPC, ViewLength deep along the look
+	direction and ViewWidth wide at the far edge (half width grows linearly with distance),
+	widened by LoseMargin when losing a target. Chase speed is capped by NpcConfig.ChaseMax.
 	The NpcState attribute is "Patrol", "Chase" or "Return"; NpcVisionController draws it.
 
 	Dependencies:
@@ -116,13 +117,14 @@ local function closestOnLine(npc: Npc, point: Vector3): Vector3
 	return npc.aPos + line * alpha
 end
 
-local function insideOval(pivot: CFrame, position: Vector3, margin: number): boolean
+local function inView(pivot: CFrame, position: Vector3, margin: number): boolean
 	local localPos = pivot:PointToObjectSpace(position)
-	local halfWidth = NpcConfig.ViewWidth * 0.5 + margin
-	local halfLength = NpcConfig.ViewLength * 0.5 + margin
-	local x = localPos.X / halfWidth
-	local z = (localPos.Z + NpcConfig.ViewOffset) / halfLength
-	return x * x + z * z <= 1
+	local ahead = -localPos.Z
+	if ahead < -margin or ahead > NpcConfig.ViewLength + margin then
+		return false
+	end
+	local halfWidth = math.max(ahead, 0) / NpcConfig.ViewLength * NpcConfig.ViewWidth * 0.5
+	return math.abs(localPos.X) <= halfWidth + margin
 end
 
 local function resumePatrol(npc: Npc, now: number)
@@ -177,7 +179,7 @@ local function stepChase(npc: Npc, now: number, dt: number)
 	end
 
 	local pivot = npc.model:GetPivot()
-	if insideOval(pivot, targetPosition, NpcConfig.LoseMargin) then
+	if inView(pivot, targetPosition, NpcConfig.LoseMargin) then
 		npc.loseSince = 0
 	elseif npc.loseSince == 0 then
 		npc.loseSince = now
@@ -190,7 +192,7 @@ local function stepChase(npc: Npc, now: number, dt: number)
 	local distance = delta.Magnitude
 	local stopDistance = NpcConfig.CatchRadius * 0.5
 	if distance > stopDistance then
-		local move = math.min(distance - stopDistance, npc.baseSpeed * NpcConfig.ChaseSpeed * dt)
+		local move = math.min(distance - stopDistance, math.min(npc.baseSpeed * NpcConfig.ChaseSpeed, NpcConfig.ChaseMax) * dt)
 		poseAt(npc, pivot.Position + delta.Unit * move, delta)
 	else
 		poseAt(npc, pivot.Position, delta)
@@ -218,21 +220,14 @@ local function stepReturn(npc: Npc, now: number)
 end
 
 local function acquire(npc: Npc, pivot: CFrame, runs: { RunPlayer }): Player?
-	local halfWidth = NpcConfig.ViewWidth * 0.5
-	local halfLength = NpcConfig.ViewLength * 0.5
 	local best: Player? = nil
 	local bestDistance = math.huge
 	for _, run in runs do
-		if run.mapId == npc.mapId then
-			local localPos = pivot:PointToObjectSpace(run.position)
-			local x = localPos.X / halfWidth
-			local z = (localPos.Z + NpcConfig.ViewOffset) / halfLength
-			if x * x + z * z <= 1 then
-				local distance = (run.position - pivot.Position).Magnitude
-				if distance < bestDistance then
-					best = run.player
-					bestDistance = distance
-				end
+		if run.mapId == npc.mapId and inView(pivot, run.position, 0) then
+			local distance = (run.position - pivot.Position).Magnitude
+			if distance < bestDistance then
+				best = run.player
+				bestDistance = distance
 			end
 		end
 	end

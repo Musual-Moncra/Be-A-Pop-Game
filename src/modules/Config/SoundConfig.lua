@@ -38,10 +38,10 @@ SoundConfig.MaxSoundLifetime = 10
 
 SoundConfig.Sfx = {
 	Stain = {
-		SoundId = "rbxasset://sounds/impact_water.mp3",
-		Volume = 0.22,
-		PitchMin = 0.85,
-		PitchMax = 1.15,
+		SoundId = "rbxassetid://87295773843957",
+		Volume = 0.3,
+		PitchMin = 0.8,
+		PitchMax = 1.1,
 		MaxConcurrent = 3,
 		Throttle = 0.09,
 	},
