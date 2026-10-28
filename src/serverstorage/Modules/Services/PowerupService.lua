@@ -16,7 +16,8 @@
 		PowerupService.StopRun(plr: Player)
 		PowerupService.GetMultipliers(plr: Player) -> Multipliers { Speed, StainSize, Points }
 
-	Dependencies: PowerupConfig, ConfigLookup, RunEvents, DataService, Outbound
+	Dependencies: PowerupConfig, ConfigLookup, RunEvents, DataService, MonetizationService,
+		MonetizationConfig, Outbound
 ]]
 
 local Players = game:GetService("Players")
@@ -26,10 +27,12 @@ local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
 local PowerupConfig = require(ReplicatedStorage.Modules.Config.PowerupConfig)
+local MonetizationConfig = require(ReplicatedStorage.Modules.Config.MonetizationConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataService = require(script.Parent.DataService)
+local MonetizationService = require(script.Parent.MonetizationService)
 
 export type Multipliers = {
 	Speed: number,
@@ -204,6 +207,9 @@ local function step(session: PowerupSession, now: number)
 	local character = session.player.Character
 	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
 	local reach = PowerupConfig.PickupRadius * session.appliedScale
+	if MonetizationService.HasPass(session.player, "Magnet") then
+		reach = MonetizationConfig.MagnetPickupRadius * session.appliedScale
+	end
 
 	for part, food in session.foods do
 		if hrp ~= nil and (hrp.Position - part.Position).Magnitude <= reach then

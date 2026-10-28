@@ -21,8 +21,13 @@
 		ConfigLookup.GetObject(objectType) -> ObjectDefinition?
 		ConfigLookup.GetQuest(id) -> QuestDefinition?
 		ConfigLookup.FormatQuest(quest) -> string
+		ConfigLookup.GetPass(passKey) -> PassDefinition?
+		ConfigLookup.GetDevProduct(productId) -> kind, entry
+		ConfigLookup.GetReviveTier(tier) -> ReviveDefinition?
+		ConfigLookup.IsReviveAvailable() -> boolean
 
-	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig, QuestConfig
+	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig,
+		QuestConfig, MonetizationConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -31,6 +36,7 @@ local Config = ReplicatedStorage.Modules.Config
 local GameConfig = require(Config.GameConfig)
 local MapConfig = require(Config.MapConfig)
 local ModeConfig = require(Config.ModeConfig)
+local MonetizationConfig = require(Config.MonetizationConfig)
 local ObjectConfig = require(Config.ObjectConfig)
 local PowerupConfig = require(Config.PowerupConfig)
 local QuestConfig = require(Config.QuestConfig)
@@ -219,6 +225,55 @@ end
 
 function ConfigLookup.FormatQuest(quest: QuestDefinition): string
 	return (string.gsub(quest.Description, "%%d", tostring(quest.Target)))
+end
+
+function ConfigLookup.GetPass(passKey: string): any?
+	return (MonetizationConfig.Gamepasses :: any)[passKey]
+end
+
+function ConfigLookup.GetDevProduct(productId: number): (string?, any?)
+	if productId == 0 then
+		return nil, nil
+	end
+
+	for _, entry in MonetizationConfig.DevProducts.GemPacks do
+		if entry.Id ~= 0 and entry.Id == productId then
+			return "GemPack", entry
+		end
+	end
+	for _, entry in MonetizationConfig.DevProducts.CoinPacks do
+		if entry.Id ~= 0 and entry.Id == productId then
+			return "CoinPack", entry
+		end
+	end
+	for _, entry in MonetizationConfig.DevProducts.Revive do
+		if entry.Id ~= 0 and entry.Id == productId then
+			return "Revive", entry
+		end
+	end
+
+	local stainBomb = MonetizationConfig.DevProducts.StainBomb
+	if stainBomb.Id ~= 0 and stainBomb.Id == productId then
+		return "StainBomb", stainBomb
+	end
+	local newbiePack = MonetizationConfig.DevProducts.NewbiePack
+	if newbiePack.Id ~= 0 and newbiePack.Id == productId then
+		return "NewbiePack", newbiePack
+	end
+	return nil, nil
+end
+
+function ConfigLookup.GetReviveTier(tier: number): any?
+	local tiers = MonetizationConfig.DevProducts.Revive
+	if #tiers == 0 then
+		return nil
+	end
+	return tiers[math.clamp(tier, 1, #tiers)]
+end
+
+function ConfigLookup.IsReviveAvailable(): boolean
+	local tier = ConfigLookup.GetReviveTier(1)
+	return tier ~= nil and tier.Id ~= 0
 end
 
 return ConfigLookup

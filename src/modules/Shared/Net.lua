@@ -30,6 +30,8 @@
 		QuestState(quests)                 { { Id, Text, Progress, Target, Done } }
 		NpcCaught(penaltySeconds)
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
+		ReviveOffer(productId, tier, windowSeconds)  timed run hit zero, revive is buyable
+		PassState(ownedPassKeys)           { "DoubleCoins", "Magnet", ... } owned gamepasses
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -94,5 +96,8 @@ Net.ObjectSoiled = Packet.new("ObjectSoiled", Packet.Instance, Packet.NumberU32)
 Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
+
+Net.ReviveOffer = Packet.new("ReviveOffer", Packet.NumberU32, Packet.NumberU8, Packet.NumberF32)
+Net.PassState = Packet.new("PassState", { Packet.String })
 
 return Net

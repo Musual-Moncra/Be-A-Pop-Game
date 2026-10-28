@@ -19,6 +19,11 @@
 		DataService.IncrementStat(plr, key, n)
 		DataService.RecordRun(plr, score)
 		DataService.MarkChanged(plr)            re-publish after an external mutation
+		DataService.HasPurchase(plr, purchaseId) -> bool
+		DataService.RecordPurchase(plr, purchaseId, maxHistory)
+		DataService.HasGrantedPet(plr, petId)   -> bool
+		DataService.GrantPet(plr, petId)
+		DataService.SetCoinBoostUntil(plr, unixSeconds)
 		DataService.Changed                     -> Signal (plr, data)
 
 	Every mutation marks the player dirty; one deferred publish per frame then fires Changed,
@@ -212,6 +217,65 @@ function DataService.MarkChanged(plr: Player)
 	if data == nil then
 		return
 	end
+	publish(plr)
+end
+
+function DataService.HasPurchase(plr: Player, purchaseId: string): boolean
+	local data = DataService.Get(plr)
+	if data == nil or data.Purchases == nil then
+		return false
+	end
+	return table.find(data.Purchases, purchaseId) ~= nil
+end
+
+function DataService.RecordPurchase(plr: Player, purchaseId: string, maxHistory: number)
+	local data = DataService.Get(plr)
+	if data == nil then
+		return
+	end
+	if data.Purchases == nil then
+		data.Purchases = {}
+	end
+	if table.find(data.Purchases, purchaseId) ~= nil then
+		return
+	end
+
+	table.insert(data.Purchases, purchaseId)
+	while #data.Purchases > maxHistory do
+		table.remove(data.Purchases, 1)
+	end
+	publish(plr)
+end
+
+function DataService.HasGrantedPet(plr: Player, petId: string): boolean
+	local data = DataService.Get(plr)
+	if data == nil or data.GrantedPets == nil then
+		return false
+	end
+	return table.find(data.GrantedPets, petId) ~= nil
+end
+
+function DataService.GrantPet(plr: Player, petId: string)
+	local data = DataService.Get(plr)
+	if data == nil then
+		return
+	end
+	if data.GrantedPets == nil then
+		data.GrantedPets = {}
+	end
+	if table.find(data.GrantedPets, petId) ~= nil then
+		return
+	end
+	table.insert(data.GrantedPets, petId)
+	publish(plr)
+end
+
+function DataService.SetCoinBoostUntil(plr: Player, unixSeconds: number)
+	local data = DataService.Get(plr)
+	if data == nil then
+		return
+	end
+	data.CoinBoostUntil = unixSeconds
 	publish(plr)
 end
 

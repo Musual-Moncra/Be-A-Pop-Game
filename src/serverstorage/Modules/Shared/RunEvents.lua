@@ -12,6 +12,9 @@
 		RunEvents.PowerupEaten(plr, powerupId)
 		RunEvents.TimeBonus(plr, seconds)
 		RunEvents.RunEnded(plr, summary)
+		RunEvents.TimeUp(plr)                       run timer reached zero, revive window opens
+		RunEvents.ReviveActivated(plr, seconds)     revive bought, add lifespan and close the window
+		RunEvents.StainBomb(plr)                    soil every prop near the player
 
 	Dependencies: Signal
 ]]
@@ -28,5 +31,8 @@ RunEvents.ObjectSoiled = Signal.new()
 RunEvents.PowerupEaten = Signal.new()
 RunEvents.TimeBonus = Signal.new()
 RunEvents.RunEnded = Signal.new()
+RunEvents.TimeUp = Signal.new()
+RunEvents.ReviveActivated = Signal.new()
+RunEvents.StainBomb = Signal.new()
 
 return RunEvents

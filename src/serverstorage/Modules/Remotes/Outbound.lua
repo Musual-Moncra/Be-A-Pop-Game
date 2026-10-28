@@ -22,6 +22,8 @@
 		Outbound.ObjectSoiled(plr, object, bonus)
 		Outbound.NpcCaught(plr, penaltySeconds)
 		Outbound.Notify(plr, kind, text)
+		Outbound.ReviveOffer(plr, productId, tier, windowSeconds)
+		Outbound.PassState(plr, ownedPassKeys)
 
 	Dependencies: Net
 ]]
@@ -124,6 +126,18 @@ end
 function Outbound.Notify(plr: Player, kind: string, text: string)
 	if connected(plr) then
 		Net.Notify:FireClient(plr, kind, text)
+	end
+end
+
+function Outbound.ReviveOffer(plr: Player, productId: number, tier: number, windowSeconds: number)
+	if connected(plr) then
+		Net.ReviveOffer:FireClient(plr, math.floor(productId), math.clamp(tier, 1, 255), windowSeconds)
+	end
+end
+
+function Outbound.PassState(plr: Player, ownedPassKeys: { string })
+	if connected(plr) then
+		Net.PassState:FireClient(plr, ownedPassKeys)
 	end
 end
 
