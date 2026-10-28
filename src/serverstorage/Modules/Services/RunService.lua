@@ -17,7 +17,7 @@
 		RunService.GetRun(plr: Player): ActiveRun?
 
 	Dependencies:
-		DataService, UpgradeService, MapService, PowerupService, QuestService, RunEvents, Outbound,
+		DataService, UpgradeService, MapService, PowerupService, QuestService, PetService, RunEvents, Outbound,
 		ConfigLookup, GameConfig, MapConfig, ModeConfig, ObjectConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
@@ -31,6 +31,7 @@ local Services = ServerStorage.Modules.Services
 local DataService = require(Services.DataService)
 local UpgradeService = require(Services.UpgradeService)
 local MapService = require(Services.MapService)
+local PetService = require(Services.PetService)
 local PowerupService = require(Services.PowerupService)
 local QuestService = require(Services.QuestService)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
@@ -211,7 +212,7 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 
 	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize
 	addStain(run, rayResult.Position, normal, stainSize)
-	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points)
+	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points * PetService.GetMultipliers(run.player).Stink)
 end
 
 local function checkNpcCatch(run: ActiveRun, hrp: BasePart)
@@ -333,7 +334,13 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 	if modeDef.RewardMultiplier > 0 then
 		local rewardScale = mapDef.RewardMultiplier * modeDef.RewardMultiplier
 		local coinBonus = getUpgradeValue(plr, "CoinBonus")
-		baseCoins = math.floor(score * GameConfig.CoinsPerPoint * rewardScale * (1 + coinBonus / 100))
+		baseCoins = math.floor(
+			score
+				* GameConfig.CoinsPerPoint
+				* rewardScale
+				* (1 + coinBonus / 100)
+				* PetService.GetMultipliers(plr).Coins
+		)
 		xp = math.floor(score * GameConfig.XpPerPoint * rewardScale)
 	end
 

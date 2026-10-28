@@ -22,6 +22,8 @@
 		Outbound.ObjectSoiled(plr, object, bonus)
 		Outbound.NpcCaught(plr, penaltySeconds)
 		Outbound.Notify(plr, kind, text)
+		Outbound.PetInventory(plr, state)                coalesced, { Pets, Equipped, Slots }
+		Outbound.HatchResult(plr, petId, variantId)
 
 	Dependencies: Net
 ]]
@@ -124,6 +126,16 @@ end
 function Outbound.Notify(plr: Player, kind: string, text: string)
 	if connected(plr) then
 		Net.Notify:FireClient(plr, kind, text)
+	end
+end
+
+function Outbound.PetInventory(plr: Player, state: any)
+	queue(Net.PetInventory, plr, state)
+end
+
+function Outbound.HatchResult(plr: Player, petId: string, variantId: string)
+	if connected(plr) then
+		Net.HatchResult:FireClient(plr, petId, variantId)
 	end
 end
 

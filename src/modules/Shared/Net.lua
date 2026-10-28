@@ -17,6 +17,11 @@
 		SelectRun(mapId, modeId)
 		StartRun()
 		LeaveRun()
+		HatchEgg(eggId)
+		EquipPet(uid)
+		UnequipPet(uid)
+		DeletePet(uid)
+		MergePet(uid)
 
 	Server -> Client:
 		SelectionSync(mapId, modeId)
@@ -30,6 +35,8 @@
 		QuestState(quests)                 { { Id, Text, Progress, Target, Done } }
 		NpcCaught(penaltySeconds)
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
+		PetInventory(state)                { Pets = { PetEntry }, Equipped = { uid }, Slots }
+		HatchResult(petId, variantId)      pet that came out of the last egg
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -75,6 +82,18 @@ local RunSummary = {
 	OutOfTime = Packet.Boolean8,
 }
 
+local PetEntry = {
+	Uid = Packet.String,
+	PetId = Packet.String,
+	Variant = Packet.String,
+}
+
+local PetInventoryState = {
+	Pets = { PetEntry },
+	Equipped = { Packet.String },
+	Slots = Packet.NumberU8,
+}
+
 local Net = {}
 
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
@@ -94,5 +113,14 @@ Net.ObjectSoiled = Packet.new("ObjectSoiled", Packet.Instance, Packet.NumberU32)
 Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
+
+Net.HatchEgg = Packet.new("HatchEgg", Packet.String)
+Net.EquipPet = Packet.new("EquipPet", Packet.String)
+Net.UnequipPet = Packet.new("UnequipPet", Packet.String)
+Net.DeletePet = Packet.new("DeletePet", Packet.String)
+Net.MergePet = Packet.new("MergePet", Packet.String)
+
+Net.PetInventory = Packet.new("PetInventory", PetInventoryState)
+Net.HatchResult = Packet.new("HatchResult", Packet.String, Packet.String)
 
 return Net

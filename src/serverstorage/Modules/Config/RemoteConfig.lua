@@ -12,6 +12,11 @@
 			SelectRun: choosing map and mode
 			StartRun: starting a run from the Play window
 			LeaveRun: leaving a run from the HUD
+			HatchEgg: opening one egg
+			EquipPet: equipping one owned pet
+			UnequipPet: unequipping one owned pet
+			DeletePet: deleting one owned pet
+			MergePet: merging five identical pets
 		DefaultRateLimit: limit used for a remote missing from RateLimits (seconds)
 ]]
 
@@ -23,6 +28,11 @@ RemoteConfig.RateLimits = {
 	SelectRun = 0.1,
 	StartRun = 0.5,
 	LeaveRun = 0.5,
+	HatchEgg = 0.5,
+	EquipPet = 0.1,
+	UnequipPet = 0.1,
+	DeletePet = 0.2,
+	MergePet = 0.5,
 }
 
 RemoteConfig.DefaultRateLimit = 0.2

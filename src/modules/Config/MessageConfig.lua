@@ -20,6 +20,14 @@
 		TargetReached: Challenge target score reached (text)
 		LevelUp: player reached a new level, %d = new level (text)
 		NpcCaught: an NPC caught the poop, %d = seconds lost (text)
+		PetHatched: a pet came out of an egg, %s = pet name (text)
+		PetHatchedVariant: a variant pet came out of an egg, first %s = pet name, second %s = variant name (text)
+		PetInventoryFull: hatching blocked because the pet inventory is full (text)
+		PetEggLocked: egg map is not unlocked, %s = map name (text)
+		PetSlotsFull: equipping blocked because every slot is taken (text)
+		PetMergeNeed: merging blocked because there are not enough identical pets (text)
+		PetMaxVariant: merging blocked because the pet is already at its final variant (text)
+		PetMerged: merge succeeded, first %s = pet name, second %s = new variant name (text)
 ]]
 
 local MessageConfig = {}
@@ -38,5 +46,13 @@ MessageConfig.QuestCompleted = "Quest complete: %s"
 MessageConfig.TargetReached = "Target reached!"
 MessageConfig.LevelUp = "Level up! You are now level %d."
 MessageConfig.NpcCaught = "Caught! -%ds"
+MessageConfig.PetHatched = "%s hatched!"
+MessageConfig.PetHatchedVariant = "%s hatched! (%s)"
+MessageConfig.PetInventoryFull = "Pet inventory is full."
+MessageConfig.PetEggLocked = "Unlock %s first."
+MessageConfig.PetSlotsFull = "All pet slots are full."
+MessageConfig.PetMergeNeed = "You need 5 identical pets to merge."
+MessageConfig.PetMaxVariant = "This pet is already at its final variant."
+MessageConfig.PetMerged = "%s merged into a %s!"
 
 return MessageConfig
