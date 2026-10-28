@@ -3,10 +3,10 @@
 --[[
 	RunService
 	Owns active runs: lifespan, staining, area scoring, object soiling, NPC catches,
-	timed bonuses, rewards and the run result packet. Also drives the lobby portal and
-	the NPC patrols.
+	timed bonuses, rewards and the run result packet. Also drives the lobby portal.
+	NPC patrols, vision, chase and the catch penalty live in NpcService.
 
-	Every active run and every NPC patrol is advanced by one shared Heartbeat stepper at
+	Every active run and every NPC is advanced by one shared Heartbeat stepper at
 	RunConfig.RunLoopStepInterval, instead of one thread per run and per NPC. The remotes
 	are bound in Remotes.RunRemotes.
 
@@ -18,7 +18,7 @@
 
 	Dependencies:
 		DataService, UpgradeService, MapService, PowerupService, PotionService, QuestService, MonetizationService,
-		EventService, PetService, GoldenTargetService, RebirthService, RunEvents, Outbound, ConfigLookup, EventConfig, GameConfig,
+		EventService, PetService, GoldenTargetService, RebirthService, NpcService, RunEvents, Outbound, ConfigLookup, GameConfig,
 		MapConfig, ModeConfig, ObjectConfig, MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
@@ -40,6 +40,7 @@ local EventService = require(Services.EventService)
 local MonetizationService = require(Services.MonetizationService)
 local GoldenTargetService = require(Services.GoldenTargetService)
 local RebirthService = require(Services.RebirthService)
+local NpcService = require(Services.NpcService)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataConfig = require(ServerStorage.Modules.Config.DataConfig)
@@ -50,7 +51,6 @@ local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
 local MonetizationConfig = require(ReplicatedStorage.Modules.Config.MonetizationConfig)
 local ObjectConfig = require(ReplicatedStorage.Modules.Config.ObjectConfig)
-local EventConfig = require(ReplicatedStorage.Modules.Config.EventConfig)
 local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local Trove = require(ReplicatedStorage.Packages.Trove)
@@ -61,7 +61,6 @@ export type ActiveRun = {
 	mapDef: ConfigLookup.MapDefinition,
 	modeDef: ConfigLookup.ModeDefinition,
 	mapModel: Model?,
-	npcsFolder: Instance?,
 	rayParams: RaycastParams,
 	hasTimer: boolean,
 	timeLeft: number,
@@ -80,25 +79,10 @@ export type ActiveRun = {
 	active: boolean,
 }
 
-type Patrol = {
-	model: Model,
-	aPos: Vector3,
-	bPos: Vector3,
-	fromPos: Vector3,
-	toPos: Vector3,
-	baseSpeed: number,
-	speed: number,
-	travelTime: number,
-	startedAt: number,
-	pausedUntil: number,
-	panicUntil: number,
-}
-
 local RunService = {}
 
 local activeRuns: { [Player]: ActiveRun } = {}
 local portalDebounce: { [Player]: number } = {}
-local patrols: { [Model]: Patrol } = {}
 local stepAccumulator = 0
 local reviveEnabled = ConfigLookup.IsReviveAvailable()
 
@@ -167,42 +151,6 @@ local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stai
 	table.insert(run.stainParts, stain)
 end
 
-local function retarget(patrol: Patrol, now: number, speed: number)
-	local current = patrol.model:GetPivot().Position
-	local distance = (patrol.toPos - current).Magnitude
-	patrol.fromPos = current
-	patrol.startedAt = now
-	patrol.pausedUntil = 0
-	patrol.speed = speed
-	patrol.travelTime = if distance > 0 then distance / speed else RunConfig.RunLoopStepInterval
-end
-
-local function panicNpcs(run: ActiveRun, position: Vector3)
-	local npcsFolder = run.npcsFolder
-	if npcsFolder == nil then
-		return
-	end
-
-	local character = run.player.Character
-	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
-	local fleeFrom = if hrp ~= nil then hrp.Position else position
-	local now = os.clock()
-
-	for _, npc in npcsFolder:GetChildren() do
-		if npc:IsA("Model") then
-			local patrol = patrols[npc]
-			if patrol ~= nil and (npc:GetPivot().Position - position).Magnitude <= EventConfig.TargetPanic.Radius then
-				local fleeTo = if (patrol.aPos - fleeFrom).Magnitude > (patrol.bPos - fleeFrom).Magnitude
-					then patrol.aPos
-					else patrol.bPos
-				patrol.toPos = fleeTo
-				retarget(patrol, now, patrol.baseSpeed * EventConfig.TargetPanic.SpeedMultiplier)
-				patrol.panicUntil = now + EventConfig.TargetPanic.DurationSeconds
-			end
-		end
-	end
-end
-
 local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, pointsMultiplier: number)
 	local objectModel, objectType = nil, nil
 	if run.mapModel ~= nil then
@@ -234,7 +182,7 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, 
 		Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
 		RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 		RunEvents.TargetSoiled:Fire(run.player, run.mapDef.Id, objectType)
-		panicNpcs(run, objectModel:GetPivot().Position)
+		NpcService.Panic(run.mapDef.Id, run.player, objectModel:GetPivot().Position)
 		run.score += GoldenTargetService.Soil(run.player, objectModel, objectDef)
 	end
 end
@@ -259,7 +207,7 @@ local function soilObject(run: ActiveRun, objectModel: Model)
 	Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
 	RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 	RunEvents.TargetSoiled:Fire(run.player, run.mapDef.Id, objectType)
-	panicNpcs(run, objectModel:GetPivot().Position)
+	NpcService.Panic(run.mapDef.Id, run.player, objectModel:GetPivot().Position)
 	run.score += GoldenTargetService.Soil(run.player, objectModel, objectDef)
 end
 
@@ -312,25 +260,6 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points * PetService.GetMultipliers(run.player).Stink)
 end
 
-local function checkNpcCatch(run: ActiveRun, hrp: BasePart)
-	local npcsFolder = run.npcsFolder
-	if not run.modeDef.NpcsEnabled or run.npcCooldown > 0 or npcsFolder == nil then
-		return
-	end
-
-	local position = hrp.Position
-	for _, npc in npcsFolder:GetChildren() do
-		if npc:IsA("Model") and (npc:GetPivot().Position - position).Magnitude <= RunConfig.NpcCatchRadius then
-			run.npcCooldown = RunConfig.NpcCatchCooldown
-			if run.hasTimer then
-				run.timeLeft = math.max(0, run.timeLeft - RunConfig.NpcCatchTimePenalty)
-			end
-			Outbound.NpcCaught(run.player, RunConfig.NpcCatchTimePenalty)
-			return
-		end
-	end
-end
-
 local function stepRun(run: ActiveRun, dt: number)
 	local plr = run.player
 	local modeDef = run.modeDef
@@ -363,7 +292,7 @@ local function stepRun(run: ActiveRun, dt: number)
 		dropSurfaceStain(run, hrp, multipliers)
 	end
 
-	checkNpcCatch(run, hrp)
+	NpcService.CheckCatch(run, hrp)
 
 	if not run.targetReached and modeDef.TargetScore > 0 and run.score >= modeDef.TargetScore then
 		run.targetReached = true
@@ -390,41 +319,6 @@ local function stepRun(run: ActiveRun, dt: number)
 	end
 	if timedOut then
 		RunService.EndRun(plr, true)
-	end
-end
-
-local function stepPatrol(patrol: Patrol, now: number)
-	if patrol.model.Parent == nil then
-		patrols[patrol.model] = nil
-		return
-	end
-	if patrol.panicUntil > 0 and now >= patrol.panicUntil then
-		patrol.panicUntil = 0
-		retarget(patrol, now, patrol.baseSpeed)
-	end
-	if now < patrol.pausedUntil then
-		return
-	end
-
-	local alpha = math.clamp((now - patrol.startedAt) / patrol.travelTime, 0, 1)
-	local position = patrol.fromPos:Lerp(patrol.toPos, alpha)
-	local heading = patrol.toPos - patrol.fromPos
-	local flatHeading = Vector3.new(heading.X, 0, heading.Z)
-	if flatHeading.Magnitude < 1e-3 then
-		patrol.model:PivotTo(CFrame.new(position))
-	else
-		patrol.model:PivotTo(CFrame.lookAt(position, position + flatHeading))
-	end
-
-	if alpha >= 1 then
-		local arrived = patrol.toPos
-		local other = if (arrived - patrol.aPos).Magnitude <= (arrived - patrol.bPos).Magnitude
-			then patrol.bPos
-			else patrol.aPos
-		patrol.fromPos = arrived
-		patrol.toPos = other
-		patrol.pausedUntil = now + RunConfig.NpcTurnaroundPause
-		patrol.startedAt = patrol.pausedUntil
 	end
 end
 
@@ -612,7 +506,6 @@ function RunService.StartRun(plr: Player): boolean
 		mapDef = mapDef,
 		modeDef = modeDef,
 		mapModel = mapModel,
-		npcsFolder = mapModel:FindFirstChild("NPCs"),
 		rayParams = rayParams,
 		hasTimer = hasTimer,
 		timeLeft = initialTimeLeft,
@@ -643,39 +536,6 @@ function RunService.StartRun(plr: Player): boolean
 	end)
 
 	return true
-end
-
-local function setupNpcsForMap(mapDef: ConfigLookup.MapDefinition)
-	local patrolDefs = RunConfig.NpcPatrols[mapDef.Id]
-	local mapModel = if patrolDefs ~= nil
-		then Workspace:WaitForChild(mapDef.ModelName, RunConfig.InstanceWaitTimeout)
-		else nil
-	local npcsFolder = if mapModel ~= nil then mapModel:WaitForChild("NPCs", RunConfig.InstanceWaitTimeout) else nil
-	if npcsFolder == nil then
-		return
-	end
-
-	local now = os.clock()
-	for _, patrolDef in patrolDefs do
-		local model = npcsFolder:FindFirstChild(patrolDef.name)
-		local distance = (patrolDef.endPos - patrolDef.startPos).Magnitude
-		local travelTime = if patrolDef.speed > 0 then distance / patrolDef.speed else 0
-		if model ~= nil and model:IsA("Model") and travelTime > 0 and patrols[model] == nil then
-			patrols[model] = {
-				model = model,
-				aPos = patrolDef.startPos,
-				bPos = patrolDef.endPos,
-				fromPos = patrolDef.startPos,
-				toPos = patrolDef.endPos,
-				baseSpeed = patrolDef.speed,
-				speed = patrolDef.speed,
-				travelTime = travelTime,
-				startedAt = now,
-				pausedUntil = 0,
-				panicUntil = 0,
-			}
-		end
-	end
 end
 
 local portalConnection: RBXScriptConnection? = nil
@@ -759,10 +619,7 @@ Heartbeat:Connect(function(dt)
 		end
 	end
 
-	local now = os.clock()
-	for _, patrol in patrols do
-		stepPatrol(patrol, now)
-	end
+	NpcService.Step(os.clock())
 end)
 
 Workspace.ChildAdded:Connect(function(child)
@@ -772,7 +629,7 @@ Workspace.ChildAdded:Connect(function(child)
 	end
 	for _, mapDef in ConfigLookup.GetSortedMaps() do
 		if mapDef.Enabled and child.Name == mapDef.ModelName then
-			task.spawn(setupNpcsForMap, mapDef)
+			task.spawn(NpcService.SetupMap, mapDef)
 		end
 	end
 end)
@@ -792,7 +649,7 @@ end)
 task.spawn(setupPortal)
 for _, mapDef in ConfigLookup.GetSortedMaps() do
 	if mapDef.Enabled then
-		task.spawn(setupNpcsForMap, mapDef)
+		task.spawn(NpcService.SetupMap, mapDef)
 	end
 end
 
