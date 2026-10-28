@@ -30,9 +30,11 @@
 		ConfigLookup.GetEnabledMaps() -> { MapDefinition }
 		ConfigLookup.GetMapCellCount(size) -> number        stain cells covering a footprint
 		ConfigLookup.GetMapProgressPercent(stained, total) -> number
+		ConfigLookup.GetPotion(id) -> PotionDefinition?
+		ConfigLookup.GetSortedPotionIds() -> { string }
 
 	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig,
-		QuestConfig, DailyRewardConfig, MonetizationConfig
+		QuestConfig, DailyRewardConfig, MonetizationConfig, PotionConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -47,6 +49,7 @@ local ObjectConfig = require(Config.ObjectConfig)
 local PowerupConfig = require(Config.PowerupConfig)
 local QuestConfig = require(Config.QuestConfig)
 local UpgradeConfig = require(Config.UpgradeConfig)
+local PotionConfig = require(Config.PotionConfig)
 
 export type MapDefinition = {
 	Id: string,
@@ -105,6 +108,17 @@ export type PowerupDefinition = {
 	CharacterScale: number,
 	PointsMultiplier: number,
 	TimeBonus: number,
+	IsComboSaver: boolean,
+	IsMiniBomb: boolean,
+}
+
+export type PotionDefinition = {
+	DisplayName: string,
+	Icon: string,
+	Duration: number,
+	Multiplier: number,
+	Stat: string,
+	Description: string,
 }
 
 export type ObjectDefinition = {
@@ -329,6 +343,19 @@ function ConfigLookup.GetMapProgressPercent(stained: number, total: number): num
 		return 0
 	end
 	return math.clamp(stained / total * 100, 0, 100)
+end
+
+function ConfigLookup.GetPotion(id: string): PotionDefinition?
+	return (PotionConfig.Potions :: { [string]: PotionDefinition })[id]
+end
+
+function ConfigLookup.GetSortedPotionIds(): { string }
+	local ids = {}
+	for id in PotionConfig.Potions do
+		table.insert(ids, id)
+	end
+	table.sort(ids)
+	return ids
 end
 
 return ConfigLookup

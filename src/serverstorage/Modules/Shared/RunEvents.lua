@@ -16,6 +16,7 @@
 		RunEvents.ReviveActivated(plr, seconds)     revive bought, add lifespan and close the window
 		RunEvents.StainBomb(plr)                    soil every prop near the player
 		RunEvents.TargetSoiled(plr, mapId, objectType)   a target's hidden stain meter reached 100%
+		RunEvents.MiniBombDetonated(plr, originPosition, radius)
 
 	Dependencies: Signal
 ]]
@@ -36,5 +37,6 @@ RunEvents.TimeUp = Signal.new()
 RunEvents.ReviveActivated = Signal.new()
 RunEvents.StainBomb = Signal.new()
 RunEvents.TargetSoiled = Signal.new()
+RunEvents.MiniBombDetonated = Signal.new()
 
 return RunEvents

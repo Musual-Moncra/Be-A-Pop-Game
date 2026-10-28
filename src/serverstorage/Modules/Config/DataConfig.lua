@@ -33,6 +33,8 @@
 			CoinBoostUntil: unix time the purchased coin boost stops working, 0 = no boost
 				(unix seconds)
 			MapProgress: best percent reached per map, map id = 0..100 (percent)
+			Potions: active potion expiries keyed by potion id (Unix timestamp)
+			PotionInventory: inventory counts of owned potions keyed by potion id (count)
 		ShutdownSaveWait: time the server waits for saves when it shuts down (seconds)
 		HumanoidWaitTimeout: how long to wait for a character's Humanoid to appear (seconds)
 		LoadFailedKick: kick message when the save cannot be loaded (text)
@@ -75,6 +77,12 @@ DataConfig.Template = {
 	GrantedPets = {},
 	CoinBoostUntil = 0,
 	MapProgress = {},
+	Potions = {},
+	PotionInventory = {
+		LifespanPotion = 1,
+		SpeedPotion = 1,
+		StinkPotion = 1,
+	},
 }
 
 DataConfig.ShutdownSaveWait = 2

@@ -17,7 +17,7 @@
 		RunService.GetRun(plr: Player): ActiveRun?
 
 	Dependencies:
-		DataService, UpgradeService, MapService, PowerupService, QuestService, MonetizationService,
+		DataService, UpgradeService, MapService, PowerupService, PotionService, QuestService, MonetizationService,
 		EventService, RunEvents, Outbound, ConfigLookup, EventConfig, GameConfig, MapConfig, ModeConfig,
 		ObjectConfig, MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
@@ -33,6 +33,7 @@ local DataService = require(Services.DataService)
 local UpgradeService = require(Services.UpgradeService)
 local MapService = require(Services.MapService)
 local PowerupService = require(Services.PowerupService)
+local PotionService = require(Services.PotionService)
 local QuestService = require(Services.QuestService)
 local EventService = require(Services.EventService)
 local MonetizationService = require(Services.MonetizationService)
@@ -248,6 +249,20 @@ local function soilObject(run: ActiveRun, objectModel: Model)
 	Outbound.ObjectStained(run.player, objectModel, ObjectConfig.TintSteps)
 	Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
 	RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
+	RunEvents.TargetSoiled:Fire(run.player, run.mapDef.Id, objectType)
+	panicNpcs(run, objectModel:GetPivot().Position)
+end
+
+local function soilPropsInRadius(run: ActiveRun, origin: Vector3, radius: number)
+	local props = if run.mapModel ~= nil then run.mapModel:FindFirstChild("Props") else nil
+	if props == nil then
+		return
+	end
+	for _, child in props:GetChildren() do
+		if child:IsA("Model") and (child:GetPivot().Position - origin).Magnitude <= radius then
+			soilObject(run, child)
+		end
+	end
 end
 
 local function cellKey(hitPos: Vector3, normal: Vector3): string
@@ -281,7 +296,8 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 	end
 	run.visitedCells[key] = true
 
-	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize
+	local potionStainMultiplier = PotionService.GetMultiplier(run.player, "StainSize")
+	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize * potionStainMultiplier
 	addStain(run, rayResult.Position, normal, stainSize)
 	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points)
 end
@@ -326,7 +342,8 @@ local function stepRun(run: ActiveRun, dt: number)
 	end
 
 	local multipliers = PowerupService.GetMultipliers(plr)
-	local walkSpeed = getUpgradeValue(plr, "Speed") * multipliers.Speed
+	local potionSpeedMultiplier = PotionService.GetMultiplier(plr, "Speed")
+	local walkSpeed = getUpgradeValue(plr, "Speed") * multipliers.Speed * potionSpeedMultiplier
 	if hum.WalkSpeed ~= walkSpeed then
 		hum.WalkSpeed = walkSpeed
 	end
@@ -541,10 +558,11 @@ function RunService.StartRun(plr: Player): boolean
 	end
 
 	local hasTimer = modeDef.Duration ~= -1
+	local potionLifespanMultiplier = PotionService.GetMultiplier(plr, "Lifespan")
 	local initialTimeLeft = if modeDef.Duration == 0
-		then getUpgradeValue(plr, "Lifespan")
+		then getUpgradeValue(plr, "Lifespan") * potionLifespanMultiplier
 		elseif modeDef.Duration == -1 then RunConfig.PracticeTimeLeft
-		else modeDef.Duration
+		else modeDef.Duration * potionLifespanMultiplier
 
 	UpgradeService.ApplyStats(plr, character)
 	character:PivotTo(CFrame.new(mapDef.Spawn))
@@ -672,26 +690,23 @@ end)
 
 RunEvents.StainBomb:Connect(function(plr: Player)
 	local run = activeRuns[plr]
-	if run == nil or not run.active or run.mapModel == nil then
+	if run == nil or not run.active then
 		return
 	end
-
 	local character = plr.Character
 	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
 	if hrp == nil then
 		return
 	end
-	local props = run.mapModel:FindFirstChild("Props")
-	if props == nil then
+	soilPropsInRadius(run, hrp.Position, MonetizationConfig.StainBombRadius)
+end)
+
+RunEvents.MiniBombDetonated:Connect(function(plr: Player, origin: Vector3, radius: number)
+	local run = activeRuns[plr]
+	if run == nil or not run.active then
 		return
 	end
-
-	local position = hrp.Position
-	for _, child in props:GetChildren() do
-		if child:IsA("Model") and (child:GetPivot().Position - position).Magnitude <= MonetizationConfig.StainBombRadius then
-			soilObject(run, child)
-		end
-	end
+	soilPropsInRadius(run, origin, radius)
 end)
 
 Heartbeat:Connect(function(dt)
