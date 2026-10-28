@@ -63,9 +63,8 @@
 		PressScale / HoverScale: button size while pressed / hovered (multiplier)
 		HoverGrowMax / PressShrinkMax: most a button may grow on hover / shrink on press, so large
 			cards in lists never spill out of them (design pixels)
-		Open: window, toast and menu pop-in time
+		Open: window, toast and dock button pop-in time
 		OpenFromScale: size a window or toast starts at when it opens (multiplier)
-		MenuStagger: delay between menu wheel buttons popping out
 		BarTween: progress bar fill tween time
 		PopupRise: how far in-run popups float up (design pixels)
 		SparkleSpeed: sparkle twinkle cycles per second (cycles/second)
@@ -84,9 +83,6 @@
 		Hud.XpBarHeight: XP bar height
 		Hud.PillHeight / Hud.PillIconSize: coin/gem pill height / round icon diameter
 		Hud.Gap: gap between wallet rows
-		Menu.ButtonSize: round MENU button diameter
-		Menu.ItemSize: diameter of each wheel button
-		Menu.LabelHeight: height of the label under each wheel button
 		Window.HeaderHeight: height of the ribbon title
 		Window.CloseSize: red close button size
 		Window.Padding: space between the window edge and its content
@@ -130,17 +126,8 @@
 
 	Layouts.PC / Layouts.Mobile: where the big pieces sit. Each entry has AnchorPoint (fraction of its
 		own size) and Position (scale of the screen + design-pixel offset):
-		Wallet (level and currency), MenuButton, Toasts, RunScore, RunQuests, RunPowerups, RunLeave, Popups.
+		Wallet (level and currency), Toasts, RunScore, RunQuests, RunPowerups, RunLeave, Popups.
 		WindowMargin: gap kept between a window and the screen edge (design pixels)
-
-	MenuItems: buttons in the menu wheel, in order. Add a row to add a button.
-		Id: unique id (string)
-		Label: text under the button (text)
-		Icon: emoji drawn in the button (text)
-		Swatch: Swatches key used for the button colour (string)
-		Route: window it opens: Play, Upgrades or Stats (string)
-		AngleDegrees: direction from the MENU button, 0 = straight up, negative = left (degrees)
-	MenuRadius: distance from the MENU button to the wheel buttons (design pixels)
 
 	MapVisuals: per map id, Icon (emoji) and Swatch (colour) of its map card
 	ModeVisuals: per mode id, Icon (emoji) and Swatch (colour) of its mode tile
@@ -152,9 +139,8 @@
 		dimmer behind open windows), Window, Result, Toasts
 
 	Text (every word the UI shows; %s = text, %d = whole number, %.1f = one decimal):
-		Icons: MenuIcon, CloseIcon, SparkleIcon, CoinIcon, GemIcon, XpIcon, LockIcon, CheckIcon (emoji/text)
+		Icons: CloseIcon, SparkleIcon, CoinIcon, GemIcon, XpIcon, LockIcon, CheckIcon (emoji/text)
 		IconLabel: how an icon and a word are joined, e.g. "💰 25" (format: icon, text)
-		MenuButton: label on the MENU button
 		LevelFormat: level next to the badge (format: level)
 		XpFormat: text on the XP bar (format: xp, xp needed)
 		MaxLevel: XP bar text at max level
@@ -351,7 +337,6 @@ UIConfig.Animation = {
 	PressShrinkMax = 10,
 	Open = 0.22,
 	OpenFromScale = 0.82,
-	MenuStagger = 0.04,
 	BarTween = 0.25,
 	PopupRise = 60,
 	SparkleSpeed = 0.7,
@@ -377,11 +362,6 @@ UIConfig.Sizes = {
 		PillHeight = 58,
 		PillIconSize = 74,
 		Gap = 14,
-	},
-	Menu = {
-		ButtonSize = 128,
-		ItemSize = 100,
-		LabelHeight = 30,
 	},
 	Window = {
 		HeaderHeight = 74,
@@ -454,7 +434,6 @@ UIConfig.Sizes = {
 UIConfig.Layouts = {
 	PC = {
 		Wallet = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 24) },
-		MenuButton = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -30) },
 		Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 24) },
 		RunScore = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 20) },
 		RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 24) },
@@ -465,7 +444,6 @@ UIConfig.Layouts = {
 	},
 	Mobile = {
 		Wallet = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 12) },
-		MenuButton = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -16) },
 		Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12) },
 		RunScore = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10) },
 		RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 12) },
@@ -475,14 +453,6 @@ UIConfig.Layouts = {
 		WindowMargin = 16,
 	},
 }
-
-UIConfig.MenuItems = {
-	{ Id = "Play", Label = "PLAY", Icon = "▶️", Swatch = "Green", Route = "Play", AngleDegrees = -50 },
-	{ Id = "Upgrades", Label = "UPGRADES", Icon = "⚡", Swatch = "Blue", Route = "Upgrades", AngleDegrees = 0 },
-	{ Id = "Stats", Label = "STATS", Icon = "🏆", Swatch = "Purple", Route = "Stats", AngleDegrees = 50 },
-}
-
-UIConfig.MenuRadius = 170
 
 UIConfig.MapVisuals = {
 	Zone1 = { Icon = "🍳", Swatch = "Orange" },
@@ -519,8 +489,6 @@ UIConfig.Layers = {
 }
 
 UIConfig.Text = {
-	MenuButton = "MENU",
-	MenuIcon = "💩",
 	CloseIcon = "X",
 	SparkleIcon = "✨",
 	CoinIcon = "💰",

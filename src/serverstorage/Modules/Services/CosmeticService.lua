@@ -3,6 +3,9 @@
 --[[
 	CosmeticService
 	Manages player cosmetics, crate opening, equipping skins/trails, and character visual attachments.
+	The first apply on a character saves each body tier's original Color/Material as BaseColor /
+	BaseMaterial attributes; the Default skin (or an unknown id) restores those, so leaving a skin
+	always brings back the original multi-tone poop.
 
 	API:
 		CosmeticService.OpenCrate(plr: Player, crateId: string): boolean
@@ -211,8 +214,17 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 		for _, partName in tierParts do
 			local part = body:FindFirstChild(partName) :: BasePart?
 			if part ~= nil and part:IsA("BasePart") then
-				part.Color = skinDef.Color
-				part.Material = skinDef.Material
+				if part:GetAttribute("BaseColor") == nil then
+					part:SetAttribute("BaseColor", part.Color)
+					part:SetAttribute("BaseMaterial", part.Material.Name)
+				end
+				if skinId == "Default" or ConfigLookup.GetSkin(skinId) == nil then
+					part.Color = part:GetAttribute("BaseColor")
+					part.Material = (Enum.Material :: any)[part:GetAttribute("BaseMaterial")]
+				else
+					part.Color = skinDef.Color
+					part.Material = skinDef.Material
+				end
 			end
 		end
 	end

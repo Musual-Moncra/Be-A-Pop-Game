@@ -5,7 +5,7 @@
 	Crates tab: one card per CosmeticConfig crate whose button fires Net.OpenCrate (coins or
 	gems). Skins / Trails tabs: every cosmetic as a rarity-striped card tinted with its colour;
 	owned ones can be equipped (Net.EquipCosmetic), the equipped one is ringed, unowned ones are
-	locked. A banner shows the last crate result.
+	locked. Default is always owned; the equipped trail can be taken off. A banner shows the last crate result.
 
 	Props: data (DataController state), ui (useUIScale result), onClose
 	Dependencies: React, Net, UIConfig, LobbyUIConfig, CosmeticConfig, ConfigLookup, Format, Primitives,
@@ -81,22 +81,27 @@ local function cosmeticCards(kind: string, data: any): ({ [string]: any }, numbe
 	local keys = sortedKeys(source)
 	for index, id in keys do
 		local item = source[id]
-		local isOwned = owned[id] == true
-		local isEquipped = equippedId == id
+		local isOwned = owned[id] == true or (kind == "Skin" and id == "Default")
+		local isEquipped = equippedId == id or (kind == "Skin" and id == "Default" and (equippedId or "") == "")
+		local canUnequip = isEquipped and kind == "Trail"
 		local tint = if typeof(item.Color) == "Color3"
 			then item.Color
 			elseif typeof(item.Color) == "ColorSequence" then item.Color.Keypoints[1].Value
 			else nil
 		cards[id] = e(ItemCard, {
-			buttonEnabled = isOwned and not isEquipped,
-			buttonSwatch = if isEquipped then "Teal" else "Green",
-			buttonText = if not isOwned then Skins.LockedText elseif isEquipped then Skins.EquippedText else Skins.EquipText,
+			buttonEnabled = isOwned and (not isEquipped or canUnequip),
+			buttonSwatch = if canUnequip then "Red" elseif isEquipped then "Teal" else "Green",
+			buttonText = if not isOwned
+				then Skins.LockedText
+				elseif canUnequip then Skins.UnequipText
+				elseif isEquipped then Skins.EquippedText
+				else Skins.EquipText,
 			icon = if kind == "Skin" then Skins.SkinIcon else Skins.TrailIcon,
 			iconColor = tint,
 			info = item.Rarity,
 			layoutOrder = index,
 			onButton = function()
-				Net.EquipCosmetic:Fire(kind, id)
+				Net.EquipCosmetic:Fire(kind, if canUnequip then "" else id)
 			end,
 			rarityColor = LobbyUIConfig.RarityColors[item.Rarity],
 			selected = isEquipped,
