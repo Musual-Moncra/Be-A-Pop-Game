@@ -20,6 +20,7 @@
 		TargetReached: Challenge target score reached (text)
 		LevelUp: player reached a new level, %d = new level (text)
 		NpcCaught: an NPC caught the poop, %d = seconds lost (text)
+		GoldenSoiled: a golden target was fully soiled, %s = object name, %d = gems paid (text)
 ]]
 
 local MessageConfig = {}
@@ -38,5 +39,6 @@ MessageConfig.QuestCompleted = "Quest complete: %s"
 MessageConfig.TargetReached = "Target reached!"
 MessageConfig.LevelUp = "Level up! You are now level %d."
 MessageConfig.NpcCaught = "Caught! -%ds"
+MessageConfig.GoldenSoiled = "Golden %s! +%d gems"
 
 return MessageConfig

@@ -28,6 +28,7 @@
 		Score: current run score (points)
 		Powerups: active powerups { Id, TimeLeft, Duration, ExpiresAt } (seconds)
 		Quests: rolled quests { Id, Text, Progress, Target, Done } (counts)
+		GoldenTargets: golden prop paths relative to the map model (name paths)
 		LastRun: last RunSummary, nil until a run ends (table)
 		Toasts: notification toasts { Id, Kind, Text } (newest last)
 		Popups: in-run popups { Id, Kind, Text } (newest last)
@@ -120,6 +121,7 @@ export type State = {
 	Score: number,
 	Powerups: { PowerupState },
 	Quests: { QuestState },
+	GoldenTargets: { string },
 	LastRun: RunSummary?,
 	Toasts: { Toast },
 	Popups: { Popup },
@@ -158,6 +160,7 @@ local function defaultState(): State
 		Score = 0,
 		Powerups = {},
 		Quests = {},
+		GoldenTargets = {},
 		LastRun = nil,
 		Toasts = {},
 		Popups = {},
@@ -325,6 +328,7 @@ Net.RunState.OnClientEvent:Connect(function(runState: any, timeLeft: any, score:
 		state.LastRun = nil
 		state.Powerups = {}
 		state.Quests = {}
+		state.GoldenTargets = {}
 		state.Popups = {}
 	end
 	state.RunState = nextState
@@ -453,6 +457,21 @@ Net.RunEnded.OnClientEvent:Connect(function(summary: any)
 	state.Score = 0
 	state.Powerups = {}
 	state.Quests = {}
+	state.GoldenTargets = {}
+	publish()
+end)
+
+Net.GoldenTargets.OnClientEvent:Connect(function(paths: any)
+	if type(paths) ~= "table" then
+		return
+	end
+	local cleaned: { string } = {}
+	for _, path in paths do
+		if type(path) == "string" and path ~= "" then
+			table.insert(cleaned, path)
+		end
+	end
+	state.GoldenTargets = cleaned
 	publish()
 end)
 

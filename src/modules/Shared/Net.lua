@@ -28,6 +28,7 @@
 		ObjectStained(object, step)        object Model, step 1..ObjectConfig.TintSteps
 		ObjectSoiled(object, bonus)        object Model fully soiled, bonus points
 		QuestState(quests)                 { { Id, Text, Progress, Target, Done } }
+		GoldenTargets(paths)               prop name paths relative to the map model
 		NpcCaught(penaltySeconds)
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
 
@@ -94,5 +95,7 @@ Net.ObjectSoiled = Packet.new("ObjectSoiled", Packet.Instance, Packet.NumberU32)
 Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
+
+Net.GoldenTargets = Packet.new("GoldenTargets", { Packet.String })
 
 return Net
