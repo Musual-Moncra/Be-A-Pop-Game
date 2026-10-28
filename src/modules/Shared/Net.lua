@@ -30,6 +30,7 @@
 		QuestState(quests)                 { { Id, Text, Progress, Target, Done } }
 		NpcCaught(penaltySeconds)
 		Notify(kind, text)                 kind "Info" | "Success" | "Error"
+		LeaderboardData(Period, Entries)   Entries { { Rank, Name, Value } }, Period "Daily" | "Weekly" | "AllTime"
 
 	RunSummary:
 		{ Score, Coins, Gems, Xp, MapId, ModeId, ObjectsSoiled, TargetReached,
@@ -75,6 +76,17 @@ local RunSummary = {
 	OutOfTime = Packet.Boolean8,
 }
 
+local LeaderboardEntry = {
+	Rank = Packet.NumberU8,
+	Name = Packet.String,
+	Value = Packet.NumberU32,
+}
+
+local LeaderboardDataPayload = {
+	Period = Packet.String,
+	Entries = { LeaderboardEntry },
+}
+
 local Net = {}
 
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
@@ -94,5 +106,6 @@ Net.ObjectSoiled = Packet.new("ObjectSoiled", Packet.Instance, Packet.NumberU32)
 Net.QuestState = Packet.new("QuestState", { QuestEntry })
 Net.NpcCaught = Packet.new("NpcCaught", Packet.NumberU8)
 Net.Notify = Packet.new("Notify", Packet.String, Packet.String)
+Net.LeaderboardData = Packet.new("LeaderboardData", LeaderboardDataPayload)
 
 return Net

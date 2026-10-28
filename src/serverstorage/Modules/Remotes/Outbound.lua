@@ -22,6 +22,7 @@
 		Outbound.ObjectSoiled(plr, object, bonus)
 		Outbound.NpcCaught(plr, penaltySeconds)
 		Outbound.Notify(plr, kind, text)
+		Outbound.LeaderboardData(plr, period, entries)
 
 	Dependencies: Net
 ]]
@@ -124,6 +125,12 @@ end
 function Outbound.Notify(plr: Player, kind: string, text: string)
 	if connected(plr) then
 		Net.Notify:FireClient(plr, kind, text)
+	end
+end
+
+function Outbound.LeaderboardData(plr: Player, period: string, entries: { any })
+	if connected(plr) then
+		Net.LeaderboardData:FireClient(plr, { Period = period, Entries = entries })
 	end
 end
 
