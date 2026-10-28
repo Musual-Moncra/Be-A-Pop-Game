@@ -25,6 +25,8 @@
 		Outbound.Notify(plr, kind, text)
 		Outbound.ReviveOffer(plr, productId, tier, windowSeconds)
 		Outbound.PassState(plr, ownedPassKeys)
+		Outbound.MapProgress(plr, mapId, percent)         coalesced
+		Outbound.SpecialEvent(plr, mapId, endsAt)
 
 	Dependencies: Net
 ]]
@@ -143,6 +145,16 @@ end
 function Outbound.PassState(plr: Player, ownedPassKeys: { string })
 	if connected(plr) then
 		Net.PassState:FireClient(plr, ownedPassKeys)
+	end
+end
+
+function Outbound.MapProgress(plr: Player, mapId: string, percent: number)
+	queue(Net.MapProgress, plr, { MapId = mapId, Percent = percent })
+end
+
+function Outbound.SpecialEvent(plr: Player, mapId: string, endsAt: number)
+	if connected(plr) then
+		Net.SpecialEvent:FireClient(plr, { MapId = mapId, EndsAt = endsAt })
 	end
 end
 
