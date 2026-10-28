@@ -21,6 +21,7 @@
 		Outbound.ObjectStained(plr, object, step)
 		Outbound.ObjectSoiled(plr, object, bonus)
 		Outbound.NpcCaught(plr, penaltySeconds)
+		Outbound.DailyState(plr, state)                  coalesced
 		Outbound.Notify(plr, kind, text)
 
 	Dependencies: Net
@@ -125,6 +126,10 @@ function Outbound.Notify(plr: Player, kind: string, text: string)
 	if connected(plr) then
 		Net.Notify:FireClient(plr, kind, text)
 	end
+end
+
+function Outbound.DailyState(plr: Player, state: any)
+	queue(Net.DailyState, plr, state)
 end
 
 Players.PlayerRemoving:Connect(function(plr)

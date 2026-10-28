@@ -21,13 +21,17 @@
 		ConfigLookup.GetObject(objectType) -> ObjectDefinition?
 		ConfigLookup.GetQuest(id) -> QuestDefinition?
 		ConfigLookup.FormatQuest(quest) -> string
+		ConfigLookup.GetDailyReward(day) -> DailyRewardDefinition?
+		ConfigLookup.GetDailyBoost(boostId) -> DailyBoostDefinition?
 
-	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig, QuestConfig
+	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig, QuestConfig,
+		DailyRewardConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = ReplicatedStorage.Modules.Config
+local DailyRewardConfig = require(Config.DailyRewardConfig)
 local GameConfig = require(Config.GameConfig)
 local MapConfig = require(Config.MapConfig)
 local ModeConfig = require(Config.ModeConfig)
@@ -219,6 +223,28 @@ end
 
 function ConfigLookup.FormatQuest(quest: QuestDefinition): string
 	return (string.gsub(quest.Description, "%%d", tostring(quest.Target)))
+end
+
+export type DailyRewardDefinition = {
+	Kind: string,
+	Amount: number,
+	BoostId: string,
+	Duration: number,
+	SkinId: string,
+	Label: string,
+}
+
+export type DailyBoostDefinition = {
+	Multiplier: number,
+	Duration: number,
+}
+
+function ConfigLookup.GetDailyReward(day: number): DailyRewardDefinition?
+	return (DailyRewardConfig.Days :: { DailyRewardDefinition })[day]
+end
+
+function ConfigLookup.GetDailyBoost(boostId: string): DailyBoostDefinition?
+	return (DailyRewardConfig.Boosts :: { [string]: DailyBoostDefinition })[boostId]
 end
 
 return ConfigLookup

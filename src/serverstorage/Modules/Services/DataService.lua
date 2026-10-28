@@ -18,6 +18,8 @@
 		DataService.IsMapUnlocked(plr, mapId)   -> bool
 		DataService.IncrementStat(plr, key, n)
 		DataService.RecordRun(plr, score)
+		DataService.GetBoostMultiplier(plr, kind) -> number
+		DataService.RecordDailyClaim(plr, streak, boostId, boostDuration, skinId)
 		DataService.MarkChanged(plr)            re-publish after an external mutation
 		DataService.Changed                     -> Signal (plr, data)
 
@@ -211,6 +213,51 @@ function DataService.MarkChanged(plr: Player)
 	local data = DataService.Get(plr)
 	if data == nil then
 		return
+	end
+	publish(plr)
+end
+
+function DataService.GetBoostMultiplier(plr: Player, kind: string): number
+	local data = DataService.Get(plr)
+	if data == nil or data.Boosts == nil then
+		return 1
+	end
+	local expiresAt = data.Boosts[kind]
+	if type(expiresAt) ~= "number" or expiresAt <= os.time() then
+		return 1
+	end
+	local boost = ConfigLookup.GetDailyBoost(kind)
+	if boost == nil then
+		return 1
+	end
+	return boost.Multiplier
+end
+
+function DataService.RecordDailyClaim(
+	plr: Player,
+	streak: number,
+	boostId: string?,
+	boostDuration: number,
+	skinId: string?
+)
+	local data = DataService.Get(plr)
+	if data == nil or data.Daily == nil then
+		return
+	end
+	local now = os.time()
+	data.Daily.LastClaim = now
+	data.Daily.Streak = streak
+	if boostId ~= nil and boostDuration > 0 then
+		if data.Boosts == nil then
+			data.Boosts = {}
+		end
+		data.Boosts[boostId] = now + boostDuration
+	end
+	if skinId ~= nil and skinId ~= "" then
+		if data.OwnedSkins == nil then
+			data.OwnedSkins = {}
+		end
+		data.OwnedSkins[skinId] = true
 	end
 	publish(plr)
 end
