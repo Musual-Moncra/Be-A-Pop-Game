@@ -11,7 +11,6 @@
 		PickupRadius: how close the poop must get to eat food, multiplied by the poop's current size (studs)
 		SpawnHeight: how high above the floor food floats (studs)
 		SpawnRayTopInset: the spawn ray starts this far below the top of the map's PlayArea, under the ceiling (studs)
-		SyncInterval: how often the active power-up list is re-sent to the player (seconds)
 		TickInterval: how often the server checks pickups, expiry and spawning for every run (seconds)
 		FirstSpawnDelay: wait before the first food of a run appears (seconds)
 		ItemShape: shape of the food part (Enum.PartType)
@@ -56,7 +55,6 @@ PowerupConfig.ItemLifetime = 20
 PowerupConfig.PickupRadius = 5
 PowerupConfig.SpawnHeight = 2.5
 PowerupConfig.SpawnRayTopInset = 0.5
-PowerupConfig.SyncInterval = 1
 PowerupConfig.TickInterval = 0.05
 PowerupConfig.FirstSpawnDelay = 3
 PowerupConfig.ItemShape = Enum.PartType.Ball

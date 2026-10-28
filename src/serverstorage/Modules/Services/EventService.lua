@@ -112,7 +112,7 @@ nextStartAt = Workspace:GetServerTimeNow() + EventConfig.SpecialTime.FirstDelayS
 
 RunService.Heartbeat:Connect(function(dt)
 	accumulator += dt
-	if accumulator < 0.5 then
+	if accumulator < EventConfig.StepInterval then
 		return
 	end
 	accumulator = 0

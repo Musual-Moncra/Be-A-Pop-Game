@@ -32,7 +32,8 @@
 
 	Every mutation marks the player dirty; one deferred publish per frame then fires Changed,
 	updates leaderstats and queues a single DataSync, so a run ending (coins + xp + gems +
-	stats) costs one packet instead of five.
+	stats) costs one packet instead of five. A DataSync is skipped when the snapshot equals
+	the last sent one.
 
 	Dependencies: ProfileStore, Signal, Outbound, ConfigLookup, GameConfig, DataConfig
 ]]
@@ -59,6 +60,7 @@ local CoinsValues: { [Player]: IntValue } = {}
 local LevelValues: { [Player]: IntValue } = {}
 local Leaving: { [Player]: boolean } = {}
 local Dirty: { [Player]: boolean } = {}
+local LastSync: { [Player]: any } = {}
 local flushScheduled = false
 
 function DataService.Get(plr: Player)
@@ -80,6 +82,37 @@ local function updateLeaderstats(plr: Player, data)
 	end
 end
 
+local function copyValue(value: any): any
+	if type(value) ~= "table" then
+		return value
+	end
+	local copy = {}
+	for key, inner in value do
+		copy[key] = copyValue(inner)
+	end
+	return copy
+end
+
+local function equalValue(a: any, b: any): boolean
+	if type(a) ~= type(b) then
+		return false
+	end
+	if type(a) ~= "table" then
+		return a == b
+	end
+	for key, inner in a do
+		if not equalValue(inner, b[key]) then
+			return false
+		end
+	end
+	for key in b do
+		if a[key] == nil then
+			return false
+		end
+	end
+	return true
+end
+
 local function flush()
 	flushScheduled = false
 	for plr in Dirty do
@@ -88,7 +121,10 @@ local function flush()
 			if data ~= nil then
 				DataService.Changed:Fire(plr, data)
 				updateLeaderstats(plr, data)
-				Outbound.DataSync(plr, data)
+				if not equalValue(data, LastSync[plr]) then
+					Outbound.DataSync(plr, data)
+					LastSync[plr] = copyValue(data)
+				end
 			end
 		end
 	end
@@ -414,6 +450,7 @@ local function onPlayerAdded(plr: Player)
 		CoinsValues[plr] = nil
 		LevelValues[plr] = nil
 		Dirty[plr] = nil
+		LastSync[plr] = nil
 
 		local isLeaving = Leaving[plr] == true
 		Leaving[plr] = nil
@@ -441,6 +478,7 @@ local function onPlayerRemoving(plr: Player)
 	Profiles[plr] = nil
 	CoinsValues[plr] = nil
 	LevelValues[plr] = nil
+	LastSync[plr] = nil
 
 	if profile ~= nil then
 		profile:EndSession()
@@ -461,6 +499,7 @@ game:BindToClose(function()
 		Dirty[plr] = nil
 		CoinsValues[plr] = nil
 		LevelValues[plr] = nil
+		LastSync[plr] = nil
 		table.insert(sessions, profile)
 	end
 	table.clear(Profiles)

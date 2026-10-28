@@ -42,6 +42,7 @@ local PetService = {}
 
 local followers: { [Player]: { Instance } } = {}
 local synced: { [Player]: boolean } = {}
+local multiplierCache: { [Player]: ConfigLookup.PetMultipliers } = {}
 local uidCounter = 0
 
 local function getPets(plr: Player): any
@@ -154,7 +155,7 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 	body.Name = "Body"
 	body.Shape = PetConfig.FollowShape
 	body.Material = PetConfig.FollowMaterial
-	body.Color = if variant ~= nil then variant.Color else pet.Color
+	body.Color = if variant ~= nil and variant.Id ~= "Default" then variant.Color else pet.Color
 	body.Size = Vector3.new(pet.Size, pet.Size, pet.Size)
 	body.Anchored = false
 	body.CanCollide = false
@@ -163,6 +164,25 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 	body.Massless = true
 	body.CFrame = hrp.CFrame * CFrame.new(offset)
 	body.Parent = model
+
+	for _, side in { -1, 1 } do
+		local eye = Instance.new("Part")
+		eye.Name = "Eye"
+		eye.Shape = Enum.PartType.Ball
+		eye.Material = PetConfig.FollowMaterial
+		eye.Color = PetConfig.EyeColor
+		eye.Size = Vector3.one * pet.Size * PetConfig.EyeSize
+		eye.CanCollide = false
+		eye.CanQuery = false
+		eye.CanTouch = false
+		eye.Massless = true
+		eye.CFrame = body.CFrame * CFrame.new(side * pet.Size * PetConfig.EyeSpread, pet.Size * PetConfig.EyeHeight, -pet.Size * PetConfig.EyeDepth)
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = body
+		weld.Part1 = eye
+		weld.Parent = eye
+		eye.Parent = model
+	end
 
 	local anchor = Instance.new("Attachment")
 	anchor.Name = "PetAnchor"
@@ -175,9 +195,8 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 
 	local align = Instance.new("AlignPosition")
 	align.Name = "PetAlign"
-	align.Mode = Enum.PositionAlignmentMode.OneAttachment
-	align.Attachment0 = anchor
-	align.Attachment1 = bodyAttachment
+	align.Attachment0 = bodyAttachment
+	align.Attachment1 = anchor
 	align.Responsiveness = PetConfig.FollowResponsiveness
 	align.MaxForce = PetConfig.FollowMaxForce
 	align.ApplyAtCenterOfMass = true
@@ -185,9 +204,8 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 
 	local orientation = Instance.new("AlignOrientation")
 	orientation.Name = "PetOrientation"
-	orientation.Mode = Enum.OrientationAlignmentMode.OneAttachment
-	orientation.Attachment0 = anchor
-	orientation.Attachment1 = bodyAttachment
+	orientation.Attachment0 = bodyAttachment
+	orientation.Attachment1 = anchor
 	orientation.Responsiveness = PetConfig.FollowResponsiveness
 	orientation.MaxTorque = PetConfig.FollowMaxTorque
 	orientation.Parent = body
@@ -228,6 +246,7 @@ local function rebuild(plr: Player)
 end
 
 local function publish(plr: Player)
+	multiplierCache[plr] = nil
 	DataService.MarkChanged(plr)
 	PetService.Sync(plr)
 end
@@ -241,6 +260,10 @@ function PetService.Sync(plr: Player)
 end
 
 function PetService.GetMultipliers(plr: Player): ConfigLookup.PetMultipliers
+	local cached = multiplierCache[plr]
+	if cached ~= nil then
+		return cached
+	end
 	local pets = getPets(plr)
 	if pets == nil then
 		return { Coins = 1, Stink = 1 }
@@ -258,7 +281,9 @@ function PetService.GetMultipliers(plr: Player): ConfigLookup.PetMultipliers
 			end
 		end
 	end
-	return { Coins = 1 + coins, Stink = 1 + stink }
+	local result = { Coins = 1 + coins, Stink = 1 + stink }
+	multiplierCache[plr] = result
+	return result
 end
 
 function PetService.HasPet(plr: Player, petId: string, variantId: string): boolean
@@ -509,6 +534,7 @@ Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(function(plr)
 	clearFollowers(plr)
 	synced[plr] = nil
+	multiplierCache[plr] = nil
 end)
 
 for _, plr in Players:GetPlayers() do

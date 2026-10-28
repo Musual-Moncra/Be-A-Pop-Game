@@ -7,24 +7,26 @@
 	UIConfig.Swatches keys; sizes are UIConfig design pixels. Pure data, no functions.
 
 	Fields:
-		Rail: left column of big square buttons
-			ButtonSize: side of one button (design pixels)
-			LabelHeight: height of the caption under a button (design pixels)
-			Gap: space between two buttons (design pixels)
-			PerColumn: buttons stacked in one column before the next column starts (count)
+		Dock: the single lobby button at the bottom centre; pressing it pops a row of buttons above it
+			ButtonSize: diameter of the centre button (design pixels)
+			ItemSize: diameter of one row button (design pixels)
+			LabelHeight: caption height under a row button (design pixels)
+			Gap: space between row buttons (design pixels)
+			Lift: space between the row and the centre button (design pixels)
+			Margin: space kept free at both screen sides; a wider row shrinks to fit (design pixels)
+			Stagger: delay between two row buttons popping out (seconds)
+			Icon / OpenIcon: emoji on the centre button when closed / open (text)
+			Label: caption on the centre button (text)
+			Swatch / OpenSwatch: centre button colour when closed / open (UIConfig.Swatches key)
 			BadgeSize: diameter of the red notification dot (design pixels)
-			Items: one row per button, top to bottom
+			Items: one row per button, left to right
 				Id: unique key (string)
 				Label: caption under the button (text)
 				Icon: emoji on the button face (text)
 				Swatch: button colour (UIConfig.Swatches key)
 				Route: LobbyState route the button opens (LobbyState.Routes key)
-		PlayButton: the big PLAY button at the bottom of the screen
-			Width / Height: button size (design pixels)
-			Label: button text (text)
-			Icon: emoji left of the text (text)
-			Swatch: button colour (UIConfig.Swatches key)
-			Route: LobbyState route it opens (LobbyState.Routes key)
+				Big: true draws it larger with a sunburst (true/false)
+			BigScale: size of a Big button compared to ItemSize (multiplier)
 		Rays: rotating sunburst drawn behind highlighted buttons
 			Count: number of rays (count)
 			Thickness: width of one ray (design pixels)
@@ -40,7 +42,7 @@
 			Swatch: dot colour (UIConfig.Swatches key)
 			PulseScale: largest scale of the pulse (multiplier)
 			PulseSeconds: length of one pulse (seconds)
-		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of Rail and PlayButton
+		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of the Dock
 		Stations: lobby booths, keyed by the LobbyStation attribute on their Prompt part
 			Route: LobbyState route opened by the prompt (LobbyState.Routes key)
 			ActionText: prompt action text (text)
@@ -95,42 +97,47 @@
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Crates", "Skins" or "Trails"
 			CrateIcon / SkinIcon / TrailIcon: emoji for crates, skins, trails (text)
 			OpenFormat: open button text (format: price, currency icon)
-			EquipText / EquippedText / LockedText: cosmetic card buttons (text)
+			EquipText / EquippedText / UnequipText / LockedText: cosmetic card buttons (text)
 			LastCrateFormat: banner after a crate (format: item name)
 		Rebirth: rebirth window
 			Width / Height / Swatch / Title: window size, header colour, title
 			Icon: big emoji (text)
-			Lines: info lines (formats: count; multiplier; gems; cost)
+			Lines: info lines
+				Count: rebirth count line (format: count)
+				Multiplier: coin bonus comparison line (format: current multiplier, next multiplier)
+				Gems: gems reward line (format: gems)
+				Cost: coins cost line (format: coins cost)
 			Button: rebirth button text (text)
 			Warning: line explaining what resets (text)
 ]]
 
 local LobbyUIConfig = {}
 
-LobbyUIConfig.Rail = {
-	ButtonSize = 84,
-	LabelHeight = 26,
-	Gap = 12,
-	PerColumn = 4,
-	BadgeSize = 34,
-	Items = {
-		{ Id = "Shop", Label = "SHOP", Icon = "🛒", Swatch = "Gold", Route = "Shop" },
-		{ Id = "Pets", Label = "PETS", Icon = "🐶", Swatch = "Blue", Route = "Pets" },
-		{ Id = "Skins", Label = "SKINS", Icon = "🎨", Swatch = "Purple", Route = "Skins" },
-		{ Id = "Daily", Label = "DAILY", Icon = "🎁", Swatch = "Pink", Route = "Daily" },
-		{ Id = "Upgrades", Label = "UPGRADE", Icon = "⚡", Swatch = "Orange", Route = "Upgrades" },
-		{ Id = "Rebirth", Label = "REBIRTH", Icon = "🌀", Swatch = "Teal", Route = "Rebirth" },
-		{ Id = "Stats", Label = "STATS", Icon = "🏆", Swatch = "Grey", Route = "Stats" },
-	},
-}
-
-LobbyUIConfig.PlayButton = {
-	Width = 280,
-	Height = 100,
-	Label = "PLAY!",
+LobbyUIConfig.Dock = {
+	ButtonSize = 118,
+	ItemSize = 86,
+	LabelHeight = 24,
+	Gap = 14,
+	Lift = 18,
+	Margin = 24,
+	Stagger = 0.035,
 	Icon = "💩",
-	Swatch = "Green",
-	Route = "Play",
+	OpenIcon = "✖️",
+	Label = "MENU",
+	Swatch = "Orange",
+	OpenSwatch = "Red",
+	BadgeSize = 34,
+	BigScale = 1.25,
+	Items = {
+		{ Id = "Shop", Label = "SHOP", Icon = "🛒", Swatch = "Gold", Route = "Shop", Big = false },
+		{ Id = "Pets", Label = "PETS", Icon = "🐶", Swatch = "Blue", Route = "Pets", Big = false },
+		{ Id = "Skins", Label = "SKINS", Icon = "🎨", Swatch = "Purple", Route = "Skins", Big = false },
+		{ Id = "Play", Label = "PLAY", Icon = "▶️", Swatch = "Green", Route = "Play", Big = true },
+		{ Id = "Upgrades", Label = "UPGRADE", Icon = "⚡", Swatch = "Orange", Route = "Upgrades", Big = false },
+		{ Id = "Daily", Label = "DAILY", Icon = "🎁", Swatch = "Pink", Route = "Daily", Big = false },
+		{ Id = "Rebirth", Label = "REBIRTH", Icon = "🌀", Swatch = "Teal", Route = "Rebirth", Big = false },
+		{ Id = "Stats", Label = "STATS", Icon = "🏆", Swatch = "Grey", Route = "Stats", Big = false },
+	},
 }
 
 LobbyUIConfig.Rays = {
@@ -156,12 +163,10 @@ LobbyUIConfig.Badge = {
 
 LobbyUIConfig.Layouts = {
 	PC = {
-		Rail = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 350) },
-		PlayButton = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -34) },
+		Dock = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -24) },
 	},
 	Mobile = {
-		Rail = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 300) },
-		PlayButton = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -24, 1, -20) },
+		Dock = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -12) },
 	},
 }
 
@@ -282,6 +287,7 @@ LobbyUIConfig.Skins = {
 	OpenFormat = "%s %s",
 	EquipText = "EQUIP",
 	EquippedText = "EQUIPPED",
+	UnequipText = "TAKE OFF",
 	LockedText = "🔒",
 	LastCrateFormat = "You got %s!",
 }

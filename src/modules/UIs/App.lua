@@ -27,12 +27,12 @@ local UIScaleContext = require(ReplicatedStorage.Modules.UIComponents.UIScaleCon
 
 local Screens = ReplicatedStorage.Modules.Screens
 local DailyWindow = require(Screens.DailyWindow)
+local LobbyDock = require(Screens.LobbyDock)
 local PetsWindow = require(Screens.PetsWindow)
 local RebirthWindow = require(Screens.RebirthWindow)
 local PlayWindow = require(Screens.PlayWindow)
 local ResultWindow = require(Screens.ResultWindow)
 local ShopWindow = require(Screens.ShopWindow)
-local SideRail = require(Screens.SideRail)
 local SkinsWindow = require(Screens.SkinsWindow)
 local RunExtras = require(Screens.RunExtras)
 local RunHud = require(Screens.RunHud)
@@ -132,7 +132,7 @@ local function App(props: any)
 			LobbyMenu = layer(
 				ui,
 				"LobbyMenu",
-				if not inRun and not showResult and lobbyWindow == nil then e(SideRail, { data = data, ui = ui }) else nil
+				if not inRun and not showResult and lobbyWindow == nil then e(LobbyDock, { data = data, ui = ui }) else nil
 			),
 			Backdrop = if showResult then backdrop(nil) elseif lobbyWindow ~= nil then backdrop(close) else nil,
 			Window = layer(ui, "Window", lobbyWindow),

@@ -17,12 +17,24 @@ local Net = require(ReplicatedStorage.Modules.Shared.Net)
 
 local ObjectTintController = {}
 
-local modelPartsCache: { [Instance]: { BasePart } } = {}
+type TintEntry = {
+	parts: { BasePart },
+	colors: { Color3 },
+}
+
+local modelTintCache: { [Instance]: TintEntry } = {}
 local originalColors: { [BasePart]: Color3 } = {}
 local originalMaterials: { [BasePart]: Enum.Material } = {}
 
-local function getBaseParts(instance: Instance): { BasePart }
-	local cached = modelPartsCache[instance]
+local function saveOriginal(part: BasePart)
+	if originalColors[part] == nil then
+		originalColors[part] = part.Color
+		originalMaterials[part] = part.Material
+	end
+end
+
+local function getTintEntry(instance: Instance): TintEntry
+	local cached = modelTintCache[instance]
 	if cached ~= nil then
 		return cached
 	end
@@ -35,15 +47,14 @@ local function getBaseParts(instance: Instance): { BasePart }
 			table.insert(parts, desc)
 		end
 	end
-	modelPartsCache[instance] = parts
-	return parts
-end
-
-local function saveOriginal(part: BasePart)
-	if originalColors[part] == nil then
-		originalColors[part] = part.Color
-		originalMaterials[part] = part.Material
+	local colors: { Color3 } = table.create(#parts)
+	for index, part in parts do
+		saveOriginal(part)
+		colors[index] = part.Color
 	end
+	local entry = { parts = parts, colors = colors }
+	modelTintCache[instance] = entry
+	return entry
 end
 
 Net.ObjectStained.OnClientEvent:Connect(function(obj: Instance, step: number)
@@ -51,12 +62,9 @@ Net.ObjectStained.OnClientEvent:Connect(function(obj: Instance, step: number)
 		return
 	end
 	local alpha = math.clamp(step / ObjectConfig.TintSteps, 0, 1)
-	for _, part in getBaseParts(obj) do
-		saveOriginal(part)
-		local origColor = originalColors[part]
-		if origColor ~= nil then
-			part.Color = origColor:Lerp(ObjectConfig.SoiledColor, alpha)
-		end
+	local entry = getTintEntry(obj)
+	for index, part in entry.parts do
+		part.Color = entry.colors[index]:Lerp(ObjectConfig.SoiledColor, alpha)
 	end
 end)
 
@@ -64,8 +72,8 @@ Net.ObjectSoiled.OnClientEvent:Connect(function(obj: Instance, _bonus: number)
 	if obj == nil then
 		return
 	end
-	for _, part in getBaseParts(obj) do
-		saveOriginal(part)
+	local entry = getTintEntry(obj)
+	for _, part in entry.parts do
 		part.Color = ObjectConfig.SoiledColor
 		part.Material = ObjectConfig.SoiledMaterial
 	end
@@ -83,7 +91,7 @@ Net.RunEnded.OnClientEvent:Connect(function(_summary: any)
 	end
 	table.clear(originalColors)
 	table.clear(originalMaterials)
-	table.clear(modelPartsCache)
+	table.clear(modelTintCache)
 end)
 
 return ObjectTintController

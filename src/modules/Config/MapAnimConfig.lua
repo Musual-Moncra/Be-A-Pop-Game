@@ -9,6 +9,7 @@
 	Fields:
 		MaxDistance: details farther than this from the camera stop animating (studs)
 		CullCheckInterval: how often the camera distance of every detail is re-checked (seconds)
+		UpdateRate: animation updates per second, lower = cheaper (per second)
 		Kinds: one table per AnimKind value
 			Type: "Spin" turns around the vertical axis, "Bob" floats up and down, "Sway" rocks
 				around the vertical axis tilt, "Swing" swings from its top edge, "Pulse" fades
@@ -23,8 +24,9 @@
 
 local MapAnimConfig = {}
 
-MapAnimConfig.MaxDistance = 450
+MapAnimConfig.MaxDistance = 260
 MapAnimConfig.CullCheckInterval = 0.5
+MapAnimConfig.UpdateRate = 30
 
 MapAnimConfig.Kinds = {
 	Spin = { Type = "Spin", Speed = 160 },

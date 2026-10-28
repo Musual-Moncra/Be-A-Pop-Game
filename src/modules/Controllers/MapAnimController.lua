@@ -4,8 +4,9 @@
 	MapAnimController
 	Client-only ambient animation of map details (ceiling fans, swaying plants and trees,
 	bobbing balloons, swings, pulsing neon signs). Finds every Part or Model in Workspace
-	with an AnimKind attribute, remembers its rest pose and animates it each frame with the
-	MapAnimConfig kind of that name. Details far from the camera are skipped.
+	with an AnimKind attribute, remembers its rest pose and each part's offset from it, and
+	moves all near details in one Workspace:BulkMoveTo per update (MapAnimConfig.UpdateRate
+	times a second) instead of per-model PivotTo. Details far from the camera are skipped.
 
 	Dependencies:
 		Workspace, RunService, ReplicatedStorage, MapAnimConfig
@@ -26,6 +27,7 @@ type Detail = {
 	rest: CFrame,
 	hinge: CFrame,
 	parts: { BasePart },
+	offsets: { CFrame },
 	baseTransparency: { number },
 	near: boolean,
 }
@@ -72,8 +74,10 @@ local function track(instance: Instance)
 	local rest = pv:GetPivot()
 	local parts = collectParts(instance)
 	local baseTransparency = {}
+	local offsets = {}
 	for index, part in parts do
 		baseTransparency[index] = part.Transparency
+		offsets[index] = rest:ToObjectSpace(part.CFrame)
 	end
 	details[pv] = {
 		instance = pv,
@@ -82,6 +86,7 @@ local function track(instance: Instance)
 		rest = rest,
 		hinge = CFrame.new(boundsCFrame.Position + Vector3.new(0, boundsSize.Y / 2, 0)),
 		parts = parts,
+		offsets = offsets,
 		baseTransparency = baseTransparency,
 		near = false,
 	}
@@ -141,20 +146,36 @@ for _, descendant in Workspace:GetDescendants() do
 end
 Workspace.DescendantAdded:Connect(track)
 
+local lastUpdate = 0
+local moveParts: { BasePart } = {}
+local moveCFrames: { CFrame } = {}
+
 RunService.RenderStepped:Connect(function()
 	local now = os.clock()
+	if now - lastUpdate < 1 / MapAnimConfig.UpdateRate then
+		return
+	end
+	lastUpdate = now
 	refreshCulling(now)
-	for instance, detail in details do
+	table.clear(moveParts)
+	table.clear(moveCFrames)
+	for _, detail in details do
 		if detail.near then
 			if detail.kind.Type == "Pulse" then
 				applyPulse(detail, now)
 			else
 				local pose = poseFor(detail, now)
 				if pose ~= nil then
-					instance:PivotTo(pose)
+					for index, part in detail.parts do
+						table.insert(moveParts, part)
+						table.insert(moveCFrames, pose * detail.offsets[index])
+					end
 				end
 			end
 		end
+	end
+	if #moveParts > 0 then
+		Workspace:BulkMoveTo(moveParts, moveCFrames, Enum.BulkMoveMode.FireCFrameChanged)
 	end
 end)
 

@@ -3,6 +3,9 @@
 --[[
 	CosmeticService
 	Manages player cosmetics, crate opening, equipping skins/trails, and character visual attachments.
+	The first apply on a character saves each body tier's original Color/Material as BaseColor /
+	BaseMaterial attributes; the Default skin (or an unknown id) restores those, so leaving a skin
+	always brings back the original multi-tone poop.
 
 	API:
 		CosmeticService.OpenCrate(plr: Player, crateId: string): boolean
@@ -207,12 +210,20 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 
 	local body = character:FindFirstChild("Body")
 	if body ~= nil and skinDef ~= nil then
-		local tierParts = { "TierBottom", "TierMiddle", "TierTop", "Tip" }
-		for _, partName in tierParts do
+		for _, partName in CosmeticConfig.BodyParts do
 			local part = body:FindFirstChild(partName) :: BasePart?
 			if part ~= nil and part:IsA("BasePart") then
-				part.Color = skinDef.Color
-				part.Material = skinDef.Material
+				if part:GetAttribute("BaseColor") == nil then
+					part:SetAttribute("BaseColor", part.Color)
+					part:SetAttribute("BaseMaterial", part.Material.Name)
+				end
+				if skinId == "Default" or ConfigLookup.GetSkin(skinId) == nil then
+					part.Color = part:GetAttribute("BaseColor")
+					part.Material = (Enum.Material :: any)[part:GetAttribute("BaseMaterial")]
+				else
+					part.Color = skinDef.Color
+					part.Material = skinDef.Material
+				end
 			end
 		end
 	end
@@ -232,7 +243,7 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 				if att0 == nil then
 					att0 = Instance.new("Attachment")
 					att0.Name = "TrailAttachment0"
-					att0.Position = Vector3.new(0, 1, 0)
+					att0.Position = CosmeticConfig.TrailTop
 					att0.Parent = hrp
 				end
 
@@ -240,7 +251,7 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 				if att1 == nil then
 					att1 = Instance.new("Attachment")
 					att1.Name = "TrailAttachment1"
-					att1.Position = Vector3.new(0, -1, 0)
+					att1.Position = CosmeticConfig.TrailBottom
 					att1.Parent = hrp
 				end
 
