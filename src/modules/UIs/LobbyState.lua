@@ -3,7 +3,8 @@
 --[[
 	LobbyState
 	Shared lobby route so the menu wheel and the two panels agree on what is open.
-	API: LobbyState.Get() -> "None" | "Play" | "Upgrades" | "Stats";
+	API: LobbyState.Get() -> a LobbyState.Routes value ("None", "Play", "Upgrades", "Stats", "Daily",
+	     "Shop", "Pets", "Skins", "Rebirth");
 	     LobbyState.SetActive(route).
 	Dependencies: Signal.
 ]]
@@ -20,6 +21,11 @@ LobbyState.Routes = {
 	Play = "Play",
 	Upgrades = "Upgrades",
 	Stats = "Stats",
+	Daily = "Daily",
+	Shop = "Shop",
+	Pets = "Pets",
+	Skins = "Skins",
+	Rebirth = "Rebirth",
 }
 
 local active = LobbyState.Routes.None
