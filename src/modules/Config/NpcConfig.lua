@@ -15,6 +15,7 @@
 		CatchRadius: distance at which an NPC catches the poop, also the radius of the red circle (studs)
 		CatchCooldown: time after a catch before any NPC can catch that player again (seconds)
 		CatchPenalty: lifespan removed when an NPC catches the poop (seconds)
+		RestTime: after catching its target, how long an NPC walks back and ignores players (seconds)
 		TurnaroundPause: pause at each end of a patrol line (seconds)
 		ZoneColor: vision triangle colour while the NPC patrols or returns (RGB colour)
 		ChaseColor: vision triangle colour while the NPC chases (RGB colour)
@@ -37,6 +38,7 @@ NpcConfig.ReturnSpeed = 1.1
 NpcConfig.CatchRadius = 4
 NpcConfig.CatchCooldown = 2
 NpcConfig.CatchPenalty = 5
+NpcConfig.RestTime = 4
 NpcConfig.TurnaroundPause = 0.5
 
 NpcConfig.ZoneColor = Color3.fromRGB(255, 150, 60)

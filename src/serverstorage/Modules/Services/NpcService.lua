@@ -17,6 +17,7 @@
 	Vision test: triangle on the floor with its tip at the NPC, ViewLength deep along the look
 	direction and ViewWidth wide at the far edge (half width grows linearly with distance),
 	widened by LoseMargin when losing a target. Chase speed is capped by NpcConfig.ChaseMax.
+	A chasing NPC that catches its target gives up and ignores everyone for RestTime, so it never camps.
 	The NpcState attribute is "Patrol", "Chase" or "Return"; NpcVisionController draws it.
 
 	Dependencies:
@@ -61,6 +62,7 @@ type Npc = {
 	pausedUntil: number,
 	panicUntil: number,
 	loseSince: number,
+	restUntil: number,
 }
 
 type RunPlayer = {
@@ -283,6 +285,7 @@ function NpcService.SetupMap(mapDef: { Id: string, ModelName: string })
 				pausedUntil = 0,
 				panicUntil = 0,
 				loseSince = 0,
+				restUntil = 0,
 			}
 			model:SetAttribute(STATE_ATTRIBUTE, PATROL)
 		end
@@ -309,7 +312,7 @@ function NpcService.Step(now: number)
 				stepPatrol(npc, now)
 			end
 
-			if npc.target == nil then
+			if npc.target == nil and now >= npc.restUntil then
 				local target = acquire(npc, model:GetPivot(), runs)
 				if target ~= nil then
 					npc.target = target
@@ -333,6 +336,11 @@ function NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
 			if distance <= NpcConfig.CatchRadius then
 				local caught = if npc.state == CHASE then npc.target == run.player else true
 				if caught then
+					if npc.state == CHASE then
+						local now = os.clock()
+						giveUp(npc, now)
+						npc.restUntil = now + NpcConfig.RestTime
+					end
 					run.npcCooldown = NpcConfig.CatchCooldown
 					if run.hasTimer then
 						run.timeLeft = math.max(0, run.timeLeft - NpcConfig.CatchPenalty)
