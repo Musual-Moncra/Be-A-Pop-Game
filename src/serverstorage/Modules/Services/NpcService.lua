@@ -247,7 +247,7 @@ local function stepReturn(npc: Npc, now: number)
 	end
 end
 
-local function acquire(npc: Npc, pivot: CFrame, runs: { RunPlayer }): Player?
+local function acquire(pivot: CFrame, runs: { RunPlayer }): Player?
 	local best: Player? = nil
 	local bestDistance = math.huge
 	for _, run in runs do
@@ -349,7 +349,7 @@ function NpcService.Step(now: number)
 				end
 
 				if npc.target == nil and now >= npc.restUntil then
-					local target = acquire(npc, npc.model:GetPivot(), runs)
+					local target = acquire(npc.model:GetPivot(), runs)
 					if target ~= nil then
 						npc.target = target
 						npc.loseSince = 0

@@ -514,6 +514,7 @@ local CosmeticConfig = robloxRequire(RepConfig.CosmeticConfig)
 local DailyRewardConfig = robloxRequire(RepConfig.DailyRewardConfig)
 local GameConfig = robloxRequire(RepConfig.GameConfig)
 local MapConfig = robloxRequire(RepConfig.MapConfig)
+local MessageConfig = robloxRequire(RepConfig.MessageConfig)
 local ModeConfig = robloxRequire(RepConfig.ModeConfig)
 local MonetizationConfig = robloxRequire(RepConfig.MonetizationConfig)
 local ObjectConfig = robloxRequire(RepConfig.ObjectConfig)
@@ -1194,6 +1195,677 @@ runTest("ConfigIntegrity_UI_Swatches_Visuals_And_Rarities", function()
 			"Trail " .. trailId .. " references unknown rarity " .. tostring(trail.Rarity)
 		)
 	end
+end)
+
+type FakePlayer = {
+	UserId: number,
+	Name: string,
+	DisplayName: string,
+	IsFriendsWith: (self: FakePlayer, otherUserId: number) -> boolean,
+}
+
+local function newRoomHarness()
+	local clockNow = 100
+	local delayedTasks: { { due: number, fn: () -> () } } = {}
+	local onlinePlayers: { [number]: FakePlayer } = {}
+	local friendships: { [number]: { [number]: boolean } } = {}
+	local playerData: { [FakePlayer]: { Level: number, UnlockedMaps: { [string]: boolean } } } = {}
+	local activeRuns: { [FakePlayer]: { instance: any, modeDef: any } } = {}
+	local startRunBehavior: { [FakePlayer]: string } = {}
+	local suspendedStarts: { [FakePlayer]: thread } = {}
+
+	local playerRemovingListeners: { (FakePlayer) -> () } = {}
+	local runEndedListeners: { (FakePlayer) -> () } = {}
+
+	local acquireCalls = 0
+	local releaseCalls = 0
+	local releasedInstances: { any } = {}
+	local npcSetupCalls = 0
+	local npcRemoveCalls = 0
+	local nextSlot = 0
+	local templateAvailable = true
+
+	local lastRoomState: { [FakePlayer]: any } = {}
+	local roomStateCount: { [FakePlayer]: number } = {}
+	local lastRoomList: { [FakePlayer]: { any } } = {}
+	local notifications: { [FakePlayer]: { { kind: string, text: string } } } = {}
+	local invites: { [FakePlayer]: { { roomId: number, hostName: string, mapId: string } } } = {}
+
+	local function makePlayer(
+		userId: number,
+		name: string,
+		level: number?,
+		unlockedMaps: { [string]: boolean }?
+	): FakePlayer
+		local plr: FakePlayer = {
+			UserId = userId,
+			Name = name,
+			DisplayName = name,
+			IsFriendsWith = function(self: FakePlayer, otherId: number): boolean
+				local row = friendships[self.UserId]
+				return row ~= nil and row[otherId] == true
+			end,
+		}
+		onlinePlayers[userId] = plr
+		playerData[plr] = {
+			Level = level or 50,
+			UnlockedMaps = unlockedMaps or { Zone1 = true, Zone2 = true, Zone3 = true, Zone4 = true },
+		}
+		notifications[plr] = {}
+		invites[plr] = {}
+		roomStateCount[plr] = 0
+		return plr
+	end
+
+	local function setFriends(a: FakePlayer, b: FakePlayer, areFriends: boolean)
+		friendships[a.UserId] = friendships[a.UserId] or {}
+		friendships[b.UserId] = friendships[b.UserId] or {}
+		friendships[a.UserId][b.UserId] = areFriends
+		friendships[b.UserId][a.UserId] = areFriends
+	end
+
+	local function advanceClock(seconds: number)
+		local target = clockNow + seconds
+		while true do
+			local nextIdx: number? = nil
+			local earliest = math.huge
+			for i, item in delayedTasks do
+				if item.due <= target and item.due < earliest then
+					earliest = item.due
+					nextIdx = i
+				end
+			end
+			if nextIdx == nil then
+				break
+			end
+			local taskItem = table.remove(delayedTasks, nextIdx) :: { due: number, fn: () -> () }
+			clockNow = taskItem.due
+			taskItem.fn()
+		end
+		clockNow = target
+	end
+
+	local PlayersStub = {
+		GetPlayerByUserId = function(_self: any, userId: number): FakePlayer?
+			return onlinePlayers[userId]
+		end,
+		PlayerRemoving = {
+			Connect = function(_self: any, fn: (FakePlayer) -> ())
+				table.insert(playerRemovingListeners, fn)
+				return { Disconnect = function() end }
+			end,
+		},
+	}
+
+	local WorkspaceStub = {
+		GetServerTimeNow = function(_self: any): number
+			return 1000 + clockNow
+		end,
+	}
+
+	local DataServiceStub = {
+		Get = function(plr: FakePlayer)
+			return playerData[plr]
+		end,
+		IsMapUnlocked = function(plr: FakePlayer, mapId: string): boolean
+			local d = playerData[plr]
+			return d ~= nil and d.UnlockedMaps[mapId] == true
+		end,
+	}
+
+	local MapInstanceServiceStub = {
+		GetTemplate = function(_mapDef: any)
+			return if templateAvailable then { Name = "Template" } else nil
+		end,
+		Acquire = function(mapDef: any)
+			if not templateAvailable then
+				return nil
+			end
+			acquireCalls += 1
+			nextSlot += 1
+			return {
+				model = { Name = mapDef.ModelName .. "_Copy_" .. tostring(nextSlot) },
+				mapDef = mapDef,
+				offset = Vector3Lib.new(0, 0, nextSlot * 3200),
+				slot = nextSlot,
+			}
+		end,
+		Release = function(instance: any)
+			releaseCalls += 1
+			table.insert(releasedInstances, instance)
+		end,
+	}
+
+	local NpcServiceStub = {
+		SetupInstance = function(_instance: any)
+			npcSetupCalls += 1
+		end,
+		RemoveInstance = function(_model: any)
+			npcRemoveCalls += 1
+		end,
+	}
+
+	local RunEventsStub = {
+		RunEnded = {
+			Connect = function(_self: any, fn: (FakePlayer) -> ())
+				table.insert(runEndedListeners, fn)
+				return { Disconnect = function() end }
+			end,
+			Fire = function(_self: any, plr: FakePlayer)
+				for _, fn in runEndedListeners do
+					fn(plr)
+				end
+			end,
+		},
+	}
+
+	local RunServiceStub: any = nil
+	RunServiceStub = {
+		IsPlayerInRun = function(plr: FakePlayer): boolean
+			return activeRuns[plr] ~= nil
+		end,
+		StartRun = function(plr: FakePlayer, instance: any, modeDef: any): boolean
+			local mode = startRunBehavior[plr] or "ok"
+			if mode == "fail" then
+				return false
+			elseif mode == "yield_ok" or mode == "yield_fail" then
+				suspendedStarts[plr] = coroutine.running()
+				local resumeResult = coroutine.yield()
+				suspendedStarts[plr] = nil
+				if resumeResult == false or mode == "yield_fail" then
+					return false
+				end
+			end
+			if activeRuns[plr] ~= nil then
+				return false
+			end
+			activeRuns[plr] = { instance = instance, modeDef = modeDef }
+			return true
+		end,
+		EndRun = function(plr: FakePlayer, _outOfTime: boolean)
+			if activeRuns[plr] == nil then
+				return
+			end
+			activeRuns[plr] = nil
+			RunEventsStub.RunEnded:Fire(plr)
+		end,
+	}
+
+	local OutboundStub = {
+		RoomState = function(plr: FakePlayer, payload: any)
+			lastRoomState[plr] = payload
+			roomStateCount[plr] = (roomStateCount[plr] or 0) + 1
+		end,
+		RoomList = function(plr: FakePlayer, entries: { any })
+			lastRoomList[plr] = entries
+		end,
+		RoomInvite = function(plr: FakePlayer, roomId: number, hostName: string, mapId: string)
+			table.insert(invites[plr], { roomId = roomId, hostName = hostName, mapId = mapId })
+		end,
+		Notify = function(plr: FakePlayer, kind: string, text: string)
+			table.insert(notifications[plr], { kind = kind, text = text })
+		end,
+	}
+
+	local customServerModules: { [string]: any } = {
+		DataService = DataServiceStub,
+		MapInstanceService = MapInstanceServiceStub,
+		NpcService = NpcServiceStub,
+		RunService = RunServiceStub,
+		Outbound = OutboundStub,
+		RunEvents = RunEventsStub,
+	}
+
+	local customServerStorage = {
+		Modules = {
+			Services = customServerModules,
+			Remotes = { Outbound = OutboundStub },
+			Shared = { RunEvents = RunEventsStub },
+		},
+	}
+
+	local customGame = {
+		GetService = function(_self: any, name: string): any
+			if name == "Players" then
+				return PlayersStub
+			elseif name == "Workspace" then
+				return WorkspaceStub
+			elseif name == "ReplicatedStorage" then
+				return ReplicatedStorageStub
+			elseif name == "ServerStorage" then
+				return customServerStorage
+			end
+			error("Unsupported service in RoomService harness: " .. tostring(name))
+		end,
+	}
+
+	local function customRequire(target: any): any
+		if customServerModules[target] ~= nil then
+			return customServerModules[target]
+		end
+		for _, v in customServerModules do
+			if target == v then
+				return v
+			end
+		end
+		return robloxRequire(target)
+	end
+
+	local roomSource = sourceMap["ServerServices.RoomService"]
+	assert(type(roomSource) == "string", "Missing ServerServices.RoomService source")
+	local chunk, err = (loadstring :: any)(roomSource, "@RoomService")
+	assert(chunk ~= nil, "Failed to compile RoomService: " .. tostring(err))
+
+	local roomEnv = setmetatable({
+		game = customGame,
+		require = customRequire,
+		os = {
+			clock = function(): number
+				return clockNow
+			end,
+		},
+		task = {
+			spawn = function(fn: (...any) -> (), ...: any)
+				local co = coroutine.create(fn)
+				local ok, coErr = coroutine.resume(co, ...)
+				if not ok then
+					error(tostring(coErr))
+				end
+			end,
+			delay = function(sec: number, fn: () -> ())
+				table.insert(delayedTasks, {
+					due = clockNow + math.max(0, sec),
+					fn = function()
+						local co = coroutine.create(fn)
+						local ok, coErr = coroutine.resume(co)
+						if not ok then
+							error(tostring(coErr))
+						end
+					end,
+				})
+			end,
+		},
+	}, { __index = baseEnv })
+
+	setfenv(chunk, roomEnv)
+	local RoomService = chunk()
+
+	local function resumeStartRun(plr: FakePlayer, succeed: boolean?)
+		local co = suspendedStarts[plr]
+		assert(co ~= nil, "No suspended StartRun for player " .. plr.Name)
+		local ok, coErr = coroutine.resume(co, if succeed == nil then true else succeed)
+		if not ok then
+			error(tostring(coErr))
+		end
+	end
+
+	local function removePlayer(plr: FakePlayer)
+		onlinePlayers[plr.UserId] = nil
+		for _, fn in playerRemovingListeners do
+			fn(plr)
+		end
+		if activeRuns[plr] ~= nil then
+			activeRuns[plr] = nil
+		end
+	end
+
+	return {
+		RoomService = RoomService,
+		makePlayer = makePlayer,
+		setFriends = setFriends,
+		advanceClock = advanceClock,
+		removePlayer = removePlayer,
+		resumeStartRun = resumeStartRun,
+		RunService = RunServiceStub,
+		RunEvents = RunEventsStub,
+		playerData = playerData,
+		activeRuns = activeRuns,
+		startRunBehavior = startRunBehavior,
+		suspendedStarts = suspendedStarts,
+		lastRoomState = lastRoomState,
+		lastRoomList = lastRoomList,
+		notifications = notifications,
+		invites = invites,
+		getStats = function()
+			return {
+				acquireCalls = acquireCalls,
+				releaseCalls = releaseCalls,
+				releasedCount = #releasedInstances,
+				npcSetupCalls = npcSetupCalls,
+				npcRemoveCalls = npcRemoveCalls,
+			}
+		end,
+	}
+end
+
+runTest("RoomService_ThreeMembers_Join_Ready_Start_Countdown_And_Run", function()
+	local h = newRoomHarness()
+	local p1 = h.makePlayer(101, "Alice")
+	local p2 = h.makePlayer(102, "Bob")
+	local p3 = h.makePlayer(103, "Charlie")
+
+	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	local state1 = h.lastRoomState[p1]
+	expect(state1 ~= nil and state1.InRoom == true, "Host should be in room")
+	local roomId = state1.Id
+
+	h.RoomService.JoinRoom(p2, roomId)
+	h.RoomService.JoinRoom(p3, roomId)
+	expect(#h.lastRoomState[p1].Members == 3, "Room should have 3 members")
+
+	h.RoomService.StartRoom(p1)
+	expect(h.lastRoomState[p1].Status == "Waiting", "Cannot start before non-host members are ready")
+	expect(
+		#h.notifications[p1] == 1 and h.notifications[p1][1].text == MessageConfig.RoomReadyNeeded,
+		"Host notified RoomReadyNeeded"
+	)
+
+	h.RoomService.SetReady(p2, true)
+	h.RoomService.SetReady(p3, true)
+	h.RoomService.StartRoom(p1)
+	expect(h.lastRoomState[p1].Status == "Countdown", "Room enters Countdown once all ready")
+	expect(h.lastRoomState[p2].Status == "Countdown", "Member 2 sees Countdown")
+	expect(h.lastRoomState[p3].Status == "Countdown", "Member 3 sees Countdown")
+
+	h.advanceClock(RoomConfig.StartCountdown - 0.1)
+	expect(h.lastRoomState[p1].Status == "Countdown", "Still in Countdown before timer elapses")
+	expect(h.getStats().acquireCalls == 0, "Map not acquired before countdown ends")
+
+	h.advanceClock(0.2)
+	expect(h.lastRoomState[p1].Status == "Running", "Room transitions to Running after countdown")
+	expect(h.getStats().acquireCalls == 1, "MapInstanceService.Acquire called once")
+	expect(h.getStats().npcSetupCalls == 1, "NpcService.SetupInstance called once")
+	expect(h.RunService.IsPlayerInRun(p1), "p1 is in run")
+	expect(h.RunService.IsPlayerInRun(p2), "p2 is in run")
+	expect(h.RunService.IsPlayerInRun(p3), "p3 is in run")
+end)
+
+runTest("RoomService_HostLeavesDuringCountdown_RevertsToWaiting_And_TransfersHost", function()
+	local h = newRoomHarness()
+	local p1 = h.makePlayer(201, "Host1")
+	local p2 = h.makePlayer(202, "Member2")
+	local p3 = h.makePlayer(203, "Member3")
+
+	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	local roomId = h.lastRoomState[p1].Id
+	h.RoomService.JoinRoom(p2, roomId)
+	h.RoomService.JoinRoom(p3, roomId)
+	h.RoomService.SetReady(p2, true)
+	h.RoomService.SetReady(p3, true)
+	h.RoomService.StartRoom(p1)
+	expect(h.lastRoomState[p1].Status == "Countdown", "Room in Countdown")
+
+	h.advanceClock(1.0)
+	h.RoomService.LeaveRoom(p1)
+
+	expect(h.lastRoomState[p1].InRoom == false, "Leaving host receives emptyState")
+	local state2 = h.lastRoomState[p2]
+	expect(
+		state2.InRoom == true and state2.Status == "Waiting",
+		"Room reverts to Waiting when host leaves during Countdown"
+	)
+	expect(state2.HostId == p2.UserId, "Host transfers to next member in order (p2)")
+	expect(state2.StartsAt == 0, "StartsAt reset to 0")
+	expect(#state2.Members == 2, "2 members remain")
+	expect(state2.Members[1].UserId == p2.UserId and state2.Members[1].Ready == true, "New host is Ready")
+	expect(
+		state2.Members[2].UserId == p3.UserId and state2.Members[2].Ready == false,
+		"Remaining non-host Ready flag is reset to false"
+	)
+
+	h.advanceClock(RoomConfig.StartCountdown + 5)
+	expect(h.lastRoomState[p2].Status == "Waiting", "Cancelled countdown timer does not start run")
+	expect(h.getStats().acquireCalls == 0, "No map acquired after cancelled countdown")
+end)
+
+runTest("RoomService_KickMember_And_BlockRejoin", function()
+	local h = newRoomHarness()
+	local p1 = h.makePlayer(301, "Host")
+	local p2 = h.makePlayer(302, "KickedGuy")
+
+	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	local roomId = h.lastRoomState[p1].Id
+	h.RoomService.JoinRoom(p2, roomId)
+	expect(#h.lastRoomState[p1].Members == 2, "p2 joined")
+
+	h.RoomService.KickMember(p1, p2.UserId)
+	expect(h.lastRoomState[p2].InRoom == false, "Kicked player removed from room")
+	expect(
+		#h.notifications[p2] == 1 and h.notifications[p2][1].text == MessageConfig.RoomKicked,
+		"Kicked player notified"
+	)
+	expect(#h.lastRoomState[p1].Members == 1, "Only host remains")
+
+	h.RoomService.JoinRoom(p2, roomId)
+	expect(h.lastRoomState[p2].InRoom == false, "Kicked player blocked from rejoining before KickBlockTime")
+	expect(
+		h.notifications[p2][#h.notifications[p2]].text == MessageConfig.RoomJoinBlocked,
+		"Blocked join notifies RoomJoinBlocked"
+	)
+
+	h.advanceClock(RoomConfig.KickBlockTime + 1)
+	h.RoomService.JoinRoom(p2, roomId)
+	expect(h.lastRoomState[p2].InRoom == true, "Kicked player can rejoin after KickBlockTime expires")
+end)
+
+runTest("RoomService_FriendsOnly_RejectsStranger_AllowsFriend", function()
+	local h = newRoomHarness()
+	local host = h.makePlayer(401, "Host")
+	local stranger = h.makePlayer(402, "Stranger")
+	local friend = h.makePlayer(403, "Friend")
+	h.setFriends(host, friend, true)
+
+	h.RoomService.CreateRoom(host, "Zone1", "Classic", 4, true)
+	local roomId = h.lastRoomState[host].Id
+
+	h.RoomService.WatchRooms(stranger, true)
+	expect(#h.lastRoomList[stranger] == 0, "Friends-only room hidden from stranger in RoomList")
+
+	h.RoomService.WatchRooms(friend, true)
+	expect(
+		#h.lastRoomList[friend] == 1 and h.lastRoomList[friend][1].Id == roomId,
+		"Friends-only room visible to friend in RoomList"
+	)
+	expect(h.lastRoomList[friend][1].HostIsFriend == true, "HostIsFriend is true for friend")
+
+	h.RoomService.JoinRoom(stranger, roomId)
+	expect(
+		h.lastRoomState[stranger] == nil or h.lastRoomState[stranger].InRoom == false,
+		"Stranger cannot join friends-only room"
+	)
+	expect(
+		h.notifications[stranger][#h.notifications[stranger]].text == MessageConfig.RoomFriendsOnly,
+		"Stranger notified RoomFriendsOnly"
+	)
+
+	h.RoomService.JoinRoom(friend, roomId)
+	expect(
+		h.lastRoomState[friend].InRoom == true and h.lastRoomState[friend].Id == roomId,
+		"Friend can join friends-only room"
+	)
+end)
+
+runTest("RoomService_FullRoom_RejectsExtraJoin", function()
+	local h = newRoomHarness()
+	local p1 = h.makePlayer(501, "P1")
+	local p2 = h.makePlayer(502, "P2")
+	local p3 = h.makePlayer(503, "P3")
+
+	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 2, false)
+	local roomId = h.lastRoomState[p1].Id
+	h.RoomService.JoinRoom(p2, roomId)
+	expect(#h.lastRoomState[p1].Members == 2, "Room at capacity 2/2")
+
+	h.RoomService.WatchRooms(p3, true)
+	expect(#h.lastRoomList[p3] == 0, "Full room is hidden from RoomList")
+
+	h.RoomService.JoinRoom(p3, roomId)
+	expect(h.lastRoomState[p3] == nil or h.lastRoomState[p3].InRoom == false, "3rd player rejected from 2-player room")
+	expect(h.notifications[p3][#h.notifications[p3]].text == MessageConfig.RoomFull, "3rd player notified RoomFull")
+end)
+
+runTest("RoomService_StartRunFailsForOneMember_OthersContinueAndReleaseOnce", function()
+	local h = newRoomHarness()
+	local p1 = h.makePlayer(601, "P1")
+	local p2 = h.makePlayer(602, "P2_Fails")
+	local p3 = h.makePlayer(603, "P3")
+	h.startRunBehavior[p2] = "fail"
+
+	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	local roomId = h.lastRoomState[p1].Id
+	h.RoomService.JoinRoom(p2, roomId)
+	h.RoomService.JoinRoom(p3, roomId)
+	h.RoomService.SetReady(p2, true)
+	h.RoomService.SetReady(p3, true)
+	h.RoomService.StartRoom(p1)
+	h.advanceClock(RoomConfig.StartCountdown + 0.1)
+
+	expect(h.lastRoomState[p2].InRoom == false, "Failed member detached and sent emptyState")
+	expect(
+		h.notifications[p2][#h.notifications[p2]].text == MessageConfig.RoomRunFailed,
+		"Failed member notified RoomRunFailed"
+	)
+	expect(h.RunService.IsPlayerInRun(p1) and h.RunService.IsPlayerInRun(p3), "p1 and p3 are running")
+	expect(h.lastRoomState[p1].InRoom == true and #h.lastRoomState[p1].Members == 2, "p1 and p3 remain in room")
+	expect(h.getStats().releaseCalls == 0, "Map not released while p1 and p3 run")
+
+	h.RunService.EndRun(p1, true)
+	h.advanceClock(RoomConfig.EmptyRoomGrace + 1)
+	expect(h.getStats().releaseCalls == 0, "Map still not released while p3 runs")
+
+	h.RunService.EndRun(p3, true)
+	h.advanceClock(RoomConfig.EmptyRoomGrace + 1)
+	expect(h.getStats().releaseCalls == 1, "Map released exactly once after p3 finishes")
+end)
+
+runTest("RoomService_MemberLeavesWhileStartRunYielding", function()
+	local h = newRoomHarness()
+	local p1 = h.makePlayer(701, "P1")
+	local p2 = h.makePlayer(702, "P2_LeavesWhileYielding")
+	local p3 = h.makePlayer(703, "P3")
+	h.startRunBehavior[p2] = "yield_ok"
+
+	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	local roomId = h.lastRoomState[p1].Id
+	h.RoomService.JoinRoom(p2, roomId)
+	h.RoomService.JoinRoom(p3, roomId)
+	h.RoomService.SetReady(p2, true)
+	h.RoomService.SetReady(p3, true)
+	h.RoomService.StartRoom(p1)
+	h.advanceClock(RoomConfig.StartCountdown + 0.1)
+
+	expect(h.suspendedStarts[p2] ~= nil, "p2 StartRun is yielding")
+	expect(h.RunService.IsPlayerInRun(p1) and h.RunService.IsPlayerInRun(p3), "p1 and p3 already started")
+
+	h.RoomService.LeaveRoom(p2)
+	expect(h.lastRoomState[p2].InRoom == false, "p2 left room while StartRun was yielding")
+
+	h.resumeStartRun(p2, true)
+	expect(not h.RunService.IsPlayerInRun(p2), "p2 run immediately ended when StartRun returned true after leaving")
+	expect(h.RunService.IsPlayerInRun(p1) and h.RunService.IsPlayerInRun(p3), "p1 and p3 unaffected")
+
+	h.RunService.EndRun(p1, false)
+	h.RunService.EndRun(p3, false)
+	h.advanceClock(RoomConfig.EmptyRoomGrace + 1)
+	expect(h.getStats().releaseCalls == 1, "Map released exactly once after remaining members finish")
+end)
+
+runTest("RoomService_EarlyFinishReturnsToLobby_LastFinishReleasesMapOnce", function()
+	local h = newRoomHarness()
+	local p1 = h.makePlayer(801, "Host")
+	local p2 = h.makePlayer(802, "FastRunner")
+	local p3 = h.makePlayer(803, "SlowRunner")
+
+	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	local roomId = h.lastRoomState[p1].Id
+	h.RoomService.JoinRoom(p2, roomId)
+	h.RoomService.JoinRoom(p3, roomId)
+	h.RoomService.SetReady(p2, true)
+	h.RoomService.SetReady(p3, true)
+	h.RoomService.StartRoom(p1)
+	h.advanceClock(RoomConfig.StartCountdown + 0.1)
+
+	h.RunService.EndRun(p2, true)
+	expect(h.lastRoomState[p2].InRoom == false, "First finisher (p2) detached from room")
+	expect(h.lastRoomState[p1].InRoom == true and h.lastRoomState[p1].Status == "Running", "p1 still in Running room")
+	expect(h.lastRoomState[p3].InRoom == true and h.lastRoomState[p3].Status == "Running", "p3 still in Running room")
+	expect(#h.lastRoomState[p1].Members == 2, "2 members remain in room")
+	h.advanceClock(RoomConfig.EmptyRoomGrace + 1)
+	expect(
+		h.getStats().releaseCalls == 0 and h.getStats().npcRemoveCalls == 0,
+		"Map and NPCs kept alive while p1 and p3 play"
+	)
+
+	h.RunService.EndRun(p1, true)
+	expect(h.lastRoomState[p1].InRoom == false, "Second finisher (host p1) detached from room")
+	expect(
+		h.lastRoomState[p3].InRoom == true and h.lastRoomState[p3].HostId == p3.UserId,
+		"p3 becomes host and keeps playing"
+	)
+	h.advanceClock(RoomConfig.EmptyRoomGrace + 1)
+	expect(h.getStats().releaseCalls == 0, "Map still kept alive for last runner p3")
+
+	h.RunService.EndRun(p3, true)
+	expect(h.lastRoomState[p3].InRoom == false, "Last finisher (p3) detached from room")
+	expect(h.getStats().npcRemoveCalls == 1, "NpcService.RemoveInstance called immediately when last run ends")
+	expect(h.getStats().releaseCalls == 0, "MapInstanceService.Release waits for EmptyRoomGrace")
+
+	h.advanceClock(RoomConfig.EmptyRoomGrace + 0.1)
+	expect(h.getStats().releaseCalls == 1, "MapInstanceService.Release called exactly once after EmptyRoomGrace")
+end)
+
+runTest("RoomService_PlayerRemoving_AllStates", function()
+	local h = newRoomHarness()
+
+	local w1 = h.makePlayer(901, "WaitHost")
+	local w2 = h.makePlayer(902, "WaitGuest")
+	h.RoomService.CreateRoom(w1, "Zone1", "Classic", 4, false)
+	local waitRoomId = h.lastRoomState[w1].Id
+	h.RoomService.JoinRoom(w2, waitRoomId)
+	h.removePlayer(w1)
+	expect(
+		h.lastRoomState[w2].InRoom == true and h.lastRoomState[w2].HostId == w2.UserId,
+		"Waiting: host PlayerRemoving transfers host to w2"
+	)
+	h.removePlayer(w2)
+
+	local c1 = h.makePlayer(903, "CountHost")
+	local c2 = h.makePlayer(904, "CountGuest")
+	h.RoomService.CreateRoom(c1, "Zone1", "Classic", 4, false)
+	local countRoomId = h.lastRoomState[c1].Id
+	h.RoomService.JoinRoom(c2, countRoomId)
+	h.RoomService.SetReady(c2, true)
+	h.RoomService.StartRoom(c1)
+	expect(h.lastRoomState[c1].Status == "Countdown", "Room in Countdown")
+	h.removePlayer(c1)
+	expect(
+		h.lastRoomState[c2].Status == "Waiting" and h.lastRoomState[c2].HostId == c2.UserId,
+		"Countdown: host PlayerRemoving reverts to Waiting and transfers host"
+	)
+	h.removePlayer(c2)
+
+	local r1 = h.makePlayer(905, "RunHost")
+	local r2 = h.makePlayer(906, "RunGuest")
+	h.RoomService.CreateRoom(r1, "Zone1", "Classic", 4, false)
+	local runRoomId = h.lastRoomState[r1].Id
+	h.RoomService.JoinRoom(r2, runRoomId)
+	h.RoomService.SetReady(r2, true)
+	h.RoomService.StartRoom(r1)
+	h.advanceClock(RoomConfig.StartCountdown + 0.1)
+	expect(h.lastRoomState[r1].Status == "Running", "Room in Running")
+
+	h.removePlayer(r1)
+	expect(
+		h.lastRoomState[r2].InRoom == true and h.lastRoomState[r2].Status == "Running",
+		"Running: r1 PlayerRemoving leaves r2 running"
+	)
+	h.advanceClock(RoomConfig.EmptyRoomGrace + 1)
+	expect(h.getStats().releaseCalls == 0, "Map not released while r2 still running")
+
+	h.removePlayer(r2)
+	expect(h.getStats().npcRemoveCalls == 1, "NPCs removed when last running player leaves")
+	h.advanceClock(RoomConfig.EmptyRoomGrace + 0.1)
+	expect(h.getStats().releaseCalls == 1, "Map released exactly once after last running player leaves")
 end)
 
 print(string.format("TESTS SUMMARY: %d / %d passed", passedTests, totalTests))

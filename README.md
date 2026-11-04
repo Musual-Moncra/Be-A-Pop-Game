@@ -109,9 +109,9 @@ Khi Play trong Studio, Output in `[ContentCheck] N problems, M notes`. `problems
 ### Kiểm tra tĩnh
 
 ```bash
-selene src          # 0 errors
+selene src          # 0 errors, 0 warnings
 rojo build -o /tmp/bap.rbxlx
-tools/tests/run.sh  # 45 ca config + công thức + hitbox, 69 ca lifecycle phòng: đều đạt
+tools/tests/run.sh  # 54 ca config + công thức + hitbox + phòng, 69 ca lifecycle phòng: đều đạt
 ```
 
 Test phòng chạy `RoomService` thật với người chơi giả và service giả: vào phòng, ready, đếm ngược, host rời, kick, chỉ bạn bè, phòng đầy, khởi động thất bại, rời trong lúc streaming, người chơi thoát game ở mọi trạng thái, map được giải phóng đúng một lần. Test này không thay thế được việc chơi thử nhiều người thật.

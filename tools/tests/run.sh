@@ -26,5 +26,7 @@ for name in ConfigLookup Hitbox; do
 	ARGS+=("Shared.$name" "$(cat "$file")")
 done
 
+ARGS+=("ServerServices.RoomService" "$(cat "$ROOT_DIR/src/serverstorage/Modules/Services/RoomService.lua")")
+
 "$LUAU_BIN" "$ROOT_DIR/tools/tests/suite.lua" -a "${ARGS[@]}"
 python3 "$ROOT_DIR/tools/tests/run_rooms.py"
