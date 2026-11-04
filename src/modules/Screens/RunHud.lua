@@ -54,7 +54,7 @@ local function panel(props: any, children: any)
 	}, merged)
 end
 
-local function ScorePanel(props: any)
+local function TimerPanel(props: any)
 	local data = props.data
 	local layout = props.layout
 	local maxTimeRef = React.useRef(0)
@@ -64,6 +64,25 @@ local function ScorePanel(props: any)
 	end
 	local ratio = if timed and maxTimeRef.current > 0 then data.TimeLeft / maxTimeRef.current else 1
 	local low = timed and ratio <= Animation.LowTimeRatio
+
+	return panel({
+		AnchorPoint = props.layout.AnchorPoint,
+		AutomaticSize = Enum.AutomaticSize.Y,
+		Position = props.layout.Position,
+		Size = UDim2.fromOffset(Sizes.TimerWidth, 0),
+	}, {
+		Timer = e(Bar, {
+			ratio = ratio,
+			size = UDim2.new(1, 0, 0, Sizes.TimerBarHeight),
+			swatch = if not timed then "Blue" elseif low then "Red" else "Green",
+			text = if timed then string.format(Text.TimerFormat, math.max(0, data.TimeLeft)) else Text.Untimed,
+		}),
+	})
+end
+
+local function ScorePanel(props: any)
+	local data = props.data
+	local layout = props.layout
 
 	local mode = ConfigLookup.GetMode(data.ModeId)
 	local target = if mode ~= nil then mode.TargetScore else 0
@@ -84,13 +103,6 @@ local function ScorePanel(props: any)
 			Size = UDim2.new(1, 0, 0, TextSizes.Huge),
 			Text = Format.commas(data.Score),
 			TextSize = TextSizes.Huge,
-		}),
-		Timer = e(Bar, {
-			layoutOrder = 3,
-			ratio = ratio,
-			size = UDim2.new(1, 0, 0, Sizes.TimerBarHeight),
-			swatch = if not timed then "Blue" elseif low then "Red" else "Green",
-			text = if timed then string.format(Text.TimerFormat, math.max(0, data.TimeLeft)) else Text.Untimed,
 		}),
 	}
 	if target > 0 then
@@ -290,6 +302,7 @@ return function(props: any)
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
 	}, {
+		Timer = e(TimerPanel, { data = data, layout = layouts.RunTimer }),
 		Score = e(ScorePanel, { data = data, layout = scoreLayout }),
 		Quests = e(QuestPanel, { layout = questLayout, quests = data.Quests }),
 		Powerups = e(PowerupSlots, { layout = layouts.RunPowerups, powerups = data.Powerups }),

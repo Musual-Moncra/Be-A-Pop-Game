@@ -15,12 +15,12 @@
 	("GemPack", "CoinPack", "Revive", "StainBomb", "NewbiePack"); a handler returns true once
 	the reward is delivered.
 
-	Revive: RunService fires RunEvents.TimeUp when a timed run hits zero and keeps the run
-	alive MonetizationConfig.ReviveWindow seconds. This service answers with Outbound.ReviveOffer
+	Revive: RunService fires RunEvents.TimeUp when a timed run has ReviveOfferAt seconds left and
+	keeps the offer open MonetizationConfig.ReviveWindow seconds. This service answers with Outbound.ReviveOffer
 	(product id, tier index, seconds). A revive receipt fires RunEvents.ReviveActivated so
 	RunService adds ReviveSeconds and closes the window. Every revive inside one run moves to
 	the next, more expensive tier; the last tier repeats. A revive bought outside a run becomes
-	credit that is spent on the next time-up instead of being lost.
+	credit that is spent on the next offer instead of being lost.
 
 	API:
 		MonetizationService.HasPass(plr, passKey) -> boolean

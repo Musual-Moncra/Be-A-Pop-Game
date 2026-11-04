@@ -130,8 +130,9 @@
 		Upgrade.LevelBarHeight: height of the level bar
 		Stats.Width / Stats.Height: stats window size
 		Stats.RowHeight: height of a stat row
-		Run.ScoreWidth: width of the score panel
-		Run.TimerBarHeight: timer bar height
+		Run.ScoreWidth: width of the score panel (top right)
+		Run.TimerWidth: width of the lifespan panel (top centre)
+		Run.TimerBarHeight: lifespan bar height
 		Run.TargetBarHeight: height of target, quest and power-up bars
 		Run.QuestWidth: width of the quest panel
 		Run.QuestRowHeight: height of a quest row
@@ -150,7 +151,7 @@
 
 	Layouts.PC / Layouts.Mobile: where the big pieces sit. Each entry has AnchorPoint (fraction of its
 		own size) and Position (scale of the screen + design-pixel offset):
-		Wallet (level and currency), Toasts, RunScore, RunQuests, RunPowerups, RunLeave, Popups,
+		Wallet (level and currency), Toasts, RunTimer, RunScore, RunQuests, RunPowerups, RunLeave, Popups,
 		RoomPills (room and invite prompts).
 		WindowMargin: gap kept between a window and the screen edge (design pixels)
 
@@ -479,8 +480,9 @@ return {
 			RowHeight = 62,
 		},
 		Run = {
-			ScoreWidth = 420,
-			TimerBarHeight = 30,
+			ScoreWidth = 300,
+			TimerWidth = 340,
+			TimerBarHeight = 44,
 			TargetBarHeight = 20,
 			QuestWidth = 360,
 			QuestRowHeight = 62,
@@ -489,7 +491,7 @@ return {
 			LeaveHeight = 64,
 			NarrowWidth = 1150,
 			NarrowScoreTop = 10,
-			NarrowQuestTop = 250,
+			NarrowQuestTop = 190,
 		},
 		Result = {
 			Width = 620,
@@ -513,8 +515,9 @@ return {
 		PC = {
 			Wallet = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 24) },
 			Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 24) },
-			RunScore = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 20) },
-			RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 24) },
+			RunTimer = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 20) },
+			RunScore = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 20) },
+			RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 200) },
 			RunPowerups = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 330) },
 			RunLeave = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -28, 1, -28) },
 			Popups = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 200) },
@@ -524,8 +527,9 @@ return {
 		Mobile = {
 			Wallet = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 12) },
 			Toasts = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 12) },
-			RunScore = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10) },
-			RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 12) },
+			RunTimer = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10) },
+			RunScore = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 10) },
+			RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 190) },
 			RunPowerups = { AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 16, 1, -16) },
 			RunLeave = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -16) },
 			Popups = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 180) },

@@ -370,19 +370,22 @@ local function stepRun(run: ActiveRun, dt: number)
 		Outbound.RunState(plr, GameConfig.RunStates.Running, reportedTime, run.score)
 	end
 
-	local timedOut = (run.hasTimer and run.timeLeft <= 0)
-		or (not run.hasTimer and modeDef.MaxDuration > 0 and run.elapsedTime >= modeDef.MaxDuration)
-	if timedOut and run.hasTimer and reviveEnabled and run.reviveDeadline == 0 then
+	if run.reviveDeadline > 0 and run.timeLeft > MonetizationConfig.ReviveOfferAt then
+		run.reviveDeadline = 0
+	end
+	if
+		run.hasTimer
+		and reviveEnabled
+		and run.reviveDeadline == 0
+		and run.timeLeft <= MonetizationConfig.ReviveOfferAt
+	then
 		run.reviveDeadline = run.elapsedTime + MonetizationConfig.ReviveWindow
 		RunEvents.TimeUp:Fire(plr)
 	end
-	if run.reviveDeadline > 0 then
-		if run.elapsedTime >= run.reviveDeadline then
-			RunService.EndRun(plr, true)
-		end
-		return
-	end
-	if timedOut then
+
+	local timedOut = (run.hasTimer and run.timeLeft <= 0)
+		or (not run.hasTimer and modeDef.MaxDuration > 0 and run.elapsedTime >= modeDef.MaxDuration)
+	if timedOut and (run.reviveDeadline == 0 or run.elapsedTime >= run.reviveDeadline) then
 		RunService.EndRun(plr, true)
 	end
 end

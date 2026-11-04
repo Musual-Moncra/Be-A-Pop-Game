@@ -13,7 +13,7 @@
 		RunEvents.PowerupEaten(plr, powerupId)
 		RunEvents.TimeBonus(plr, seconds)
 		RunEvents.RunEnded(plr, summary)
-		RunEvents.TimeUp(plr)                       run timer reached zero, revive window opens
+		RunEvents.TimeUp(plr)                       lifespan is low, the revive offer opens
 		RunEvents.ReviveActivated(plr, seconds)     revive bought, add lifespan and close the window
 		RunEvents.StainBomb(plr)                    soil every prop near the player
 		RunEvents.TargetSoiled(plr, mapId, objectType)   a target's hidden stain meter reached 100%

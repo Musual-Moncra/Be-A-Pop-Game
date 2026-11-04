@@ -11,7 +11,8 @@
 	products, because receipts are matched by id alone.
 
 	Fields:
-		ReviveWindow: how long a timed-out run is kept alive while the revive offer is open (seconds)
+		ReviveOfferAt: lifespan left when the revive popup appears (seconds)
+		ReviveWindow: how long the revive offer stays open; a run at zero is kept alive until it closes (seconds)
 		ReviveSeconds: lifespan added to the run when a revive is bought (seconds)
 		StainBombRadius: soils every prop within this distance of the poop, 3x the Mini Bomb
 			perk radius of 25 studs (studs)
@@ -68,6 +69,8 @@
 ]]
 
 return {
+	ReviveOfferAt = 5,
+
 	ReviveWindow = 8,
 
 	ReviveSeconds = 20,
