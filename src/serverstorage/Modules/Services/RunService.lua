@@ -11,15 +11,19 @@
 	are bound in Remotes.RunRemotes.
 
 	API:
-		RunService.StartRun(plr: Player): boolean
+		RunService.StartRun(plr: Player, instance: MapInstance, modeDef: ModeDefinition): boolean
 		RunService.EndRun(plr: Player, outOfTime: boolean)
 		RunService.IsPlayerInRun(plr: Player): boolean
 		RunService.GetRun(plr: Player): ActiveRun?
 
+	A run always plays in the map copy a room acquired from MapInstanceService: spawn and every
+	authored map position are shifted by instance.offset. The spawn region is requested from
+	streaming before the character is moved, so the client never lands on a missing floor.
+
 	Dependencies:
-		DataService, UpgradeService, MapService, PowerupService, PotionService, QuestService, MonetizationService,
+		DataService, UpgradeService, PowerupService, PotionService, QuestService, MonetizationService,
 		EventService, PetService, GoldenTargetService, RebirthService, NpcService, RunEvents, Outbound, ConfigLookup, GameConfig,
-		MapConfig, ModeConfig, ObjectConfig, MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
+		ObjectConfig, MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
 ]]
 
 local Players = game:GetService("Players")
@@ -31,7 +35,6 @@ local Heartbeat = game:GetService("RunService").Heartbeat
 local Services = ServerStorage.Modules.Services
 local DataService = require(Services.DataService)
 local UpgradeService = require(Services.UpgradeService)
-local MapService = require(Services.MapService)
 local PetService = require(Services.PetService)
 local PowerupService = require(Services.PowerupService)
 local PotionService = require(Services.PotionService)
@@ -46,21 +49,26 @@ local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataConfig = require(ServerStorage.Modules.Config.DataConfig)
 
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
-local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
-local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
 local MonetizationConfig = require(ReplicatedStorage.Modules.Config.MonetizationConfig)
 local ObjectConfig = require(ReplicatedStorage.Modules.Config.ObjectConfig)
 local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local Trove = require(ReplicatedStorage.Packages.Trove)
 
+export type MapInstance = {
+	model: Model,
+	mapDef: ConfigLookup.MapDefinition,
+	offset: Vector3,
+	slot: number,
+}
+
 export type ActiveRun = {
 	player: Player,
 	trove: any,
 	mapDef: ConfigLookup.MapDefinition,
 	modeDef: ConfigLookup.ModeDefinition,
-	mapModel: Model?,
+	mapModel: Model,
 	propsFolder: Instance?,
 	rayParams: RaycastParams,
 	hasTimer: boolean,
@@ -225,7 +233,7 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, 
 		Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
 		RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 		RunEvents.TargetSoiled:Fire(run.player, run.mapDef.Id, objectType)
-		NpcService.Panic(run.mapDef.Id, run.player, objectModel:GetPivot().Position)
+		NpcService.Panic(run.mapModel, run.player, objectModel:GetPivot().Position)
 		run.score += GoldenTargetService.Soil(run.player, objectModel, objectDef)
 	end
 end
@@ -250,7 +258,7 @@ local function soilObject(run: ActiveRun, objectModel: Model)
 	Outbound.ObjectSoiled(run.player, objectModel, objectDef.SoilBonus)
 	RunEvents.ObjectSoiled:Fire(run.player, objectType, objectDef.SoilBonus)
 	RunEvents.TargetSoiled:Fire(run.player, run.mapDef.Id, objectType)
-	NpcService.Panic(run.mapDef.Id, run.player, objectModel:GetPivot().Position)
+	NpcService.Panic(run.mapModel, run.player, objectModel:GetPivot().Position)
 	run.score += GoldenTargetService.Soil(run.player, objectModel, objectDef)
 end
 
@@ -479,6 +487,7 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 	if plr.Parent == Players and character ~= nil then
 		local hum = character:FindFirstChildOfClass("Humanoid")
 		if hum ~= nil and hum.Health > 0 then
+			pcall(plr.RequestStreamAroundAsync, plr, GameConfig.LobbySpawn)
 			character:PivotTo(CFrame.new(GameConfig.LobbySpawn))
 		end
 		UpgradeService.ApplyStats(plr, character)
@@ -487,25 +496,19 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 	run.trove:Destroy()
 end
 
-local function resolveSelection(plr: Player): (ConfigLookup.MapDefinition?, ConfigLookup.ModeDefinition?)
-	local selection = MapService.GetSelection(plr)
-	local mapDef = ConfigLookup.GetMap(selection.mapId)
-	if mapDef == nil or not mapDef.Enabled or not DataService.IsMapUnlocked(plr, selection.mapId) then
-		mapDef = ConfigLookup.GetMap(MapConfig.DefaultMapId)
-	end
-	local modeDef = ConfigLookup.GetMode(selection.modeId) or ConfigLookup.GetMode(ModeConfig.DefaultModeId)
-	if mapDef == nil or not mapDef.Enabled then
-		return nil, nil
-	end
-	return mapDef, modeDef
-end
-
-function RunService.StartRun(plr: Player): boolean
+function RunService.StartRun(plr: Player, instance: MapInstance, modeDef: ConfigLookup.ModeDefinition): boolean
 	if activeRuns[plr] ~= nil then
 		return false
 	end
 	if DataService.Get(plr) == nil then
 		Outbound.Notify(plr, "Error", MessageConfig.DataLoading)
+		return false
+	end
+
+	local mapDef = instance.mapDef
+	local mapModel = instance.model
+	if mapModel.Parent == nil then
+		Outbound.Notify(plr, "Error", MessageConfig.RunUnavailable)
 		return false
 	end
 
@@ -518,17 +521,7 @@ function RunService.StartRun(plr: Player): boolean
 		return false
 	end
 
-	local mapDef, modeDef = resolveSelection(plr)
-	if mapDef == nil or modeDef == nil then
-		return false
-	end
-
-	local mapModel = Workspace:FindFirstChild(mapDef.ModelName)
-	if mapModel == nil or not mapModel:IsA("Model") then
-		Outbound.Notify(plr, "Error", MessageConfig.RunUnavailable)
-		return false
-	end
-
+	local spawn = mapDef.Spawn + instance.offset
 	local hasTimer = modeDef.Duration ~= -1
 	local potionLifespanMultiplier = PotionService.GetMultiplier(plr, "Lifespan")
 	local initialTimeLeft = if modeDef.Duration == 0
@@ -537,7 +530,11 @@ function RunService.StartRun(plr: Player): boolean
 		else modeDef.Duration * potionLifespanMultiplier
 
 	UpgradeService.ApplyStats(plr, character)
-	character:PivotTo(CFrame.new(mapDef.Spawn))
+	pcall(plr.RequestStreamAroundAsync, plr, spawn)
+	if plr.Parent ~= Players or character.Parent == nil then
+		return false
+	end
+	character:PivotTo(CFrame.new(spawn))
 
 	GoldenTargetService.StartRun(plr, mapModel)
 	local runTrove = Trove.new()
@@ -584,7 +581,7 @@ function RunService.StartRun(plr: Player): boolean
 	PowerupService.StartRun(plr, mapModel, modeDef)
 	QuestService.StartRun(plr, mapDef, modeDef)
 
-	RunEvents.RunStarted:Fire(plr, mapDef.Id, modeDef.Id)
+	RunEvents.RunStarted:Fire(plr, mapDef.Id, modeDef.Id, mapModel)
 	Outbound.RunState(plr, GameConfig.RunStates.Running, initialTimeLeft, 0)
 
 	runTrove:Connect(humanoid.Died, function()
@@ -625,7 +622,7 @@ local function setupPortal()
 			return
 		end
 		portalDebounce[player] = now
-		RunService.StartRun(player)
+		Outbound.OpenRoomMenu(player)
 	end)
 end
 
@@ -689,12 +686,6 @@ end)
 Workspace.ChildAdded:Connect(function(child)
 	if child.Name == "Lobby" then
 		task.spawn(setupPortal)
-		return
-	end
-	for _, mapDef in ConfigLookup.GetSortedMaps() do
-		if mapDef.Enabled and child.Name == mapDef.ModelName then
-			task.spawn(NpcService.SetupMap, mapDef)
-		end
 	end
 end)
 
@@ -711,10 +702,5 @@ Players.PlayerRemoving:Connect(function(plr)
 end)
 
 task.spawn(setupPortal)
-for _, mapDef in ConfigLookup.GetSortedMaps() do
-	if mapDef.Enabled then
-		task.spawn(NpcService.SetupMap, mapDef)
-	end
-end
 
 return RunService

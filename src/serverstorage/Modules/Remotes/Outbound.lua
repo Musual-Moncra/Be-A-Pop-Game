@@ -33,6 +33,10 @@
 		Outbound.PetInventory(plr, state)                coalesced, { Pets, Equipped, Slots }
 		Outbound.HatchResult(plr, petId, variantId)
 		Outbound.LeaderboardData(plr, period, entries)
+		Outbound.RoomState(plr, payload)                 the room this client is in
+		Outbound.RoomList(plr, rooms)                    joinable rooms, while watching
+		Outbound.RoomInvite(plr, roomId, hostName, mapId)
+		Outbound.OpenRoomMenu(plr)                       lobby portal touched
 
 	Dependencies: Net
 ]]
@@ -168,7 +172,13 @@ function Outbound.SpecialEvent(plr: Player, mapId: string, endsAt: number)
 	end
 end
 
-function Outbound.CosmeticState(plr: Player, equippedSkin: string, equippedTrail: string, ownedSkins: any, ownedTrails: any)
+function Outbound.CosmeticState(
+	plr: Player,
+	equippedSkin: string,
+	equippedTrail: string,
+	ownedSkins: any,
+	ownedTrails: any
+)
 	if connected(plr) then
 		Net.CosmeticState:FireClient(plr, equippedSkin, equippedTrail, ownedSkins, ownedTrails)
 	end
@@ -193,6 +203,30 @@ end
 function Outbound.LeaderboardData(plr: Player, period: string, entries: { any })
 	if connected(plr) then
 		Net.LeaderboardData:FireClient(plr, { Period = period, Entries = entries })
+	end
+end
+
+function Outbound.RoomState(plr: Player, payload: any)
+	if connected(plr) then
+		Net.RoomState:FireClient(plr, payload)
+	end
+end
+
+function Outbound.RoomList(plr: Player, rooms: { any })
+	if connected(plr) then
+		Net.RoomList:FireClient(plr, rooms)
+	end
+end
+
+function Outbound.RoomInvite(plr: Player, roomId: number, hostName: string, mapId: string)
+	if connected(plr) then
+		Net.RoomInvite:FireClient(plr, roomId, hostName, mapId)
+	end
+end
+
+function Outbound.OpenRoomMenu(plr: Player)
+	if connected(plr) then
+		Net.OpenRoomMenu:FireClient(plr)
 	end
 end
 

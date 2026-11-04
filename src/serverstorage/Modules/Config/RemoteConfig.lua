@@ -9,9 +9,16 @@
 			Net packet name; a call arriving sooner is dropped silently (seconds)
 			PurchaseUpgrade: buying an upgrade
 			UnlockMap: buying a map
-			SelectRun: choosing map and mode
-			StartRun: starting a run from the Play window
 			LeaveRun: leaving a run from the HUD
+			CreateRoom: opening a room
+			UpdateRoom: changing the map, mode or size of a waiting room
+			JoinRoom: joining a room from the browser or an invite
+			LeaveRoom: leaving the current room
+			SetRoomReady: toggling the ready flag
+			StartRoom: host pressing START
+			KickRoomMember: host kicking a member
+			InviteToRoom: host inviting a friend
+			WatchRooms: opening or closing the room browser
 			ClaimDaily: claiming the daily login reward
 			Rebirth: executing a rebirth
 			OpenCrate: opening a cosmetic crate
@@ -29,9 +36,16 @@ return {
 	RateLimits = {
 		PurchaseUpgrade = 0.2,
 		UnlockMap = 0.2,
-		SelectRun = 0.1,
-		StartRun = 0.5,
 		LeaveRun = 0.5,
+		CreateRoom = 0.5,
+		UpdateRoom = 0.5,
+		JoinRoom = 0.3,
+		LeaveRoom = 0.3,
+		SetRoomReady = 0.2,
+		StartRoom = 0.5,
+		KickRoomMember = 0.3,
+		InviteToRoom = 0.5,
+		WatchRooms = 0.2,
 		ClaimDaily = 1,
 		Rebirth = 0.5,
 		OpenCrate = 0.3,

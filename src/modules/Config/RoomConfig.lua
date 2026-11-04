@@ -20,6 +20,8 @@
 		SlotSpacing: distance between two room slots, keep above the streaming radius (studs)
 		SlotColumns: slots per row of the room grid (count)
 		MaxRooms: most rooms alive on one server (count)
+		MapFolderName: Workspace folder that holds the live map copies (string)
+		MapTag: CollectionService tag on every live map copy (string)
 ]]
 
 return {
@@ -41,4 +43,7 @@ return {
 	SlotSpacing = 3200,
 	SlotColumns = 8,
 	MaxRooms = 60,
+
+	MapFolderName = "Rooms",
+	MapTag = "RoomMap",
 }

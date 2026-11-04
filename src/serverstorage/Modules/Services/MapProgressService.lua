@@ -13,17 +13,17 @@
 		MapProgressService.GetBest(plr, mapId) -> number     best saved percent, 0..100
 		MapProgressService.GetTotal(mapId) -> number         total targets used for the percent
 
-	Dependencies: RunService, DataService, Outbound, RunEvents, EventConfig, MessageConfig,
-		ConfigLookup, GameConfig, Workspace
+	Dependencies: RunService, DataService, MapInstanceService, Outbound, RunEvents, EventConfig,
+		MessageConfig, ConfigLookup, GameConfig
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
 
 local RunServiceModule = require(script.Parent.RunService)
 local DataService = require(script.Parent.DataService)
+local MapInstanceService = require(script.Parent.MapInstanceService)
 local RunEvents = require(script.Parent.Parent.Shared.RunEvents)
 local Outbound = require(script.Parent.Parent.Remotes.Outbound)
 local EventConfig = require(ReplicatedStorage.Modules.Config.EventConfig)
@@ -45,7 +45,7 @@ local totals: { [string]: number } = {}
 local accumulator = 0
 
 local function computeTotal(mapDef: ConfigLookup.MapDefinition): number
-	local model = Workspace:FindFirstChild(mapDef.ModelName)
+	local model = MapInstanceService.GetTemplate(mapDef)
 	if model == nil then
 		return 0
 	end
@@ -140,11 +140,7 @@ local function awardCompletion(session: Session)
 	if gems > 0 then
 		DataService.AddGems(session.player, gems)
 	end
-	Outbound.Notify(
-		session.player,
-		"Success",
-		string.format(MessageConfig.MapComplete, mapDef.DisplayName, gems)
-	)
+	Outbound.Notify(session.player, "Success", string.format(MessageConfig.MapComplete, mapDef.DisplayName, gems))
 end
 
 local function update(session: Session)
