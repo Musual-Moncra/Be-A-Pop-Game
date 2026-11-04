@@ -3,14 +3,17 @@
 --[[
 	CosmeticService
 	Manages player cosmetics, crate opening, equipping skins/trails, and character visual attachments.
-	The first apply on a character saves each body tier's original Color/Material as BaseColor /
-	BaseMaterial attributes; the Default skin (or an unknown id) restores those, so leaving a skin
-	always brings back the original multi-tone poop.
+	The first apply on a character saves each body part's original Color/Material and
+	SurfaceAppearance.Color as BaseColor / BaseMaterial attributes; the Default skin (or an
+	unknown id) restores those, so leaving a skin always brings back the original poop texture.
+	Textured parts are tinted through SurfaceAppearance.Color because their ColorMap overrides
+	MeshPart.Color; untextured parts keep using Color.
 
 	API:
 		CosmeticService.OpenCrate(plr: Player, crateId: string): boolean
 		CosmeticService.Equip(plr: Player, kind: string, id: string): boolean
 		CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
+		CosmeticService.ApplySkin(character: Model, skinId: string)
 
 	Dependencies: DataService, Outbound, ConfigLookup, MessageConfig, CosmeticConfig
 ]]
@@ -194,6 +197,46 @@ function CosmeticService.Equip(plr: Player, kind: string, id: string): boolean
 	return false
 end
 
+function CosmeticService.ApplySkin(character: Model, skinId: string)
+	local skinDef = ConfigLookup.GetSkin(skinId) or ConfigLookup.GetSkin("Default")
+	if skinDef == nil then
+		return
+	end
+
+	local body = character:FindFirstChild("Body") or character
+	for _, partName in CosmeticConfig.BodyParts do
+		local part = body:FindFirstChild(partName) :: BasePart?
+		if part ~= nil and part:IsA("BasePart") then
+			if part:GetAttribute("BaseColor") == nil then
+				part:SetAttribute("BaseColor", part.Color)
+				part:SetAttribute("BaseMaterial", part.Material.Name)
+			end
+
+			local surface = part:FindFirstChildOfClass("SurfaceAppearance")
+			if surface ~= nil and surface:GetAttribute("BaseColor") == nil then
+				surface:SetAttribute("BaseColor", surface.Color)
+			end
+
+			if skinId == "Default" or ConfigLookup.GetSkin(skinId) == nil then
+				part.Color = part:GetAttribute("BaseColor")
+				part.Material = (Enum.Material :: any)[part:GetAttribute("BaseMaterial")]
+				if surface ~= nil then
+					local baseSurfaceColor = surface:GetAttribute("BaseColor") :: Color3?
+					if baseSurfaceColor ~= nil then
+						surface.Color = baseSurfaceColor
+					end
+				end
+			else
+				part.Color = skinDef.Color
+				part.Material = skinDef.Material
+				if surface ~= nil then
+					surface.Color = skinDef.Color
+				end
+			end
+		end
+	end
+end
+
 function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 	character = character or plr.Character
 	if character == nil then
@@ -206,27 +249,7 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 	end
 
 	local skinId = data.EquippedSkin or "Default"
-	local skinDef = ConfigLookup.GetSkin(skinId) or ConfigLookup.GetSkin("Default")
-
-	local body = character:FindFirstChild("Body")
-	if body ~= nil and skinDef ~= nil then
-		for _, partName in CosmeticConfig.BodyParts do
-			local part = body:FindFirstChild(partName) :: BasePart?
-			if part ~= nil and part:IsA("BasePart") then
-				if part:GetAttribute("BaseColor") == nil then
-					part:SetAttribute("BaseColor", part.Color)
-					part:SetAttribute("BaseMaterial", part.Material.Name)
-				end
-				if skinId == "Default" or ConfigLookup.GetSkin(skinId) == nil then
-					part.Color = part:GetAttribute("BaseColor")
-					part.Material = (Enum.Material :: any)[part:GetAttribute("BaseMaterial")]
-				else
-					part.Color = skinDef.Color
-					part.Material = skinDef.Material
-				end
-			end
-		end
-	end
+	CosmeticService.ApplySkin(character, skinId)
 
 	local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if hrp ~= nil and hrp:IsA("BasePart") then

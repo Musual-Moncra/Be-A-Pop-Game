@@ -61,9 +61,9 @@ MapConfig.Maps = {
 	{
 		Id = "Zone3",
 		DisplayName = "Park",
-		Description = "Open-air park with a carousel, slide, ice cream cart and joggers.",
-		ModelName = "Zone3",
-		Spawn = Vector3.new(1600, 5, 0),
+		Description = "Open-air park with a fountain, a statue, benches, trees and a golden toilet.",
+		ModelName = "Park",
+		Spawn = Vector3.new(1629.4, 20, -285.75),
 		Order = 3,
 		UnlockCost = 40000,
 		RequiredLevel = 15,

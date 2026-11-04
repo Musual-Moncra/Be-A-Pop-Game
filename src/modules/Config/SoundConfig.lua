@@ -4,16 +4,17 @@
 	SoundConfig
 	Every sound the client can play and the music track for each place. Pure data, no functions.
 
-	A SoundId of "" means the sound is not ready: SoundController skips it silently, so keys can
-	be listed before the audio library is uploaded. Upload a file, paste its rbxassetid:// or
-	rbxasset:// id and the same key starts playing.
+	An Asset of "" means the sound is not ready: SoundController skips it silently, so keys can
+	be listed before the audio library is uploaded. Upload a file, create its Sound template in
+	ReplicatedStorage.Assets.Sounds with the same name and the key starts playing.
 
 	Fields:
 		FolderName: name of the SoundService folder that holds live Sound instances (string)
 		MaxSoundLifetime: safety cleanup for a Sound whose Ended never fires because the asset
 			failed to load (seconds)
 		Sfx: one entry per sound effect, keyed by the name SoundController.Play takes
-			SoundId: asset id, "" = key is not ready and is skipped (asset id)
+			Asset: name of the Sound template in ReplicatedStorage.Assets.Sounds, "" = key is
+				not ready and is skipped (string)
 			Volume: playback volume, 0..1 (linear volume)
 			PitchMin: lowest random PlaybackSpeed a play can roll (playback speed)
 			PitchMax: highest random PlaybackSpeed a play can roll (playback speed)
@@ -38,7 +39,7 @@ SoundConfig.MaxSoundLifetime = 10
 
 SoundConfig.Sfx = {
 	Stain = {
-		SoundId = "rbxassetid://87295773843957",
+		Asset = "Stain",
 		Volume = 0.3,
 		PitchMin = 0.8,
 		PitchMax = 1.1,
@@ -46,7 +47,7 @@ SoundConfig.Sfx = {
 		Throttle = 0.09,
 	},
 	Soiled = {
-		SoundId = "rbxasset://sounds/snap.wav",
+		Asset = "Soiled",
 		Volume = 0.5,
 		PitchMin = 1,
 		PitchMax = 1.15,
@@ -54,7 +55,7 @@ SoundConfig.Sfx = {
 		Throttle = 0.05,
 	},
 	FoodEaten = {
-		SoundId = "rbxasset://sounds/switch3.wav",
+		Asset = "FoodEaten",
 		Volume = 0.45,
 		PitchMin = 0.95,
 		PitchMax = 1.15,
@@ -62,7 +63,7 @@ SoundConfig.Sfx = {
 		Throttle = 0.06,
 	},
 	NpcCaught = {
-		SoundId = "rbxasset://sounds/uuhhh.mp3",
+		Asset = "NpcCaught",
 		Volume = 0.55,
 		PitchMin = 1,
 		PitchMax = 1,
@@ -70,7 +71,7 @@ SoundConfig.Sfx = {
 		Throttle = 0.5,
 	},
 	RunStart = {
-		SoundId = "rbxasset://sounds/electronicpingshort.wav",
+		Asset = "RunStart",
 		Volume = 0.55,
 		PitchMin = 1,
 		PitchMax = 1.1,
@@ -78,7 +79,7 @@ SoundConfig.Sfx = {
 		Throttle = 1,
 	},
 	RunEnd = {
-		SoundId = "rbxasset://sounds/action_landing.mp3",
+		Asset = "RunEnd",
 		Volume = 0.5,
 		PitchMin = 1,
 		PitchMax = 1,
@@ -86,7 +87,7 @@ SoundConfig.Sfx = {
 		Throttle = 1,
 	},
 	LevelUp = {
-		SoundId = "",
+		Asset = "",
 		Volume = 0.6,
 		PitchMin = 1,
 		PitchMax = 1,
@@ -94,7 +95,7 @@ SoundConfig.Sfx = {
 		Throttle = 1,
 	},
 	CoinGain = {
-		SoundId = "rbxasset://sounds/electronicpingshort.wav",
+		Asset = "CoinGain",
 		Volume = 0.32,
 		PitchMin = 1.3,
 		PitchMax = 1.5,
@@ -102,7 +103,7 @@ SoundConfig.Sfx = {
 		Throttle = 0.25,
 	},
 	PurchaseSuccess = {
-		SoundId = "rbxasset://sounds/electronicpingshort.wav",
+		Asset = "PurchaseSuccess",
 		Volume = 0.5,
 		PitchMin = 1.1,
 		PitchMax = 1.2,
@@ -110,7 +111,7 @@ SoundConfig.Sfx = {
 		Throttle = 0.2,
 	},
 	PurchaseError = {
-		SoundId = "rbxasset://sounds/switch3.wav",
+		Asset = "PurchaseError",
 		Volume = 0.5,
 		PitchMin = 0.75,
 		PitchMax = 0.85,
@@ -118,7 +119,7 @@ SoundConfig.Sfx = {
 		Throttle = 0.2,
 	},
 	UIButton = {
-		SoundId = "rbxasset://sounds/electronicpingshort.wav",
+		Asset = "UIButton",
 		Volume = 0.35,
 		PitchMin = 0.95,
 		PitchMax = 1.05,

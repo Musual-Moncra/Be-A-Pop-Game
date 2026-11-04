@@ -42,6 +42,7 @@ ObjectConfig.Objects = {
 	Kiosk = { DisplayName = "Kiosk", PointsMultiplier = 3, StainsToSoil = 8, SoilBonus = 110 },
 	Escalator = { DisplayName = "Escalator", PointsMultiplier = 2, StainsToSoil = 16, SoilBonus = 150 },
 	Bench = { DisplayName = "Bench", PointsMultiplier = 2, StainsToSoil = 4, SoilBonus = 40 },
+	Toilet = { DisplayName = "Golden Toilet", PointsMultiplier = 5, StainsToSoil = 6, SoilBonus = 250 },
 	Fountain = { DisplayName = "Fountain", PointsMultiplier = 5, StainsToSoil = 10, SoilBonus = 250 },
 	Tree = { DisplayName = "Tree", PointsMultiplier = 2, StainsToSoil = 8, SoilBonus = 60 },
 	IceCreamCart = { DisplayName = "Ice Cream Cart", PointsMultiplier = 4, StainsToSoil = 6, SoilBonus = 160 },

@@ -186,11 +186,11 @@ local function getSurfaceGui(modelName: string): SurfaceGui?
 	if lobby == nil then
 		return nil
 	end
-	local boardModel = lobby:FindFirstChild(modelName)
+	local boardModel = lobby:FindFirstChild(modelName, true)
 	if boardModel == nil then
 		return nil
 	end
-	local board = boardModel:FindFirstChild("Board")
+	local board = boardModel:FindFirstChild("Board", true)
 	if board == nil then
 		return nil
 	end

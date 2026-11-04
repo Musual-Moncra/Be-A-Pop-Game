@@ -8,6 +8,9 @@
       },
       "Modules": {
         "$path": "src/modules"
+      },
+      "Assets": {
+        "$path": "src/assets"
       }
     },
     "ServerScriptService": {
@@ -57,9 +60,6 @@
             512
           ]
         }
-      },
-      "Lobby": {
-        "$path": "src/workspace/Lobby.model.json"
       },
       "Zone1": {
         "$path": "src/workspace/Zone1.model.json"

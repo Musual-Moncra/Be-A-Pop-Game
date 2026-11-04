@@ -21,7 +21,8 @@
 		SoundController.PlayUI(key)     alias for button clicks and UI feedback
 		SoundController.SetMusic(key)   "Lobby" or a map id, crossfades the track
 
-	Dependencies: SoundService, TweenService, ReplicatedStorage, DataController, GameConfig, SoundConfig
+	Dependencies: SoundService, TweenService, ReplicatedStorage, ReplicatedStorage.Assets.Sounds,
+		DataController, GameConfig, SoundConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -31,6 +32,8 @@ local TweenService = game:GetService("TweenService")
 local DataController = require(ReplicatedStorage.Modules.Controllers.DataController)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local SoundConfig = require(ReplicatedStorage.Modules.Config.SoundConfig)
+
+local soundAssets = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("Sounds")
 
 local SoundController = {}
 
@@ -56,7 +59,12 @@ end
 
 function SoundController.Play(key: string)
 	local definition = SoundConfig.Sfx[key]
-	if definition == nil or definition.SoundId == "" then
+	if definition == nil or definition.Asset == "" then
+		return
+	end
+
+	local template = soundAssets:FindFirstChild(definition.Asset)
+	if template == nil or not template:IsA("Sound") or template.SoundId == "" then
 		return
 	end
 
@@ -76,9 +84,8 @@ function SoundController.Play(key: string)
 	end
 
 	lastPlayed[key] = now
-	local sound = Instance.new("Sound")
+	local sound = template:Clone()
 	sound.Name = key
-	sound.SoundId = definition.SoundId
 	sound.Volume = definition.Volume
 	sound.PlaybackSpeed = definition.PitchMin + math.random() * (definition.PitchMax - definition.PitchMin)
 	table.insert(active, sound)

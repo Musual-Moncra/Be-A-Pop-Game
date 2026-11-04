@@ -27,7 +27,7 @@ GameConfig.RunStates = {
 	Running = "Running",
 }
 
-GameConfig.LobbySpawn = Vector3.new(0, 5, 0)
+GameConfig.LobbySpawn = Vector3.new(1.7, 13.5, -3)
 
 GameConfig.StainInterval = 0.12
 GameConfig.StainCellSize = 3

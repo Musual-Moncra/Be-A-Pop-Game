@@ -1,934 +1,473 @@
 {
-  "className": "Model",
-  "properties": {},
-  "attributes": {
-    "Rojo_Target_PrimaryPart": "poop_hrp"
-  },
-  "children": [
-    {
-      "name": "HumanoidRootPart",
-      "className": "Part",
-      "attributes": {
-        "Rojo_Id": "poop_hrp"
-      },
-      "properties": {
-        "Anchored": false,
-        "CanCollide": true,
-        "Transparency": 1,
-        "Size": [
-          3.5,
-          3.5,
-          3.5
-        ],
-        "Shape": "Ball",
-        "CFrame": {
-          "CFrame": {
-            "position": [
-              0,
-              1.75,
-              0
-            ],
-            "orientation": [
-              [
-                1,
-                0,
-                0
-              ],
-              [
-                0,
-                1,
-                0
-              ],
-              [
-                0,
-                0,
-                1
-              ]
-            ]
-          }
-        }
-      },
-      "children": [
+    "children": [
         {
-          "name": "RootAttachment",
-          "className": "Attachment",
-          "properties": {}
+            "name": "HumanoidRootPart",
+            "className": "Part",
+            "properties": {
+                "CanQuery": false,
+                "CanCollide": true,
+                "Color": [
+                    0.6392157077789307,
+                    0.6352941393852234,
+                    0.6470588445663452
+                ],
+                "Anchored": false,
+                "CanTouch": true,
+                "BottomSurface": "Smooth",
+                "TopSurface": "Smooth",
+                "Transparency": 1,
+                "Reflectance": 0,
+                "Massless": false,
+                "CFrame": {
+                    "CFrame": {
+                        "orientation": [
+                            [
+                                1,
+                                0,
+                                0
+                            ],
+                            [
+                                0,
+                                1,
+                                0
+                            ],
+                            [
+                                0,
+                                0,
+                                1
+                            ]
+                        ],
+                        "position": [
+                            0,
+                            0,
+                            0
+                        ]
+                    }
+                },
+                "Material": "Plastic",
+                "CastShadow": true,
+                "Size": [
+                    0.18553310632705688,
+                    0.18553310632705688,
+                    0.09276655316352844
+                ]
+            },
+            "children": [
+                {
+                    "children": [
+                        {
+                            "children": [
+                                {
+                                    "children": [
+                                        {
+                                            "children": [],
+                                            "properties": {
+                                                "CFrame": {
+                                                    "CFrame": {
+                                                        "orientation": [
+                                                            [
+                                                                1,
+                                                                -3.4499429595519e-15,
+                                                                2.384186643666908e-07
+                                                            ],
+                                                            [
+                                                                -3.90150134421674e-08,
+                                                                0.986519992351532,
+                                                                0.16364078223705292
+                                                            ],
+                                                            [
+                                                                -2.3520478009686485e-07,
+                                                                -0.16364078223705292,
+                                                                0.986519992351532
+                                                            ]
+                                                        ],
+                                                        "position": [
+                                                            -2.7748399658378893e-16,
+                                                            1.9090816974639893,
+                                                            8.846907917359204e-08
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "name": "Bone.003",
+                                            "className": "Bone"
+                                        }
+                                    ],
+                                    "properties": {
+                                        "CFrame": {
+                                            "CFrame": {
+                                                "orientation": [
+                                                    [
+                                                        1,
+                                                        6.5177581255532526e-24,
+                                                        0
+                                                    ],
+                                                    [
+                                                        -6.5177581255532526e-24,
+                                                        1,
+                                                        0
+                                                    ],
+                                                    [
+                                                        0,
+                                                        0,
+                                                        1
+                                                    ]
+                                                ],
+                                                "position": [
+                                                    -3.2302530532806763e-16,
+                                                    2.222404718399048,
+                                                    0
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "name": "Bone.002",
+                                    "className": "Bone"
+                                }
+                            ],
+                            "properties": {
+                                "CFrame": {
+                                    "CFrame": {
+                                        "orientation": [
+                                            [
+                                                1,
+                                                6.5177581255532526e-24,
+                                                0
+                                            ],
+                                            [
+                                                -6.5177581255532526e-24,
+                                                1,
+                                                0
+                                            ],
+                                            [
+                                                0,
+                                                0,
+                                                1
+                                            ]
+                                        ],
+                                        "position": [
+                                            -4.530508184320131e-16,
+                                            3.116976499557495,
+                                            0
+                                        ]
+                                    }
+                                }
+                            },
+                            "name": "Bone.001",
+                            "className": "Bone"
+                        }
+                    ],
+                    "properties": {
+                        "CFrame": {
+                            "CFrame": {
+                                "orientation": [
+                                    [
+                                        1,
+                                        1.4534958319941706e-16,
+                                        -1.2246468525851679e-16
+                                    ],
+                                    [
+                                        -1.2246465878873718e-16,
+                                        -1.6292048599098052e-07,
+                                        -1
+                                    ],
+                                    [
+                                        -1.4534960966919666e-16,
+                                        1,
+                                        -1.6292048599098052e-07
+                                    ]
+                                ],
+                                "position": [
+                                    0,
+                                    0.9065662026405334,
+                                    -5.474818706512451
+                                ]
+                            }
+                        }
+                    },
+                    "name": "Bone",
+                    "className": "Bone"
+                }
+            ],
+            "attributes": {
+                "Rojo_Id": "poop_hrp"
+            }
+        },
+        {
+            "properties": {
+                "RequiresNeck": false,
+                "JumpPower": 50,
+                "UseJumpPower": true,
+                "BreakJointsOnDeath": false,
+                "WalkSpeed": 16,
+                "DisplayDistanceType": "None",
+                "HipHeight": 0
+            },
+            "name": "Humanoid",
+            "className": "Humanoid"
+        },
+        {
+            "name": "node_0",
+            "className": "MeshPart",
+            "properties": {
+                "CanQuery": false,
+                "Color": [
+                    0.6392157077789307,
+                    0.6352941393852234,
+                    0.6470588445663452
+                ],
+                "Anchored": false,
+                "Material": "Plastic",
+                "Size": [
+                    3.0354979038238525,
+                    11.003792762756348,
+                    2.7391717433929443
+                ],
+                "BottomSurface": "Smooth",
+                "CanCollide": false,
+                "MeshId": "rbxassetid://84659899236437",
+                "CanTouch": true,
+                "Massless": false,
+                "Transparency": 0,
+                "TextureID": "rbxassetid://139254526583189",
+                "Reflectance": 0,
+                "DoubleSided": false,
+                "CFrame": {
+                    "CFrame": {
+                        "orientation": [
+                            [
+                                0.9999971389770508,
+                                0,
+                                0
+                            ],
+                            [
+                                0,
+                                0,
+                                -0.9999971389770508
+                            ],
+                            [
+                                0,
+                                1,
+                                0
+                            ]
+                        ],
+                        "position": [
+                            0.052806854248046875,
+                            1.3712244033813477,
+                            -0.2771263122558594
+                        ]
+                    }
+                },
+                "CastShadow": true,
+                "TopSurface": "Smooth"
+            },
+            "children": [
+                {
+                    "attributes": {
+                        "Rojo_Target_Part1": "poop_node_0",
+                        "Rojo_Target_Part0": "poop_hrp"
+                    },
+                    "properties": {
+                        "C1": {
+                            "CFrame": {
+                                "orientation": [
+                                    [
+                                        1,
+                                        0,
+                                        0
+                                    ],
+                                    [
+                                        0,
+                                        1,
+                                        0
+                                    ],
+                                    [
+                                        0,
+                                        0,
+                                        1
+                                    ]
+                                ],
+                                "position": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "C0": {
+                            "CFrame": {
+                                "orientation": [
+                                    [
+                                        1,
+                                        0,
+                                        0
+                                    ],
+                                    [
+                                        0,
+                                        0,
+                                        -1
+                                    ],
+                                    [
+                                        0,
+                                        1,
+                                        0
+                                    ]
+                                ],
+                                "position": [
+                                    0.052807360887527466,
+                                    1.3712272644042969,
+                                    -0.2771261930465698
+                                ]
+                            }
+                        }
+                    },
+                    "name": "node_0Motor6D",
+                    "className": "Motor6D"
+                },
+                {
+                    "properties": {
+                        "ColorMap": "rbxassetid://86205543270311",
+                        "AlphaMode": "Overlay",
+                        "Color": [
+                            1,
+                            1,
+                            1
+                        ]
+                    },
+                    "name": "SurfaceAppearance",
+                    "className": "SurfaceAppearance"
+                }
+            ],
+            "attributes": {
+                "Rojo_Id": "poop_node_0"
+            }
+        },
+        {
+            "name": "node_0.002",
+            "className": "MeshPart",
+            "properties": {
+                "CanQuery": false,
+                "Color": [
+                    0.06666667014360428,
+                    0.06666667014360428,
+                    0.06666667014360428
+                ],
+                "Anchored": false,
+                "Material": "Neon",
+                "Size": [
+                    3.126175880432129,
+                    11.094403266906738,
+                    2.8297879695892334
+                ],
+                "BottomSurface": "Smooth",
+                "CanCollide": false,
+                "MeshId": "rbxassetid://116159375770050",
+                "CanTouch": true,
+                "Massless": false,
+                "Transparency": 0,
+                "TextureID": "",
+                "Reflectance": 0,
+                "DoubleSided": false,
+                "CFrame": {
+                    "CFrame": {
+                        "orientation": [
+                            [
+                                0.9999971389770508,
+                                0,
+                                0
+                            ],
+                            [
+                                0,
+                                0,
+                                -0.9999971389770508
+                            ],
+                            [
+                                0,
+                                1,
+                                0
+                            ]
+                        ],
+                        "position": [
+                            0.05268096923828125,
+                            1.3710346221923828,
+                            -0.2771472930908203
+                        ]
+                    }
+                },
+                "CastShadow": true,
+                "TopSurface": "Smooth"
+            },
+            "children": [
+                {
+                    "attributes": {
+                        "Rojo_Target_Part1": "poop_node_0_002",
+                        "Rojo_Target_Part0": "poop_hrp"
+                    },
+                    "properties": {
+                        "C1": {
+                            "CFrame": {
+                                "orientation": [
+                                    [
+                                        1,
+                                        0,
+                                        0
+                                    ],
+                                    [
+                                        0,
+                                        1,
+                                        0
+                                    ],
+                                    [
+                                        0,
+                                        0,
+                                        1
+                                    ]
+                                ],
+                                "position": [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            }
+                        },
+                        "C0": {
+                            "CFrame": {
+                                "orientation": [
+                                    [
+                                        1,
+                                        0,
+                                        0
+                                    ],
+                                    [
+                                        0,
+                                        0,
+                                        -1
+                                    ],
+                                    [
+                                        0,
+                                        1,
+                                        0
+                                    ]
+                                ],
+                                "position": [
+                                    0.05268143117427826,
+                                    1.3710377216339111,
+                                    -0.2771472632884979
+                                ]
+                            }
+                        }
+                    },
+                    "name": "node_0.002Motor6D",
+                    "className": "Motor6D"
+                }
+            ],
+            "attributes": {
+                "Rojo_Id": "poop_node_0_002"
+            }
         }
-      ]
+    ],
+    "attributes": {
+        "Rojo_Target_PrimaryPart": "poop_hrp"
     },
-    {
-      "name": "Humanoid",
-      "className": "Humanoid",
-      "properties": {
-        "HipHeight": 0,
-        "RequiresNeck": false,
-        "BreakJointsOnDeath": false,
-        "DisplayDistanceType": "None",
-        "WalkSpeed": 16,
-        "UseJumpPower": true,
-        "JumpPower": 50
-      }
-    },
-    {
-      "name": "Body",
-      "className": "Model",
-      "children": [
-        {
-          "name": "TierBottom",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              4.4,
-              1.9,
-              4.4
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  0,
-                  0.95,
-                  0
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              0.4784,
-              0.2902,
-              0.1333
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth"
-          },
-          "attributes": {
-            "Rojo_Id": "poop_TierBottom"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_TierBottom"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "TierMiddle",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              3.5,
-              1.7,
-              3.5
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  0,
-                  2.05,
-                  0
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              0.5412,
-              0.3373,
-              0.1569
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth"
-          },
-          "attributes": {
-            "Rojo_Id": "poop_TierMiddle"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_TierMiddle"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "TierTop",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              2.4,
-              1.5,
-              2.4
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  0.1,
-                  3.0,
-                  0.05
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              0.6118,
-              0.3922,
-              0.1882
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth"
-          },
-          "attributes": {
-            "Rojo_Id": "poop_TierTop"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_TierTop"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Tip",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              1.1,
-              1.2,
-              1.1
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  0.35,
-                  3.8,
-                  0.1
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              0.6118,
-              0.3922,
-              0.1882
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth"
-          },
-          "attributes": {
-            "Rojo_Id": "poop_Tip"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_Tip"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Shine",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              0.7,
-              0.45,
-              0.5
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  -0.45,
-                  3.35,
-                  -0.75
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              1.0,
-              1.0,
-              1.0
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth",
-            "Transparency": 0.45
-          },
-          "attributes": {
-            "Rojo_Id": "poop_Shine"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_Shine"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "EyeLeft",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              0.85,
-              1.0,
-              0.45
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  -0.6,
-                  2.25,
-                  -1.5
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              1.0,
-              1.0,
-              1.0
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth"
-          },
-          "attributes": {
-            "Rojo_Id": "poop_EyeLeft"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_EyeLeft"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "EyeRight",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              0.85,
-              1.0,
-              0.45
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  0.6,
-                  2.25,
-                  -1.5
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              1.0,
-              1.0,
-              1.0
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth"
-          },
-          "attributes": {
-            "Rojo_Id": "poop_EyeRight"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_EyeRight"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "PupilLeft",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              0.42,
-              0.5,
-              0.25
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  -0.55,
-                  2.2,
-                  -1.72
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              0.1098,
-              0.0863,
-              0.0706
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth"
-          },
-          "attributes": {
-            "Rojo_Id": "poop_PupilLeft"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_PupilLeft"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "PupilRight",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              0.42,
-              0.5,
-              0.25
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  0.55,
-                  2.2,
-                  -1.72
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              0.1098,
-              0.0863,
-              0.0706
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth"
-          },
-          "attributes": {
-            "Rojo_Id": "poop_PupilRight"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_PupilRight"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Mouth",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              1.0,
-              0.5,
-              0.3
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  0,
-                  1.45,
-                  -1.9
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              0.1098,
-              0.0863,
-              0.0706
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth"
-          },
-          "attributes": {
-            "Rojo_Id": "poop_Mouth"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_Mouth"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "CheekLeft",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              0.5,
-              0.3,
-              0.2
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  -1.15,
-                  1.7,
-                  -1.75
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              0.9412,
-              0.5098,
-              0.549
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth",
-            "Transparency": 0.2
-          },
-          "attributes": {
-            "Rojo_Id": "poop_CheekLeft"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_CheekLeft"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        },
-        {
-          "name": "CheekRight",
-          "className": "Part",
-          "properties": {
-            "Anchored": false,
-            "CanCollide": false,
-            "CanQuery": false,
-            "CanTouch": false,
-            "Massless": true,
-            "CastShadow": true,
-            "Size": [
-              0.5,
-              0.3,
-              0.2
-            ],
-            "CFrame": {
-              "CFrame": {
-                "position": [
-                  1.15,
-                  1.7,
-                  -1.75
-                ],
-                "orientation": [
-                  [
-                    1,
-                    0,
-                    0
-                  ],
-                  [
-                    0,
-                    1,
-                    0
-                  ],
-                  [
-                    0,
-                    0,
-                    1
-                  ]
-                ]
-              }
-            },
-            "Color": [
-              0.9412,
-              0.5098,
-              0.549
-            ],
-            "Material": "SmoothPlastic",
-            "TopSurface": "Smooth",
-            "BottomSurface": "Smooth",
-            "Transparency": 0.2
-          },
-          "attributes": {
-            "Rojo_Id": "poop_CheekRight"
-          },
-          "children": [
-            {
-              "name": "Weld",
-              "className": "WeldConstraint",
-              "attributes": {
-                "Rojo_Target_Part0": "poop_hrp",
-                "Rojo_Target_Part1": "poop_CheekRight"
-              }
-            },
-            {
-              "name": "Mesh",
-              "className": "SpecialMesh",
-              "properties": {
-                "MeshType": "Sphere"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
+    "className": "Model"
 }

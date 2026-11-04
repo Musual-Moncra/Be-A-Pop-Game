@@ -9,6 +9,7 @@
 		PortalTouchDebounce: minimum delay between portal touch triggers per player (seconds)
 		RunLoopStepInterval: update tick interval for active run loops (seconds)
 		InstanceWaitTimeout: maximum time to wait for workspace child instances (seconds)
+		PortalFindRetryInterval: time between retries while searching for the lobby Portal (seconds)
 		StainFolderPrefix: name prefix for grouping player stains in Workspace (string)
 		StainRayUpOffset: starting offset along character up axis for raycasts (studs)
 		StainRayLength: maximum raycast distance downward to detect surfaces (studs)
@@ -32,6 +33,7 @@ RunConfig.RunStateSyncInterval = 0.25
 RunConfig.PortalTouchDebounce = 1.0
 RunConfig.RunLoopStepInterval = 0.05
 RunConfig.InstanceWaitTimeout = 5
+RunConfig.PortalFindRetryInterval = 0.1
 
 RunConfig.StainFolderPrefix = "Stains_"
 RunConfig.StainRayUpOffset = 2
@@ -58,12 +60,12 @@ RunConfig.NpcPatrols = {
 		{ name = "NPC_Kid", startPos = Vector3.new(940, 3.5, -45), endPos = Vector3.new(1060, 3.5, -45), speed = 13 },
 	},
 	["Zone3"] = {
-		{ name = "NPC_Staff1", startPos = Vector3.new(1470, 3.5, -9), endPos = Vector3.new(1575, 3.5, -9), speed = 9 },
-		{ name = "NPC_Staff2", startPos = Vector3.new(1625, 3.5, 9), endPos = Vector3.new(1730, 3.5, 9), speed = 9 },
-		{ name = "NPC_IceCream", startPos = Vector3.new(1520, 3.5, 52), endPos = Vector3.new(1560, 3.5, 52), speed = 6 },
-		{ name = "NPC_Jogger", startPos = Vector3.new(1470, 3.5, -125), endPos = Vector3.new(1730, 3.5, -125), speed = 15 },
-		{ name = "NPC_Dog", startPos = Vector3.new(1609, 3.5, 30), endPos = Vector3.new(1609, 3.5, 130), speed = 13 },
-		{ name = "NPC_Kid", startPos = Vector3.new(1591, 3.5, -30), endPos = Vector3.new(1591, 3.5, -130), speed = 11 },
+		{ name = "NPC_Staff1", startPos = Vector3.new(1560, 19.75, -232), endPos = Vector3.new(1690, 19.75, -232), speed = 9 },
+		{ name = "NPC_Staff2", startPos = Vector3.new(1560, 19.75, -368), endPos = Vector3.new(1690, 19.75, -368), speed = 9 },
+		{ name = "NPC_IceCream", startPos = Vector3.new(1530, 19.75, -340), endPos = Vector3.new(1690, 19.75, -340), speed = 6 },
+		{ name = "NPC_Jogger", startPos = Vector3.new(1535, 19.75, -270), endPos = Vector3.new(1685, 19.75, -270), speed = 15 },
+		{ name = "NPC_Dog", startPos = Vector3.new(1623, 19.75, -245), endPos = Vector3.new(1623, 19.75, -365), speed = 13 },
+		{ name = "NPC_Kid", startPos = Vector3.new(1550, 19.75, -225), endPos = Vector3.new(1660, 19.75, -225), speed = 11 },
 	},
 	["Zone4"] = {
 		{ name = "NPC_Butler1", startPos = Vector3.new(2380, 3.5, -120), endPos = Vector3.new(2380, 3.5, 140), speed = 9 },

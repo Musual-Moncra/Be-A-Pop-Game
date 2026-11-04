@@ -1,0 +1,6 @@
+{
+  "className": "Sound",
+  "properties": {
+    "SoundId": "rbxasset://sounds/action_landing.mp3"
+  }
+}

@@ -598,7 +598,15 @@ local portalConnection: RBXScriptConnection? = nil
 
 local function setupPortal()
 	local lobby = Workspace:WaitForChild("Lobby", RunConfig.InstanceWaitTimeout)
-	local portal = if lobby ~= nil then lobby:WaitForChild("Portal", RunConfig.InstanceWaitTimeout) else nil
+	if lobby == nil then
+		return
+	end
+	local deadline = os.clock() + RunConfig.InstanceWaitTimeout
+	local portal = lobby:FindFirstChild("Portal", true)
+	while portal == nil and os.clock() < deadline do
+		task.wait(RunConfig.PortalFindRetryInterval)
+		portal = lobby:FindFirstChild("Portal", true)
+	end
 	if portal == nil or not portal:IsA("BasePart") then
 		return
 	end
