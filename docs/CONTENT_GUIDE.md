@@ -34,6 +34,13 @@ Khi nhấn Play trong Studio, Output in dòng `[ContentCheck]`: có `problems` >
 - Animation phải được publish dưới cùng tài khoản/group sở hữu game, nếu không sẽ không phát.
 - Chuyển động của vật trong map (quạt, cây, đu quay): `MapAnimConfig`.
 
+### Thay model nhân vật
+
+`StarterCharacter` cần giữ ba thứ: `HumanoidRootPart`, `Humanoid`, và part `Collider` (quả cầu vô hình chạm vào thế giới, đáy sát mặt sàn). Sau khi thay model:
+
+1. Đặt `CharacterConfig.RootWidth` bằng `Size.X` của `HumanoidRootPart`. `[ContentCheck]` sẽ cảnh báo nếu lệch.
+2. Chỉnh `HitboxOffset`, `HitboxHalfLength`, `HitboxRadius` trong `CharacterConfig` theo thân mới.
+
 ## 4. Cân bằng
 
 | Muốn chỉnh | File (`src/modules/Config/`) |

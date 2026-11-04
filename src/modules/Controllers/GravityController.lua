@@ -13,7 +13,7 @@
 	ball is made frictionless so pressing into a surface can never lock it in place.
 
 	Public API: none (the returned function is spawned by runFramework at Priority 2).
-	Dependencies: ReplicatedStorage.Modules.Config.CharacterConfig,
+	Dependencies: ReplicatedStorage.Modules.Config.CharacterConfig, ReplicatedStorage.Modules.Shared.Hitbox,
 		ReplicatedStorage.Modules.Config.MovementConfig, Players.LocalPlayer,
 		PlayerScripts.PlayerModule when present (Controls:GetMoveVector, the unified
 		keyboard/gamepad/touch source), RunService, UserInputService.
@@ -23,11 +23,14 @@
 ]]
 
 local Players = game:GetService("Players")
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local CharacterConfig = require(ReplicatedStorage.Modules.Config.CharacterConfig)
+local RoomConfig = require(ReplicatedStorage.Modules.Config.RoomConfig)
+local Hitbox = require(ReplicatedStorage.Modules.Shared.Hitbox)
 local MovementConfig = require(ReplicatedStorage.Modules.Config.MovementConfig)
 
 local WORLD_UP = Vector3.yAxis
@@ -210,7 +213,7 @@ local function watchOther(other: Player)
 	}
 end
 
-local function applyBodyPhysics(part: BasePart)
+local function removeFriction(part: BasePart)
 	local current = part.CurrentPhysicalProperties
 	part.CustomPhysicalProperties = PhysicalProperties.new(
 		current.Density,
@@ -219,6 +222,10 @@ local function applyBodyPhysics(part: BasePart)
 		MovementConfig.BodyFrictionWeight,
 		MovementConfig.BodyElasticityWeight
 	)
+end
+
+local function applyBodyPhysics(part: BasePart)
+	removeFriction(part)
 	local mass = part.AssemblyMass
 	if velocityActuator then
 		velocityActuator.MaxForce = mass * MovementConfig.MaxAcceleration
@@ -288,7 +295,7 @@ local function onCharacterAdded(char: Model)
 	local part: BasePart = foundRoot
 	humanoid = hum
 	root = part
-	currentScale = char:GetScale()
+	currentScale = Hitbox.Scale(part)
 
 	hum.PlatformStand = true
 	hum.AutoRotate = false
@@ -324,6 +331,10 @@ local function onCharacterAdded(char: Model)
 	velocityActuator = velocity
 	alignActuator = align
 	applyBodyPhysics(part)
+	local collider = char:FindFirstChild(CharacterConfig.ColliderName)
+	if collider ~= nil and collider:IsA("BasePart") then
+		removeFriction(collider)
+	end
 
 	table.insert(
 		characterConnections,
@@ -334,7 +345,7 @@ local function onCharacterAdded(char: Model)
 	table.insert(
 		characterConnections,
 		part:GetPropertyChangedSignal("Size"):Connect(function()
-			currentScale = char:GetScale()
+			currentScale = Hitbox.Scale(part)
 			applyBodyPhysics(part)
 		end)
 	)
@@ -421,7 +432,8 @@ local function update(dt: number)
 
 	if canStick then
 		if probing then
-			local wallProbe = MovementConfig.WallProbeDistance * scale
+			local alongBody = math.abs(probeDirection:Dot(part.CFrame.LookVector)) * CharacterConfig.HitboxHalfLength
+			local wallProbe = (alongBody + CharacterConfig.HitboxRadius + MovementConfig.WallProbeDistance) * scale
 			local wallReach = wallProbe / math.max(MovementConfig.WallClimbHeadOnDot, 0.01)
 			local wallHit = cast(probeOrigin, probeDirection, wallReach)
 			if wallHit then
@@ -588,6 +600,10 @@ return function()
 	if current then
 		task.spawn(onCharacterAdded, current)
 	end
+
+	CollectionService:GetInstanceAddedSignal(RoomConfig.MapTag):Connect(function()
+		task.defer(refreshExclusions)
+	end)
 
 	RunService.Heartbeat:Connect(update)
 end

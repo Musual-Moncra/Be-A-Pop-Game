@@ -300,8 +300,7 @@ local function cellKey(hitPos: Vector3, normal: Vector3): number
 end
 
 local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: PowerupService.Multipliers)
-	local character = hrp.Parent
-	local scale = if character ~= nil and character:IsA("Model") then character:GetScale() else 1
+	local scale = Hitbox.Scale(hrp)
 	local rootCFrame = hrp.CFrame
 	local gravityUp = rootCFrame.UpVector
 	local origin = Hitbox.Center(rootCFrame, scale) + gravityUp * (RunConfig.StainRayUpOffset * scale)

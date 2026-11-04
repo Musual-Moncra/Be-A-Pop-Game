@@ -23,8 +23,8 @@
 		AlignmentTorquePerMass: torque limit of the body alignment, per unit of character mass (torque/mass)
 		GravityUpPublishMinAngleDegrees: smallest GravityUp change worth publishing to the attribute (degrees)
 		TeleportResetDistance: position jump treated as a teleport, resetting gravity to world up (studs)
-		GroundProbeDistance: downward raycast length for the surface underfoot (studs)
-		WallProbeDistance: perpendicular reach at which a wall walked into counts as contact (studs)
+		GroundProbeDistance: how far below the body the poop still counts as standing on a surface (studs)
+		WallProbeDistance: gap between the body and a wall at which climbing starts (studs)
 		WallClimbHeadOnDot: how head-on a forward wall must be before it is climbable (0 to 1)
 		EdgeProbeDistance: down-forward raycast length used to wrap over convex edges (studs)
 		EdgeProbeUpOffset: height above the body center where the edge ray starts (studs)
@@ -75,8 +75,8 @@ return {
 	AlignmentTorquePerMass = 8000,
 	GravityUpPublishMinAngleDegrees = 2,
 	TeleportResetDistance = 40,
-	GroundProbeDistance = 3,
-	WallProbeDistance = 3.2,
+	GroundProbeDistance = 1.25,
+	WallProbeDistance = 0.3,
 	WallClimbHeadOnDot = 0.35,
 	EdgeProbeDistance = 2.6,
 	EdgeProbeUpOffset = 0.6,

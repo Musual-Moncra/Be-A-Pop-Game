@@ -9,7 +9,7 @@
 
 	Checks: every enabled map has its template, spawn inside the map, its patrol NPCs and valid
 	ObjectType attributes on Props; every sound key has its Sound template; room sizes and default
-	are valid; pet eggs point at real maps. Ids still at 0 and empty animations are listed as notes.
+	are valid; pet eggs point at real maps; CharacterConfig.RootWidth matches the StarterCharacter. Ids still at 0 and empty animations are listed as notes.
 
 	Dependencies: ServerStorage.Assets, ReplicatedStorage.Assets, ConfigLookup, AssetConfig,
 	MapConfig, MonetizationConfig, PetConfig, RoomConfig, RunConfig, SoundConfig
@@ -21,6 +21,7 @@ local StudioRunService = game:GetService("RunService")
 
 local Config = ReplicatedStorage.Modules.Config
 local AssetConfig = require(Config.AssetConfig)
+local CharacterConfig = require(Config.CharacterConfig)
 local MapConfig = require(Config.MapConfig)
 local MonetizationConfig = require(Config.MonetizationConfig)
 local PetConfig = require(Config.PetConfig)
@@ -94,6 +95,12 @@ local function run()
 		elseif sounds == nil or sounds:FindFirstChild(definition.Asset) == nil then
 			problem("Sound %s: no Sound named %s in ReplicatedStorage.Assets.Sounds", key, definition.Asset)
 		end
+	end
+
+	local character = game:GetService("StarterPlayer"):FindFirstChild("StarterCharacter")
+	local characterRoot = if character ~= nil then character:FindFirstChild("HumanoidRootPart") else nil
+	if characterRoot ~= nil and math.abs(characterRoot.Size.X - CharacterConfig.RootWidth) > 1e-3 then
+		problem("CharacterConfig.RootWidth should be %f to match the StarterCharacter", characterRoot.Size.X)
 	end
 
 	if table.find(RoomConfig.PlayerOptions, RoomConfig.DefaultMaxPlayers) == nil then

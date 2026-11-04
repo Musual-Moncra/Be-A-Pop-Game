@@ -58,7 +58,8 @@ Game Roblox thể loại Arcade / Simulator, viết bằng Luau với Rojo, Reac
 | Id dạng text | Animation và texture nằm ở `AssetConfig` |
 | Map | Mọi map trừ Lobby nằm ở `ServerStorage.Assets.Maps`, được clone cho từng phòng |
 | Phòng chơi | Tạo phòng, chọn số người, chỉ bạn bè, danh sách phòng, mời, sẵn sàng, đếm ngược, kick, đổi host |
-| Hitbox | Một capsule theo thân cho bắt, nhặt đồ và tầm nhìn NPC; chặn bắt xuyên tường |
+| Hitbox | Một capsule theo thân cho bắt, nhặt đồ và tầm nhìn NPC; chặn bắt xuyên tường; `Collider` hình cầu thay cho root 0.19 studs |
+| Scale nhân vật | Model có `GetScale()` = 0.093 ở kích thước thường. Mọi phép tính giờ dùng scale tương đối `Hitbox.Scale`, sửa lỗi Mega giữ nguyên kích thước to, hitbox co lại, tia dò và camera sai |
 | Thuật toán | Khóa ô vết bẩn dạng số, bỏ attribute được gửi qua mạng, NPC tách theo phòng, dọn tham chiếu khi hủy map, giảm cấp phát trong vòng lặp |
 | Giao diện | Scale và layout mới, Lifespan ở giữa trên, Score ở góc phải trên |
 | Nội dung | `ContentCheckService` cảnh báo thiếu asset khi Play trong Studio; `docs/CONTENT_GUIDE.md` cho team không lập trình |
@@ -86,6 +87,10 @@ Khi Play trong Studio, Output in `[ContentCheck] N problems, M notes`. `problems
 | Di chuyển, vết bẩn, điểm, thanh % map | Đạt |
 | NPC tuần tra đúng vị trí trong bản clone, có vùng nhìn | Đạt |
 | NPC bắt người chơi, trừ thời gian, hiện thông báo | Đạt |
+| Hitbox: đầu thân chạm NPC thì bị bắt, đứng ngang cách 7 studs thì không | Đạt |
+| Mega Size: thân 11 > 22 > 11 studs, cả khi hết giờ giữa run và khi về lobby | Đạt |
+| Chạy liền mạch sàn > tủ > tường > trần > tường > sàn ở Kitchen, không kẹt | Đạt |
+| Nhảy | Đạt |
 | Hết giờ: màn hình kết quả, thưởng, về lobby | Đạt |
 | Sau khi hết phòng: map clone, vùng nhìn và thư mục perk được dọn, map gốc không đổi | Đạt |
 | Rời phòng khi đang chơi | Đạt (qua packet) |
@@ -101,8 +106,9 @@ Khi Play trong Studio, Output in `[ContentCheck] N problems, M notes`. `problems
 | **Giao diện điện thoại và máy bảng** | Chỉ tính toán kích thước, chưa chạy trên màn hình thật |
 | **`Zone4`** | Tài khoản test chưa mở khóa. Chỉ qua `ContentCheck` |
 | **Revive, Gamepass, Product** | Id đang là 0 |
-| **Perk, Golden Target, Mega Size, pet theo sau khi đổi hitbox** | Chưa test riêng trong đợt này |
-| **Leo tường trên các viền sàn sau khi đổi điểm dò** | Chưa test có chủ đích |
+| **Các perk khác, Golden Target, pet theo sau** | Chưa test riêng sau khi sửa scale |
+| **Di chuyển ở Mall, Park, Hotel và đi ngang (A/D)** | Mới test kỹ ở Kitchen khi đi thẳng |
+| **Bắt NPC bị tường chắn** | Chưa test có chủ đích |
 | **Rojo kết nối lại thật sự** | Đã kiểm metadata `ignoreUnknownInstances` trên server Rojo là `true` cho cả hai thư mục Assets và thư mục con; chưa thử ngắt và kết nối lại |
 | **Tải với nhiều phòng cùng lúc** | Chưa đo |
 
@@ -111,7 +117,7 @@ Khi Play trong Studio, Output in `[ContentCheck] N problems, M notes`. `problems
 ```bash
 selene src          # 0 errors, 0 warnings
 rojo build -o /tmp/bap.rbxlx
-tools/tests/run.sh  # 54 ca config + công thức + hitbox + phòng, 69 ca lifecycle phòng: đều đạt
+tools/tests/run.sh  # 55 ca config + công thức + hitbox + phòng, 69 ca lifecycle phòng: đều đạt
 ```
 
 Test phòng chạy `RoomService` thật với người chơi giả và service giả: vào phòng, ready, đếm ngược, host rời, kick, chỉ bạn bè, phòng đầy, khởi động thất bại, rời trong lúc streaming, người chơi thoát game ở mọi trạng thái, map được giải phóng đúng một lần. Test này không thay thế được việc chơi thử nhiều người thật.

@@ -197,7 +197,7 @@ local function stepChase(npc: Npc, now: number, dt: number)
 		local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
 		local humanoid = if character ~= nil then character:FindFirstChildOfClass("Humanoid") else nil
 		if hrp ~= nil and humanoid ~= nil and humanoid.Health > 0 then
-			targetPosition = Hitbox.Center(hrp.CFrame, (character :: Model):GetScale())
+			targetPosition = Hitbox.Center(hrp.CFrame, Hitbox.Scale(hrp))
 		end
 	end
 	if targetPosition == nil then
@@ -274,7 +274,7 @@ local function collectRuns()
 		if runs ~= nil and hrp ~= nil and humanoid ~= nil and humanoid.Health > 0 then
 			table.insert(runs, {
 				player = plr,
-				position = Hitbox.Center(hrp.CFrame, (character :: Model):GetScale()),
+				position = Hitbox.Center(hrp.CFrame, Hitbox.Scale(hrp)),
 			})
 		end
 	end
@@ -367,8 +367,7 @@ function NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
 	end
 
 	local root = hrp.CFrame
-	local character = hrp.Parent :: Model
-	local scale = character:GetScale()
+	local scale = Hitbox.Scale(hrp)
 	local catchRadiusSq = NpcConfig.CatchRadius * NpcConfig.CatchRadius
 	for _, npc in npcs[run.mapModel] or {} do
 		if npc.state ~= CHASE or npc.target == run.player then

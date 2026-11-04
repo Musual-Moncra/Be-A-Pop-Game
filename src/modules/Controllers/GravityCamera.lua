@@ -92,7 +92,7 @@ local function resetView()
 	local targetUp = readGravityUp()
 
 	cachedUp = targetUp
-	cachedScale = if char then char:GetScale() else 1
+	cachedScale = if part then Hitbox.Scale(part) else 1
 	upSmooth = targetUp
 	forwardRef = WORLD_FORWARD
 	yaw = math.rad(MovementConfig.CameraDefaultYawDegrees)
@@ -144,14 +144,14 @@ local function onCharacterAdded(char: Model)
 			return
 		end
 		root = foundRoot
-		cachedScale = char:GetScale()
+		cachedScale = Hitbox.Scale(foundRoot)
 		focus = focusFor(foundRoot, upSmooth)
 		refreshCameraExclusions()
 		table.insert(
 			characterConnections,
 			foundRoot:GetPropertyChangedSignal("Size"):Connect(function()
 				if character == char then
-					cachedScale = char:GetScale()
+					cachedScale = Hitbox.Scale(foundRoot)
 				end
 			end)
 		)

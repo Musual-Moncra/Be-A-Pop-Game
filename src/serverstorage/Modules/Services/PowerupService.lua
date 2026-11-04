@@ -102,10 +102,15 @@ local function setCharacterScale(plr: Player, scale: number): boolean
 	if character == nil or character.Parent == nil then
 		return false
 	end
-	if math.abs(character:GetScale() - scale) < 1e-3 then
+	local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if hrp == nil then
+		return false
+	end
+	local current = Hitbox.Scale(hrp)
+	if math.abs(current - scale) < 1e-3 then
 		return true
 	end
-	return (pcall(character.ScaleTo, character, scale))
+	return (pcall(character.ScaleTo, character, character:GetScale() * scale / current))
 end
 
 local function recompute(session: PowerupSession)
