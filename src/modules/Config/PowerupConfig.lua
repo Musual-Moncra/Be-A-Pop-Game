@@ -49,47 +49,26 @@
 
 return {
 	SpawnInterval = 6,
-
 	MaxActivePerRun = 4,
-
 	ItemLifetime = 20,
-
 	PickupRadius = 3.5,
-
 	SpawnHeight = 2.5,
-
 	SpawnRayTopInset = 0.5,
-
 	TickInterval = 0.05,
-
 	FirstSpawnDelay = 3,
-
 	ItemShape = Enum.PartType.Ball,
-
 	ItemMaterial = Enum.Material.Neon,
-
 	BobHeight = 0.6,
-
 	BobSpeed = 0.8,
-
 	SpinSpeed = 90,
-
 	ItemSize = 2.5,
-
 	FolderPrefix = "Powerups_",
-
 	IconSize = 3.5,
-
 	IconHeight = 2.5,
-
 	MaxSpeedMultiplier = 4,
-
 	MaxStainSizeMultiplier = 4,
-
 	MaxPointsMultiplier = 8,
-
 	MaxCharacterScale = 3,
-
 	MiniBombRadius = 25,
 
 	Powerups = {

@@ -20,11 +20,8 @@
 
 return {
 	SurfacePointsMultiplier = 1,
-
 	SoiledColor = Color3.fromRGB(110, 66, 28),
-
 	SoiledMaterial = Enum.Material.Slate,
-
 	TintSteps = 4,
 
 	Objects = {

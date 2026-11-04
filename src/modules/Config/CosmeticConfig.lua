@@ -35,9 +35,7 @@
 
 return {
 	BodyParts = { "node_0" },
-
 	TrailTop = Vector3.new(0, 1, 0),
-
 	TrailBottom = Vector3.new(0, -1, 0),
 
 	Skins = {

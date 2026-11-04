@@ -56,7 +56,6 @@ end
 
 local function TimerPanel(props: any)
 	local data = props.data
-	local layout = props.layout
 	local maxTimeRef = React.useRef(0)
 	local timed = data.TimeLeft >= 0
 	if timed and data.TimeLeft > maxTimeRef.current then

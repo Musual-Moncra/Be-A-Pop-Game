@@ -14,12 +14,8 @@
 
 return {
 	Chance = 0.5,
-
 	MinCount = 1,
-
 	MaxCount = 3,
-
 	GemReward = 3,
-
 	PointsMultiplier = 2,
 }

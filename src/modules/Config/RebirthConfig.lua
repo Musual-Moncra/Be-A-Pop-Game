@@ -14,12 +14,8 @@
 
 return {
 	BaseCost = 50000,
-
 	CostGrowth = 2.5,
-
 	MultiplierPerRebirth = 0.25,
-
 	GemsPerRebirth = 25,
-
 	ResetUnlockedMaps = false,
 }

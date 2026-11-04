@@ -58,6 +58,5 @@ return {
 	},
 
 	DefaultRateLimit = 0.2,
-
 	MaxStringLength = 64,
 }

@@ -42,27 +42,16 @@
 
 return {
 	StoreName = "AllTimeScoreLeaderboard_v1",
-
 	DailyStoreName = "DailyScoreLeaderboard_v1",
-
 	WeeklyStoreName = "WeeklyScoreLeaderboard_v1",
-
 	PeriodDaily = "Daily",
-
 	PeriodWeekly = "Weekly",
-
 	PeriodAllTime = "AllTime",
-
 	DailyKeyFormat = "!%Y-%m-%d",
-
 	TopCount = 10,
-
 	RefreshInterval = 60,
-
 	FirstRefreshDelay = 1,
-
 	BoardWaitTimeout = 5,
-
 	BoardModelName = "LeaderboardBoard",
 
 	BoardModels = {
@@ -78,38 +67,21 @@ return {
 	},
 
 	TitleText = "TOP POOPERS",
-
 	TitleTextColor = Color3.fromRGB(255, 230, 100),
-
 	TitleTextSize = 42,
-
 	TitleHeight = 56,
-
 	RowTextColor = Color3.fromRGB(240, 240, 245),
-
 	RowTextSize = 26,
-
 	RowHeight = 36,
-
 	NameWidth = 0.68,
-
 	ScoreWidth = 0.32,
-
 	Top1Color = Color3.fromRGB(255, 215, 0),
-
 	Top2Color = Color3.fromRGB(210, 215, 225),
-
 	Top3Color = Color3.fromRGB(215, 145, 80),
-
 	Font = Enum.Font.FredokaOne,
-
 	EmptyText = "No scores yet - be the first!",
-
 	CanvasPadding = 16,
-
 	RowSpacing = 4,
-
 	MinRefreshBudget = 1,
-
 	MinSaveBudget = 1,
 }

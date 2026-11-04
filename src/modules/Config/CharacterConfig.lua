@@ -18,11 +18,8 @@
 return {
 
 	MoveThreshold = 0.5,
-
 	FadeTime = 0.15,
-
 	PlaybackSpeed = 1,
-
 	HitboxOffset = Vector3.new(0.05, 1.35, -0.28),
 	HitboxHalfLength = 4.1,
 	HitboxRadius = 1.45,

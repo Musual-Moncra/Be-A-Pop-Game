@@ -553,7 +553,6 @@ return {
 	},
 
 	UpgradeSwatches = { "Orange", "Blue", "Purple", "Teal", "Pink", "Green" },
-
 	PowerupSwatch = "Purple",
 
 	ToastSwatches = {

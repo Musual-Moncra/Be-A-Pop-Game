@@ -23,11 +23,8 @@
 
 return {
 	StreakLength = 7,
-
 	ClaimCooldown = 20 * 60 * 60,
-
 	StreakResetAfter = 48 * 60 * 60,
-
 	ClaimToast = "%s claimed!",
 
 	Days = {

@@ -29,31 +29,18 @@
 
 return {
 	RunStateSyncInterval = 0.25,
-
 	PortalTouchDebounce = 1.0,
-
 	RunLoopStepInterval = 0.05,
-
 	InstanceWaitTimeout = 5,
-
 	PortalFindRetryInterval = 0.1,
-
 	StainFolderPrefix = "Stains_",
-
 	StainRayUpOffset = 2,
-
 	StainRayLength = 10,
-
 	StainSurfaceOffset = 0.05,
-
 	StainColor = Color3.fromRGB(112, 66, 20),
-
 	StainMaterial = Enum.Material.SmoothPlastic,
-
 	StainThickness = 0.08,
-
 	StainTransparency = 0.0,
-
 	PracticeTimeLeft = -1,
 
 	NpcPatrols = {

@@ -70,17 +70,11 @@
 
 return {
 	ReviveOfferAt = 5,
-
 	ReviveWindow = 8,
-
 	ReviveSeconds = 20,
-
 	StainBombRadius = 75,
-
 	MagnetPickupRadius = 30,
-
 	MaxPurchaseHistory = 100,
-
 	PassCacheSeconds = 120,
 
 	Messages = {

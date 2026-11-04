@@ -67,116 +67,60 @@
 
 return {
 	MapUnlocked = "%s unlocked!",
-
 	AlreadyUnlocked = "You already own this map.",
-
 	NeedPreviousMap = "Unlock %s first.",
-
 	NeedLevel = "Requires level %d.",
-
 	NotEnoughCoins = "Not enough coins.",
-
 	MapUnavailable = "This map is coming soon.",
-
 	MapLocked = "Unlock this map first.",
-
 	ModeLocked = "Requires level %d.",
-
 	MaxLevelReached = "Already at max level.",
-
 	UpgradeBought = "%s upgraded!",
-
 	QuestCompleted = "Quest complete: %s",
-
 	TargetReached = "Target reached!",
-
 	LevelUp = "Level up! You are now level %d.",
-
 	NpcCaught = "Caught! -%ds",
-
 	NeedPreviousComplete = "Stain 100%% of %s first.",
-
 	MapComplete = "%s fully stained! +%d gems",
-
 	SpecialTimeStart = "Special Time on %s! x%d gems for %ds",
-
 	NotEnoughGems = "Not enough gems.",
-
 	RebirthSuccess = "Rebirth #%d achieved! Multipliers boosted!",
-
 	CosmeticUnlocked = "Unlocked: %s!",
-
 	CosmeticDuplicate = "Duplicate! Refunded %d coins.",
-
 	CosmeticEquipped = "%s equipped!",
-
 	CosmeticUnequipped = "Cosmetic unequipped.",
-
 	CosmeticNotOwned = "You do not own this cosmetic.",
-
 	InvalidCrate = "Invalid crate.",
-
 	RunUnavailable = "This map is not ready yet. Try again later.",
-
 	DataLoading = "Your save is still loading. Try again in a moment.",
-
 	PetHatched = "%s hatched!",
-
 	PetHatchedVariant = "%s hatched! (%s)",
-
 	PetInventoryFull = "Pet inventory is full.",
-
 	PetEggLocked = "Unlock %s first.",
-
 	PetSlotsFull = "All pet slots are full.",
-
 	PetMergeNeed = "You need 5 identical pets to merge.",
-
 	PetMaxVariant = "This pet is already at its final variant.",
-
 	PetMerged = "%s merged into a %s!",
-
 	GoldenSoiled = "Golden %s! +%d gems",
-
 	RoomInRun = "Finish your run first.",
-
 	AlreadyInRoom = "Leave your room first.",
-
 	RoomLimit = "No room slots left on this server.",
-
 	RoomFull = "That room is full.",
-
 	RoomNotFound = "That room no longer exists.",
-
 	RoomNotWaiting = "That room has already started.",
-
 	RoomJoinBlocked = "You were kicked from that room. Try again later.",
-
 	RoomFriendsOnly = "That room is friends only.",
-
 	RoomMapLocked = "Unlock this map first.",
-
 	RoomMemberMapLocked = "%s has not unlocked %s.",
-
 	RoomNotHost = "Only the host can do that.",
-
 	RoomSizeInvalid = "Pick a valid room size.",
-
 	RoomReadyNeeded = "Everyone must be ready.",
-
 	RoomRunFailed = "Your run could not start.",
-
 	RoomUnavailable = "This map is not ready yet. Try again later.",
-
 	RoomModeUnavailable = "That mode is not available.",
-
 	RoomInviteSent = "Invited %s.",
-
 	RoomInviteCooldown = "You already invited %s recently.",
-
 	RoomInviteNotFriend = "You can only invite friends.",
-
 	RoomInviteOffline = "That player is not in this server.",
-
 	RoomKicked = "You were kicked from the room.",
 }

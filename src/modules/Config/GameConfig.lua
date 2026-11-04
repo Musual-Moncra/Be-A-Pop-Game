@@ -26,24 +26,14 @@ return {
 	},
 
 	LobbySpawn = Vector3.new(1.7, 13.5, -3),
-
 	StainInterval = 0.12,
-
 	StainCellSize = 3,
-
 	MaxStainParts = 900,
-
 	PointsPerStud = 0.25,
-
 	CoinsPerPoint = 0.5,
-
 	XpPerPoint = 1,
-
 	LevelXpBase = 100,
-
 	LevelXpGrowth = 1.35,
-
 	MaxLevel = 100,
-
 	GemsPerLevelUp = 5,
 }

@@ -30,44 +30,24 @@
 
 return {
 	ViewLength = 22,
-
 	ViewWidth = 16,
-
 	ViewHeight = 3,
-
 	LoseMargin = 3,
-
 	LoseTime = 2,
-
 	ChaseSpeed = 1.15,
-
 	ChaseMax = 13,
-
 	ReturnSpeed = 1.1,
-
 	CatchRadius = 4,
-
 	CatchHeight = 3,
-
 	CatchCooldown = 2,
-
 	CatchPenalty = 5,
-
 	RestTime = 4,
-
 	TurnaroundPause = 0.5,
-
 	ZoneColor = Color3.fromRGB(255, 150, 60),
-
 	ChaseColor = Color3.fromRGB(255, 30, 30),
-
 	ZoneTransparency = 0.55,
-
 	RingColor = Color3.fromRGB(255, 40, 40),
-
 	RingTransparency = 0.35,
-
 	ZoneHeight = 0.2,
-
 	FloorRayHeight = 30,
 }

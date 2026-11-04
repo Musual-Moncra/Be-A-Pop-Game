@@ -28,22 +28,18 @@ return {
 	PlayerOptions = { 1, 2, 4, 6, 8 },
 	DefaultMaxPlayers = 4,
 	DefaultFriendsOnly = false,
-
 	StartCountdown = 5,
 	SoloStartCountdown = 0,
 	RequireAllReady = true,
-
 	InviteCooldown = 10,
 	KickBlockTime = 120,
 	ListSyncInterval = 1,
 	FriendCacheTime = 120,
 	EmptyRoomGrace = 2,
-
 	SlotOrigin = Vector3.new(0, 0, 1600),
 	SlotSpacing = 3200,
 	SlotColumns = 8,
 	MaxRooms = 60,
-
 	MapFolderName = "Rooms",
 	MapTag = "RoomMap",
 }

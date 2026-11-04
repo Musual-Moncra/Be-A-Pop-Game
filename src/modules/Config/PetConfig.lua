@@ -64,25 +64,15 @@
 
 return {
 	BaseSlots = 3,
-
 	GrantVariant = "Default",
-
 	MaxMergedFrom = 5,
-
 	FollowFolderName = "PetFollowers",
-
 	FollowModelPrefix = "Pet_",
-
 	FollowSpawnDelay = 0.4,
-
 	FollowShape = Enum.PartType.Ball,
-
 	FollowMaterial = Enum.Material.SmoothPlastic,
-
 	FollowResponsiveness = 30,
-
 	FollowMaxForce = 100000,
-
 	FollowMaxTorque = 100000,
 
 	FollowOffsets = {
@@ -95,13 +85,9 @@ return {
 	},
 
 	EyeColor = Color3.fromRGB(30, 24, 20),
-
 	EyeSize = 0.22,
-
 	EyeSpread = 0.22,
-
 	EyeHeight = 0.15,
-
 	EyeDepth = 0.45,
 
 	Rarities = {

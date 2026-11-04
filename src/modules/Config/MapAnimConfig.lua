@@ -24,9 +24,7 @@
 
 return {
 	MaxDistance = 260,
-
 	CullCheckInterval = 0.5,
-
 	UpdateRate = 30,
 
 	Kinds = {

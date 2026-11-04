@@ -60,92 +60,48 @@
 
 return {
 	GravityStrength = 196,
-
 	TerminalFallSpeed = 150,
-
 	MaxAcceleration = 900,
-
 	GroundStickSpeed = 8,
-
 	JumpVelocity = 50,
-
 	JumpCooldown = 0.2,
-
 	GroundCoyoteTime = 0.12,
-
 	AirGravityHoldTime = 0.35,
-
 	AirControl = 0.45,
-
 	MoveInputDeadzone = 0.08,
-
 	MoveSmoothingSpeed = 18,
-
 	NormalLerpSpeed = 7,
-
 	AlignmentResponsiveness = 90,
-
 	AlignmentTorquePerMass = 8000,
-
 	GravityUpPublishMinAngleDegrees = 2,
-
 	TeleportResetDistance = 40,
-
 	GroundProbeDistance = 3,
-
 	WallProbeDistance = 3.2,
-
 	WallClimbHeadOnDot = 0.35,
-
 	EdgeProbeDistance = 2.6,
-
 	EdgeProbeUpOffset = 0.6,
-
 	EdgeProbeDownBias = 0.9,
-
 	MinWallAngleDegrees = 35,
-
 	MaxClimbAngleDegrees = 110,
-
 	ProbeMinInput = 0.5,
-
 	CharacterWaitTimeout = 10,
-
 	BodyFriction = 0,
-
 	BodyFrictionWeight = 100,
-
 	BodyElasticity = 0,
-
 	BodyElasticityWeight = 100,
-
 	CameraDistance = 14,
-
 	CameraMinDistance = 2.5,
-
 	CameraHeightOffset = 0.65,
-
 	CameraUpLerpSpeed = 6,
-
 	CameraFollowLerpSpeed = 14,
-
 	CameraMinPitchDegrees = -25,
-
 	CameraMaxPitchDegrees = 75,
-
 	CameraDefaultPitchDegrees = 14,
-
 	CameraDefaultYawDegrees = 0,
-
 	CameraMouseSensitivity = 0.35,
-
 	CameraTouchSensitivity = 0.3,
-
 	CameraGamepadYawSpeed = 130,
-
 	CameraGamepadPitchSpeed = 90,
-
 	CameraTouchOrbitScreenFraction = 0.5,
-
 	CameraCollisionPadding = 0.6,
 }

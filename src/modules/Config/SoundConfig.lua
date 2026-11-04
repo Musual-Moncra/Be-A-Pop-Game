@@ -34,7 +34,6 @@
 
 return {
 	FolderName = "Sound",
-
 	MaxSoundLifetime = 10,
 
 	Sfx = {

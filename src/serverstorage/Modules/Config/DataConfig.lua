@@ -108,10 +108,7 @@ return {
 	},
 
 	ShutdownSaveWait = 2,
-
 	HumanoidWaitTimeout = 5,
-
 	LoadFailedKick = "Your data could not be loaded. Please rejoin.",
-
 	SessionEndedKick = "Your data session ended. Please rejoin.",
 }
