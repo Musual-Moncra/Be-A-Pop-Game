@@ -816,8 +816,8 @@ end)
 
 runTest("Hitbox_Scale_Is_Relative_To_Normal_Root_Size", function()
 	local width = CharacterConfig.RootWidth
-	expectNear(Hitbox.Scale({ Size = Vector3.new(width, width, width / 2) } :: any), 1, 1e-9, "normal size")
-	expectNear(Hitbox.Scale({ Size = Vector3.new(width * 2, width * 2, width) } :: any), 2, 1e-9, "mega size")
+	expectNear(Hitbox.Scale({ Size = { X = width } } :: any), 1, 1e-9, "normal size")
+	expectNear(Hitbox.Scale({ Size = { X = width * 2 } } :: any), 2, 1e-9, "mega size")
 end)
 
 runTest("Hitbox_Center_And_Reach_Scale1_And_Scale2", function()
