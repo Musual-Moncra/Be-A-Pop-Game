@@ -142,7 +142,11 @@ GrantProduct.GemPack = function(plr: Player, entry: any, _purchaseId: string): b
 	if entry.Gems <= 0 then
 		return false
 	end
-	DataService.AddGems(plr, entry.Gems)
+	local data = DataService.Get(plr)
+	if data == nil then
+		return false
+	end
+	DataService.AddGems(plr, entry.Gems + math.floor(data.Gems * entry.BonusPercent / 100))
 	return true
 end
 

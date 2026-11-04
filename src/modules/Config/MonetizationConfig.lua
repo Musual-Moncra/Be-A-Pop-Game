@@ -36,7 +36,7 @@
 			Vip: true when the pass is the VIP stainer cosmetic tier (boolean)
 			Magnet: true when the pass widens food pickup to MagnetPickupRadius (boolean)
 		DevProducts: developer products grouped by kind; kinds are the GrantProduct keys
-			GemPacks: gem bundles, one entry per product
+			GemPacks: gem bundles, one entry per product; BonusPercent also grants this share of the gems the buyer owns (percent)
 				Id: product asset id, 0 = not uploaded yet (asset id)
 				DisplayName: name shown in the shop (text)
 				PriceRobux: planned price for the shop copy, informational only (Robux)
@@ -152,11 +152,11 @@ return {
 
 	DevProducts = {
 		GemPacks = {
-			{ Id = 0, DisplayName = "Pocket Gems", PriceRobux = 36, Gems = 50 },
-			{ Id = 0, DisplayName = "Pouch of Gems", PriceRobux = 199, Gems = 300 },
-			{ Id = 0, DisplayName = "Bag of Gems", PriceRobux = 499, Gems = 800 },
-			{ Id = 0, DisplayName = "Chest of Gems", PriceRobux = 1499, Gems = 2000 },
-			{ Id = 0, DisplayName = "Vault of Gems", PriceRobux = 3999, Gems = 6000 },
+			{ Id = 0, DisplayName = "Handful of Gems", PriceRobux = 36, Gems = 50, BonusPercent = 50 },
+			{ Id = 0, DisplayName = "Pouch of Gems", PriceRobux = 149, Gems = 180, BonusPercent = 80 },
+			{ Id = 0, DisplayName = "Bucket of Gems", PriceRobux = 367, Gems = 650, BonusPercent = 100 },
+			{ Id = 0, DisplayName = "Sack of Gems", PriceRobux = 1493, Gems = 2100, BonusPercent = 240 },
+			{ Id = 0, DisplayName = "Chest of Gems", PriceRobux = 3997, Gems = 6000, BonusPercent = 260 },
 		},
 		CoinPacks = {
 			{ Id = 0, DisplayName = "Handful of Coins", PriceRobux = 25, Coins = 1000 },
@@ -172,12 +172,12 @@ return {
 		StainBomb = {
 			Id = 0,
 			DisplayName = "Stain Bomb",
-			PriceRobux = 20,
+			PriceRobux = 16,
 		},
 		NewbiePack = {
 			Id = 0,
 			DisplayName = "Newbie Pack",
-			PriceRobux = 89,
+			PriceRobux = 49,
 			Gems = 200,
 			Coins = 5000,
 			PetId = "GoldenPoopDoge",

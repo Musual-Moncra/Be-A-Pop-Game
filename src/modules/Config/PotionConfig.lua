@@ -17,7 +17,7 @@
 return {
 	Potions = {
 		LifespanPotion = {
-			DisplayName = "Lifespan Potion",
+			DisplayName = "Rocky Poo Potion",
 			Icon = "⏳",
 			Duration = 600,
 			Multiplier = 2,
@@ -25,7 +25,7 @@ return {
 			Description = "x2 Lifespan duration for 10 minutes",
 		},
 		SpeedPotion = {
-			DisplayName = "Speed Potion",
+			DisplayName = "Diarrhea Potion",
 			Icon = "⚡",
 			Duration = 900,
 			Multiplier = 2,
@@ -33,12 +33,12 @@ return {
 			Description = "x2 WalkSpeed for 15 minutes",
 		},
 		StinkPotion = {
-			DisplayName = "Stink Potion",
+			DisplayName = "Mala Chili",
 			Icon = "💨",
-			Duration = 900,
+			Duration = 1200,
 			Multiplier = 2,
 			Stat = "StainSize",
-			Description = "x2 Stain size for 15 minutes",
+			Description = "x2 Stain size for 20 minutes",
 		},
 	},
 }
