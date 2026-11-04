@@ -16,7 +16,7 @@
 		PowerupService.StopRun(plr: Player)
 		PowerupService.GetMultipliers(plr: Player) -> Multipliers { Speed, StainSize, Points }
 
-	Dependencies: PowerupConfig, ConfigLookup, RunEvents, DataService, MonetizationService,
+	Dependencies: PowerupConfig, ConfigLookup, Hitbox, RunEvents, DataService, MonetizationService,
 		MonetizationConfig, Outbound
 ]]
 

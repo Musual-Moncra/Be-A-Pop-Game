@@ -136,8 +136,12 @@ local function refreshCulling(now: number)
 		return
 	end
 	local cameraPosition = camera.CFrame.Position
-	for _, detail in details do
-		detail.near = (detail.rest.Position - cameraPosition).Magnitude <= MapAnimConfig.MaxDistance
+	for instance, detail in details do
+		if instance.Parent == nil then
+			details[instance] = nil
+		else
+			detail.near = (detail.rest.Position - cameraPosition).Magnitude <= MapAnimConfig.MaxDistance
+		end
 	end
 end
 
