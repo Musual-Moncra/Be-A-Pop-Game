@@ -54,15 +54,20 @@ return function(props: any)
 		}, {
 			XpBar = e(Bar, {
 				anchorPoint = Vector2.new(0, 0.5),
-				position = UDim2.new(0, badge / 2, 0.5, badge / 6),
+				position = UDim2.new(0, badge * Sizes.XpBarLeftRatio, 0.5, badge / Sizes.XpBarDropDivisor),
 				ratio = ratio,
-				size = UDim2.new(1, -badge / 2, 0, Sizes.XpBarHeight),
+				size = UDim2.new(1, -badge * Sizes.XpBarLeftRatio, 0, Sizes.XpBarHeight),
 				swatch = "Green",
 				text = xpText,
 			}),
 			LevelCaption = Primitives.text({
-				Position = UDim2.fromOffset(badge + UIConfig.Shape.Radius / 2, 0),
-				Size = UDim2.new(1, -badge, 0, badge / 2 - Sizes.XpBarHeight / 4),
+				Position = UDim2.fromOffset(badge + UIConfig.Shape.Radius * Sizes.CaptionInsetRatio, 0),
+				Size = UDim2.new(
+					1,
+					-badge,
+					0,
+					badge * Sizes.CaptionHeightRatio - Sizes.XpBarHeight / Sizes.CaptionHeightDivisor
+				),
 				Text = string.format(Text.LevelFormat, data.Level),
 				TextSize = TextSizes.Large,
 				XAlign = Enum.TextXAlignment.Left,

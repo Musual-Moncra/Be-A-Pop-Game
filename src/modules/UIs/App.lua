@@ -9,8 +9,8 @@
 	LobbyState (which window is open) and hands both to every screen in Modules.Screens.
 
 	Started by runFramework (UIs location); returns the mount function.
-	Dependencies: React, ReactRoblox, DataController, LobbyState, GameConfig, UIConfig, useUIScale, UIScaleContext,
-		Screens.*
+	Dependencies: React, ReactRoblox, DataController, RoomController, LobbyState, GameConfig, UIConfig,
+		useUIScale, UIScaleContext, Screens.*
 ]]
 
 local Players = game:GetService("Players")
@@ -19,6 +19,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local React = require(ReplicatedStorage.Packages.React)
 local ReactRoblox = require(ReplicatedStorage.Packages.ReactRoblox)
 local DataController = require(ReplicatedStorage.Modules.Controllers.DataController)
+local RoomController = require(ReplicatedStorage.Modules.Controllers.RoomController)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local LobbyState = require(ReplicatedStorage.Modules.UIs.LobbyState)
@@ -32,6 +33,7 @@ local PetsWindow = require(Screens.PetsWindow)
 local RebirthWindow = require(Screens.RebirthWindow)
 local PlayWindow = require(Screens.PlayWindow)
 local ResultWindow = require(Screens.ResultWindow)
+local RoomPill = require(Screens.RoomPill)
 local ShopWindow = require(Screens.ShopWindow)
 local SkinsWindow = require(Screens.SkinsWindow)
 local RunExtras = require(Screens.RunExtras)
@@ -94,6 +96,15 @@ local function App(props: any)
 		end
 	end, { inRun, showResult } :: { any })
 
+	React.useEffect(function()
+		local connection = RoomController.OpenRequested:Connect(function()
+			LobbyState.SetActive(Routes.Play)
+		end)
+		return function()
+			connection:Disconnect()
+		end
+	end, {})
+
 	local function close()
 		LobbyState.SetActive(Routes.None)
 	end
@@ -132,7 +143,17 @@ local function App(props: any)
 			LobbyMenu = layer(
 				ui,
 				"LobbyMenu",
-				if not inRun and not showResult and lobbyWindow == nil then e(LobbyDock, { data = data, ui = ui }) else nil
+				if not inRun
+						and not showResult
+						and lobbyWindow == nil
+					then e("Frame", {
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(1, 1),
+					}, {
+						Dock = e(LobbyDock, { data = data, ui = ui }),
+						Pills = e(RoomPill, { ui = ui }),
+					})
+					else nil
 			),
 			Backdrop = if showResult then backdrop(nil) elseif lobbyWindow ~= nil then backdrop(close) else nil,
 			Window = layer(ui, "Window", lobbyWindow),

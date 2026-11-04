@@ -7,7 +7,8 @@
 	Pops in when it mounts. The full-screen dimmer behind it is drawn by App.
 
 	Props: title, swatch (header colour, UIConfig.Swatches key), width, height (design pixels),
-	       onClose (nil hides the close button), children (body content)
+	       onClose (nil hides the close button), children (body content),
+	       footer (element filling the bottom action bar, nil hides it), footerHeight (design pixels)
 
 	Sizing helpers live in WindowSize.
 
@@ -35,6 +36,9 @@ local function Window(props: any)
 	local headerHeight = Sizes.HeaderHeight
 	local closeSize = Sizes.CloseSize
 	local bodyTop = headerHeight / 2 + Sizes.Padding
+	local footerHeight = props.footerHeight or 0
+	local hasFooter = props.footer ~= nil and footerHeight > 0
+	local bodyBottom = Sizes.Padding + (if hasFooter then footerHeight + Sizes.Gap else 0)
 
 	local sparkles = {}
 	for index, sparkle in Sizes.Sparkles do
@@ -102,9 +106,17 @@ local function Window(props: any)
 			Content = e("Frame", {
 				BackgroundTransparency = 1,
 				Position = UDim2.fromOffset(Sizes.Padding, bodyTop),
-				Size = UDim2.new(1, -Sizes.Padding * 2, 1, -(bodyTop + Sizes.Padding)),
+				Size = UDim2.new(1, -Sizes.Padding * 2, 1, -(bodyTop + bodyBottom)),
 				ZIndex = 3,
 			}, props.children),
+			Footer = if hasFooter
+				then e("Frame", {
+					BackgroundTransparency = 1,
+					Position = UDim2.new(0, Sizes.Padding, 1, -(Sizes.Padding + footerHeight)),
+					Size = UDim2.new(1, -Sizes.Padding * 2, 0, footerHeight),
+					ZIndex = 3,
+				}, { Content = props.footer })
+				else nil,
 			Header = e(ChunkyButton, {
 				anchorPoint = Vector2.new(0.5, 0.5),
 				position = UDim2.fromScale(0.5, 0),

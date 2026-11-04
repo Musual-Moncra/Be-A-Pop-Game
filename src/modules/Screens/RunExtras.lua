@@ -156,12 +156,15 @@ end
 
 return function(props: any)
 	local layouts = RunUIConfig.Layouts[if props.ui.mobile then "Mobile" else "PC"]
+	local narrow = props.ui.safeWidth < RunUIConfig.NarrowWidth
+	local meterLayout = if narrow then RunUIConfig.Narrow.Meter else layouts.Meter
+	local eventLayout = if narrow then RunUIConfig.Narrow.Event else layouts.Event
 	return e("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
 	}, {
-		Meter = if props.inRun then e(Meter, { data = props.data, layout = layouts.Meter }) else nil,
-		Event = e(EventBanner, { data = props.data, layout = layouts.Event }),
+		Meter = if props.inRun then e(Meter, { data = props.data, layout = meterLayout }) else nil,
+		Event = e(EventBanner, { data = props.data, layout = eventLayout }),
 		Revive = if props.inRun then e(RevivePopup, { data = props.data, layout = layouts.Revive }) else nil,
 	})
 end
