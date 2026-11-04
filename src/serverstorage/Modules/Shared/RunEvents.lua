@@ -6,7 +6,7 @@
 	the other services listen without requiring each other.
 
 	API:
-		RunEvents.RunStarted(plr, mapId, modeId)
+		RunEvents.RunStarted(plr, mapId, modeId, mapModel)
 		RunEvents.Stained(plr, points, objectType)
 		RunEvents.ObjectSoiled(plr, objectType, bonusPoints)
 		RunEvents.GoldenSoiled(plr, name, gems, points)

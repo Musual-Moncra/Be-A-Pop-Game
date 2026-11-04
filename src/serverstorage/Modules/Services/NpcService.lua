@@ -3,16 +3,18 @@
 --[[
 	NpcService
 	Owns every patrolling NPC: line patrol walk, vision triangle test, chase, walk back, the state
-	attribute the client vision zones read, panic flees and the catch penalty. RunService calls
-	SetupMap when a map appears, Step from the shared run heartbeat, CheckCatch for every active
-	run and Panic when an object is soiled. Patrol, panic and catch behave as before; Chase and
-	Return are the new states.
+	attribute the client vision zones read, panic flees and the catch penalty. RoomService calls
+	SetupInstance when a room acquires a map copy, Step from the shared run heartbeat, CheckCatch
+	for every active run and Panic when an object is soiled. Patrol, panic and catch behave as
+	before; Chase and Return are the new states. NPC state is per map copy: a chase, a catch and
+	a panic only touch NPCs of the same instance, and a closed room's NPCs are dropped at once.
 
 	API:
-		NpcService.SetupMap(mapDef)
+		NpcService.SetupInstance(instance: MapInstance)
+		NpcService.RemoveInstance(mapModel: Model)
 		NpcService.Step(now: number)
 		NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
-		NpcService.Panic(mapId: string, plr: Player, position: Vector3)
+		NpcService.Panic(mapModel: Model, plr: Player, position: Vector3)
 
 	Vision test: triangle on the floor with its tip at the NPC, ViewLength deep along the look
 	direction and ViewWidth wide at the far edge (half width grows linearly with distance),
@@ -24,11 +26,10 @@
 	The NpcState attribute is "Patrol", "Chase" or "Return"; NpcVisionController draws it.
 
 	Dependencies:
-		Players, Workspace, RunEvents, Outbound, ConfigLookup, EventConfig, NpcConfig, RunConfig
+		Players, RunEvents, Outbound, ConfigLookup, EventConfig, NpcConfig, RunConfig
 ]]
 
 local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
 
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -42,9 +43,17 @@ local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local Hitbox = require(ReplicatedStorage.Modules.Shared.Hitbox)
 
+export type MapInstance = {
+	model: Model,
+	mapDef: { Id: string, ModelName: string },
+	offset: Vector3,
+	slot: number,
+}
+
 export type CatchRun = {
 	player: Player,
 	mapDef: { Id: string },
+	mapModel: Model,
 	modeDef: { NpcsEnabled: boolean },
 	npcCooldown: number,
 	hasTimer: boolean,
@@ -53,7 +62,7 @@ export type CatchRun = {
 
 type Npc = {
 	model: Model,
-	mapId: string,
+	mapModel: Model,
 	aPos: Vector3,
 	bPos: Vector3,
 	baseSpeed: number,
@@ -71,7 +80,6 @@ type Npc = {
 
 type RunPlayer = {
 	player: Player,
-	mapId: string,
 	position: Vector3,
 }
 
@@ -82,8 +90,9 @@ local STATE_ATTRIBUTE = "NpcState"
 
 local NpcService = {}
 
-local npcs: { [Model]: Npc } = {}
-local runMaps: { [Player]: string } = {}
+local npcs: { [Model]: { Npc } } = {}
+local runsByMap: { [Model]: { RunPlayer } } = {}
+local runMaps: { [Player]: Model } = {}
 local lastStep = 0
 
 local function setState(npc: Npc, state: string)
@@ -174,7 +183,7 @@ end
 local function stepChase(npc: Npc, now: number, dt: number)
 	local target = npc.target
 	local targetPosition: Vector3? = nil
-	if target ~= nil and target.Parent == Players and runMaps[target] == npc.mapId then
+	if target ~= nil and target.Parent == Players and runMaps[target] == npc.mapModel then
 		local character = target.Character
 		local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
 		local humanoid = if character ~= nil then character:FindFirstChildOfClass("Humanoid") else nil
@@ -233,7 +242,7 @@ local function acquire(npc: Npc, pivot: CFrame, runs: { RunPlayer }): Player?
 	local best: Player? = nil
 	local bestDistance = math.huge
 	for _, run in runs do
-		if run.mapId == npc.mapId and inView(pivot, run.position, 0) then
+		if inView(pivot, run.position, 0) then
 			local distance = (run.position - pivot.Position).Magnitude
 			if distance < bestDistance then
 				best = run.player
@@ -244,88 +253,99 @@ local function acquire(npc: Npc, pivot: CFrame, runs: { RunPlayer }): Player?
 	return best
 end
 
-local function collectRuns(): { RunPlayer }
-	local runs: { RunPlayer } = {}
-	for plr, mapId in runMaps do
+local function collectRuns()
+	for _, runs in runsByMap do
+		table.clear(runs)
+	end
+	for plr, mapModel in runMaps do
 		local character = plr.Character
 		local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
 		local humanoid = if character ~= nil then character:FindFirstChildOfClass("Humanoid") else nil
-		if hrp ~= nil and humanoid ~= nil and humanoid.Health > 0 then
+		local runs = runsByMap[mapModel]
+		if runs ~= nil and hrp ~= nil and humanoid ~= nil and humanoid.Health > 0 then
 			table.insert(runs, {
 				player = plr,
-				mapId = mapId,
 				position = Hitbox.Center(hrp.CFrame, (character :: Model):GetScale()),
 			})
 		end
 	end
-	return runs
 end
 
-function NpcService.SetupMap(mapDef: { Id: string, ModelName: string })
+function NpcService.SetupInstance(instance: MapInstance)
+	local mapDef = instance.mapDef
+	local mapModel = instance.model
 	local patrolDefs = RunConfig.NpcPatrols[mapDef.Id]
 	if patrolDefs == nil then
 		return
 	end
-	local mapModel = Workspace:WaitForChild(mapDef.ModelName, RunConfig.InstanceWaitTimeout)
-	local npcsFolder = if mapModel ~= nil then mapModel:WaitForChild("NPCs", RunConfig.InstanceWaitTimeout) else nil
+	local npcsFolder = mapModel:FindFirstChild("NPCs")
 	if npcsFolder == nil then
 		return
 	end
 
+	local list: { Npc } = {}
+	npcs[mapModel] = list
+	runsByMap[mapModel] = {}
+
 	local now = os.clock()
 	for _, patrolDef in patrolDefs do
-		local distance = (patrolDef.endPos - patrolDef.startPos).Magnitude
+		local aPos = patrolDef.startPos + instance.offset
+		local bPos = patrolDef.endPos + instance.offset
+		local distance = (bPos - aPos).Magnitude
 		local travelTime = if patrolDef.speed > 0 then distance / patrolDef.speed else 0
 		local model = npcsFolder:FindFirstChild(patrolDef.name)
-		if model ~= nil and model:IsA("Model") and travelTime > 0 and npcs[model] == nil then
-			npcs[model] = {
+		if model ~= nil and model:IsA("Model") and travelTime > 0 then
+			table.insert(list, {
 				model = model,
-				mapId = mapDef.Id,
-				aPos = patrolDef.startPos,
-				bPos = patrolDef.endPos,
+				mapModel = mapModel,
+				aPos = aPos,
+				bPos = bPos,
 				baseSpeed = patrolDef.speed,
 				state = PATROL,
 				target = nil,
-				fromPos = patrolDef.startPos,
-				toPos = patrolDef.endPos,
+				fromPos = aPos,
+				toPos = bPos,
 				travelTime = travelTime,
 				startedAt = now,
 				pausedUntil = 0,
 				panicUntil = 0,
 				loseSince = 0,
 				restUntil = 0,
-			}
+			})
 			model:SetAttribute(STATE_ATTRIBUTE, PATROL)
 		end
 	end
 end
 
+function NpcService.RemoveInstance(mapModel: Model)
+	npcs[mapModel] = nil
+	runsByMap[mapModel] = nil
+end
+
 function NpcService.Step(now: number)
 	local dt = math.clamp(now - lastStep, 0, 0.25)
 	lastStep = now
-	local runs = collectRuns()
+	collectRuns()
 
-	for model, npc in npcs do
-		if model.Parent == nil then
-			npcs[model] = nil
-			continue
-		end
-
-		if npc.state == CHASE then
-			stepChase(npc, now, dt)
-		else
-			if npc.state == RETURN then
-				stepReturn(npc, now)
+	for mapModel, list in npcs do
+		local runs = runsByMap[mapModel]
+		for _, npc in list do
+			if npc.state == CHASE then
+				stepChase(npc, now, dt)
 			else
-				stepPatrol(npc, now)
-			end
+				if npc.state == RETURN then
+					stepReturn(npc, now)
+				else
+					stepPatrol(npc, now)
+				end
 
-			if npc.target == nil and now >= npc.restUntil then
-				local target = acquire(npc, model:GetPivot(), runs)
-				if target ~= nil then
-					npc.target = target
-					npc.loseSince = 0
-					setState(npc, CHASE)
+				if npc.target == nil and now >= npc.restUntil then
+					local target = acquire(npc, npc.model:GetPivot(), runs)
+					if target ~= nil then
+						npc.target = target
+						npc.loseSince = 0
+						setState(npc, CHASE)
+					end
 				end
 			end
 		end
@@ -340,39 +360,37 @@ function NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
 	local root = hrp.CFrame
 	local character = hrp.Parent :: Model
 	local scale = character:GetScale()
-	for _, npc in npcs do
-		if npc.mapId == run.mapDef.Id and npc.model.Parent ~= nil then
-			local npcPosition = npc.model:GetPivot().Position
-			local position = Hitbox.ClosestPoint(root, scale, npcPosition)
-			local flat = Vector3.new(npcPosition.X - position.X, 0, npcPosition.Z - position.Z).Magnitude
-			if flat <= NpcConfig.CatchRadius and math.abs(npcPosition.Y - position.Y) <= NpcConfig.CatchHeight then
-				local caught = if npc.state == CHASE then npc.target == run.player else true
-				if caught then
-					if npc.state == CHASE then
-						local now = os.clock()
-						giveUp(npc, now)
-						npc.restUntil = now + NpcConfig.RestTime
-					end
-					run.npcCooldown = NpcConfig.CatchCooldown
-					if run.hasTimer then
-						run.timeLeft = math.max(0, run.timeLeft - NpcConfig.CatchPenalty)
-					end
-					Outbound.NpcCaught(run.player, NpcConfig.CatchPenalty)
-					return
+	for _, npc in npcs[run.mapModel] or {} do
+		local npcPosition = npc.model:GetPivot().Position
+		local position = Hitbox.ClosestPoint(root, scale, npcPosition)
+		local flat = Vector3.new(npcPosition.X - position.X, 0, npcPosition.Z - position.Z).Magnitude
+		if flat <= NpcConfig.CatchRadius and math.abs(npcPosition.Y - position.Y) <= NpcConfig.CatchHeight then
+			local caught = if npc.state == CHASE then npc.target == run.player else true
+			if caught then
+				if npc.state == CHASE then
+					local now = os.clock()
+					giveUp(npc, now)
+					npc.restUntil = now + NpcConfig.RestTime
 				end
+				run.npcCooldown = NpcConfig.CatchCooldown
+				if run.hasTimer then
+					run.timeLeft = math.max(0, run.timeLeft - NpcConfig.CatchPenalty)
+				end
+				Outbound.NpcCaught(run.player, NpcConfig.CatchPenalty)
+				return
 			end
 		end
 	end
 end
 
-function NpcService.Panic(mapId: string, plr: Player, position: Vector3)
+function NpcService.Panic(mapModel: Model, plr: Player, position: Vector3)
 	local character = plr.Character
 	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
 	local fleeFrom = if hrp ~= nil then hrp.Position else position
 	local now = os.clock()
 
-	for _, npc in npcs do
-		if npc.mapId == mapId and npc.state == PATROL and npc.model.Parent ~= nil then
+	for _, npc in npcs[mapModel] or {} do
+		if npc.state == PATROL then
 			if (npc.model:GetPivot().Position - position).Magnitude <= EventConfig.TargetPanic.Radius then
 				local fleeTo = if (npc.aPos - fleeFrom).Magnitude > (npc.bPos - fleeFrom).Magnitude
 					then npc.aPos
@@ -384,10 +402,10 @@ function NpcService.Panic(mapId: string, plr: Player, position: Vector3)
 	end
 end
 
-RunEvents.RunStarted:Connect(function(plr: Player, mapId: string, modeId: string)
+RunEvents.RunStarted:Connect(function(plr: Player, _mapId: string, modeId: string, mapModel: Model?)
 	local modeDef = ConfigLookup.GetMode(modeId)
-	if modeDef ~= nil and modeDef.NpcsEnabled then
-		runMaps[plr] = mapId
+	if modeDef ~= nil and modeDef.NpcsEnabled and mapModel ~= nil then
+		runMaps[plr] = mapModel
 	end
 end)
 
@@ -397,9 +415,11 @@ end)
 
 Players.PlayerRemoving:Connect(function(plr: Player)
 	runMaps[plr] = nil
-	for _, npc in npcs do
-		if npc.target == plr then
-			giveUp(npc, os.clock())
+	for _, list in npcs do
+		for _, npc in list do
+			if npc.target == plr then
+				giveUp(npc, os.clock())
+			end
 		end
 	end
 end)

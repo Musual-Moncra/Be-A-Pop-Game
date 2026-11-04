@@ -10,14 +10,14 @@
 		QuestService.StartRun(plr, map, mode)
 		QuestService.FinishRun(plr) -> { Completed, Coins, Gems }
 
-	Dependencies: DataService, RunEvents, Outbound, ConfigLookup, QuestConfig, MessageConfig
+	Dependencies: DataService, MapInstanceService, RunEvents, Outbound, ConfigLookup, QuestConfig, MessageConfig
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 
 local DataService = require(script.Parent.DataService)
+local MapInstanceService = require(script.Parent.MapInstanceService)
 local RunEvents = require(script.Parent.Parent.Shared.RunEvents)
 local Outbound = require(script.Parent.Parent.Remotes.Outbound)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
@@ -51,9 +51,9 @@ local QuestService = {}
 
 local runs: { [Player]: QuestRun } = {}
 
-local function collectObjectTypes(mapModelName: string): { [string]: boolean }
+local function collectObjectTypes(mapDef: ConfigLookup.MapDefinition): { [string]: boolean }
 	local types: { [string]: boolean } = {}
-	local mapModel = Workspace:FindFirstChild(mapModelName)
+	local mapModel = MapInstanceService.GetTemplate(mapDef)
 	local props = if mapModel ~= nil then mapModel:FindFirstChild("Props") else nil
 	if props == nil then
 		return types
@@ -67,13 +67,13 @@ local function collectObjectTypes(mapModelName: string): { [string]: boolean }
 	return types
 end
 
-local function rollQuests(mapModelName: string, mapOrder: number, count: number): { ActiveQuest }
-	local availableTypes = collectObjectTypes(mapModelName)
+local function rollQuests(mapDef: ConfigLookup.MapDefinition, count: number): { ActiveQuest }
+	local availableTypes = collectObjectTypes(mapDef)
 	local eligible: { ConfigLookup.QuestDefinition } = {}
 	local fillers: { ConfigLookup.QuestDefinition } = {}
 
 	for _, quest in QuestConfig.Quests :: { ConfigLookup.QuestDefinition } do
-		if quest.MinMapOrder <= mapOrder then
+		if quest.MinMapOrder <= mapDef.Order then
 			if quest.Kind ~= "SoilType" then
 				table.insert(eligible, quest)
 				table.insert(fillers, quest)
@@ -177,7 +177,7 @@ local function applyProgress(plr: Player, run: QuestRun, quest: ActiveQuest, amo
 end
 
 function QuestService.StartRun(plr: Player, map: ConfigLookup.MapDefinition, mode: ConfigLookup.ModeDefinition)
-	local quests = if mode.QuestCount > 0 then rollQuests(map.ModelName, map.Order, mode.QuestCount) else {}
+	local quests = if mode.QuestCount > 0 then rollQuests(map, mode.QuestCount) else {}
 	local run: QuestRun = {
 		quests = quests,
 		completed = 0,

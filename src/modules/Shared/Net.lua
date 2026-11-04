@@ -14,8 +14,6 @@
 	Client -> Server:
 		PurchaseUpgrade(upgradeId)
 		UnlockMap(mapId)
-		SelectRun(mapId, modeId)
-		StartRun()
 		LeaveRun()
 		CreateRoom(mapId, modeId, maxPlayers, friendsOnly)
 		UpdateRoom(mapId, modeId, maxPlayers, friendsOnly)   host only, while Waiting
@@ -41,7 +39,8 @@
 		SelectionSync(mapId, modeId)
 		DataSync(snapshot)                 full Profile.Data table
 		RoomState(payload)                 the room this client is in, InRoom false = none;
-		                                   Status "Waiting", "Countdown" or "Running", StartsAt = server clock
+		                                   Status "Waiting", "Countdown" or "Running", StartsAt = server clock,
+		                                   RoomMember.IsFriend = member is a friend of the room host
 		RoomList({ RoomSummary })          joinable rooms visible to this client, sent while watching
 		RoomInvite(roomId, hostName, mapId)  a friend invited this client to their room
 		OpenRoomMenu()                     lobby portal touched, open the play window
@@ -156,8 +155,6 @@ local Net = {}
 
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
 Net.UnlockMap = Packet.new("UnlockMap", Packet.String)
-Net.SelectRun = Packet.new("SelectRun", Packet.String, Packet.String)
-Net.StartRun = Packet.new("StartRun")
 Net.LeaveRun = Packet.new("LeaveRun")
 
 Net.SelectionSync = Packet.new("SelectionSync", Packet.String, Packet.String)

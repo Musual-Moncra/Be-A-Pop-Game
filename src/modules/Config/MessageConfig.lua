@@ -42,6 +42,27 @@
 		PetMaxVariant: merging blocked because the pet is already at its final variant (text)
 		PetMerged: merge succeeded, first %s = pet name, second %s = new variant name (text)
 		GoldenSoiled: a golden target was fully soiled, %s = object name, %d = gems paid (text)
+		RoomInRun: a room action was refused because the player is in a run (text)
+		AlreadyInRoom: a room action was refused because the player is already in a room (text)
+		RoomLimit: the server has no free room slot (text)
+		RoomFull: the room has no free seat (text)
+		RoomNotFound: the room id no longer exists (text)
+		RoomNotWaiting: the room is already counting down or running (text)
+		RoomJoinBlocked: the player was recently kicked from the room (text)
+		RoomFriendsOnly: the room only accepts friends of the host (text)
+		RoomMapLocked: the joining player has not unlocked the room map (text)
+		RoomMemberMapLocked: an update was refused, first %s = member name, second %s = map name (text)
+		RoomNotHost: a host-only action came from a member (text)
+		RoomSizeInvalid: the requested room size is not in RoomConfig.PlayerOptions (text)
+		RoomReadyNeeded: START was pressed while a member is not ready (text)
+		RoomRunFailed: a member's run could not start and they were removed (text)
+		RoomUnavailable: the room map has no template to clone (text)
+		RoomModeUnavailable: the requested game mode does not exist (text)
+		RoomInviteSent: an invite was sent, %s = player name (text)
+		RoomInviteCooldown: the same friend was invited too recently, %s = player name (text)
+		RoomInviteNotFriend: the invite target is not a friend (text)
+		RoomInviteOffline: the invite target is not in this server (text)
+		RoomKicked: the player was kicked from the room (text)
 ]]
 
 return {
@@ -116,4 +137,46 @@ return {
 	PetMerged = "%s merged into a %s!",
 
 	GoldenSoiled = "Golden %s! +%d gems",
+
+	RoomInRun = "Finish your run first.",
+
+	AlreadyInRoom = "Leave your room first.",
+
+	RoomLimit = "No room slots left on this server.",
+
+	RoomFull = "That room is full.",
+
+	RoomNotFound = "That room no longer exists.",
+
+	RoomNotWaiting = "That room has already started.",
+
+	RoomJoinBlocked = "You were kicked from that room. Try again later.",
+
+	RoomFriendsOnly = "That room is friends only.",
+
+	RoomMapLocked = "Unlock this map first.",
+
+	RoomMemberMapLocked = "%s has not unlocked %s.",
+
+	RoomNotHost = "Only the host can do that.",
+
+	RoomSizeInvalid = "Pick a valid room size.",
+
+	RoomReadyNeeded = "Everyone must be ready.",
+
+	RoomRunFailed = "Your run could not start.",
+
+	RoomUnavailable = "This map is not ready yet. Try again later.",
+
+	RoomModeUnavailable = "That mode is not available.",
+
+	RoomInviteSent = "Invited %s.",
+
+	RoomInviteCooldown = "You already invited %s recently.",
+
+	RoomInviteNotFriend = "You can only invite friends.",
+
+	RoomInviteOffline = "That player is not in this server.",
+
+	RoomKicked = "You were kicked from the room.",
 }

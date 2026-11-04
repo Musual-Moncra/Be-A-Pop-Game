@@ -9,22 +9,20 @@
 	"Return"); this controller reads each NPC pivot, snaps the shapes to the map floor with a
 	downward raycast and moves all of them with one Workspace:BulkMoveTo per frame.
 
-	Dependencies: Workspace, RunService, MapConfig, NpcConfig, RunConfig
+	NPCs are found in the live room map copies (RoomConfig.MapTag) rather than a Workspace
+	model name, because several rooms can hold the same map at once.
+
+	Dependencies: CollectionService, Workspace, RunService, NpcConfig, RoomConfig, RunConfig
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
-local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local NpcConfig = require(ReplicatedStorage.Modules.Config.NpcConfig)
+local RoomConfig = require(ReplicatedStorage.Modules.Config.RoomConfig)
 local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
-
-type MapDefinition = {
-	Id: string,
-	ModelName: string,
-	Enabled: boolean,
-}
 
 type Zone = {
 	left: WedgePart,
@@ -100,10 +98,13 @@ local function mapParams(mapModel: Model): RaycastParams?
 	return params
 end
 
-local function setupMap(mapDef: MapDefinition)
-	local patrolDefs = RunConfig.NpcPatrols[mapDef.Id]
-	local mapModel = if mapDef.Enabled then Workspace:FindFirstChild(mapDef.ModelName) else nil
-	local npcsFolder = if mapModel ~= nil then mapModel:FindFirstChild("NPCs") else nil
+local function setupMap(mapModel: Model)
+	local mapId = mapModel:GetAttribute("MapId")
+	if typeof(mapId) ~= "string" then
+		return
+	end
+	local patrolDefs = RunConfig.NpcPatrols[mapId]
+	local npcsFolder = mapModel:FindFirstChild("NPCs")
 	if patrolDefs == nil or npcsFolder == nil then
 		return
 	end
@@ -168,16 +169,15 @@ return function()
 	folder.Parent = Workspace
 	zonesFolder = folder
 
-	for _, mapDef in MapConfig.Maps do
-		task.spawn(setupMap, mapDef)
+	for _, mapModel in CollectionService:GetTagged(RoomConfig.MapTag) do
+		if mapModel:IsA("Model") then
+			task.spawn(setupMap, mapModel)
+		end
 	end
 
-	Workspace.ChildAdded:Connect(function(child)
-		for _, mapDef in MapConfig.Maps do
-			if child.Name == mapDef.ModelName then
-				task.spawn(setupMap, mapDef)
-				return
-			end
+	CollectionService:GetInstanceAddedSignal(RoomConfig.MapTag):Connect(function(mapModel)
+		if mapModel:IsA("Model") then
+			task.spawn(setupMap, mapModel)
 		end
 	end)
 
