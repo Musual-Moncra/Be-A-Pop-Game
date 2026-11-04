@@ -26,4 +26,5 @@ for name in ConfigLookup Hitbox; do
 	ARGS+=("Shared.$name" "$(cat "$file")")
 done
 
-exec "$LUAU_BIN" "$ROOT_DIR/tools/tests/suite.lua" -a "${ARGS[@]}"
+"$LUAU_BIN" "$ROOT_DIR/tools/tests/suite.lua" -a "${ARGS[@]}"
+python3 "$ROOT_DIR/tools/tests/run_rooms.py"

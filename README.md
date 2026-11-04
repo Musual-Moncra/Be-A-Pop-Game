@@ -1,168 +1,184 @@
-# Be A Poop (BAP) — Báo cáo dự án
+# Be A Poop
 
-> Game Roblox thể loại **Arcade / Simulator**: người chơi là một cục "poop" lăn khắp bản đồ, bò lên tường và trần, làm bẩn mọi thứ để kiếm điểm, đổi điểm ra Poop Coins, nâng cấp và mở khóa bản đồ mới.
+Game Roblox thể loại Arcade / Simulator, viết bằng Luau với Rojo, React-lua, Packet và ProfileStore.
+
+> Cập nhật: **04/11/2026** · Nhánh: `release/prep`
 >
-> Cập nhật: **28/10/2026** · Nhánh chính: `main` (`85b8a17`) · Công cụ: Rojo 7.7, Luau, React-lua, Packet, ProfileStore
+> Tài liệu thiết kế (GDD, backlog) có NDA nên không nằm trong repo này. README chỉ mô tả kỹ thuật và kết quả kiểm thử.
 
 ---
 
-## 1. Tóm tắt tiến độ
+## 1. Trạng thái phát hành
 
-| Giai đoạn | Nội dung | Trạng thái |
+**Chưa sẵn sàng phát hành.** Vòng chơi một người đã được playtest trong Studio. Cần làm xong các mục dưới đây trước.
+
+### Bắt buộc trước khi phát hành
+
+| # | Việc | Người làm |
 |---|---|---|
-| Phase 1 — Prototype | Di chuyển bám tường, vết bẩn, điểm, thời gian, coins | ✅ Xong |
-| Phase 2 — Core Game | Mục tiêu, Stain Meter, nâng cấp, mở map, quests, chế độ chơi | ✅ Xong |
-| Phase 3 — Hạ tầng | Lớp Remotes, tối ưu, UI responsive | ✅ Xong |
-| Phase 4 — Tính năng GDD | Pets, Daily, Shop, Gacha, Rebirth, Perks, Potions, Events, Leaderboards, 4 map mới | ✅ Xong, đã playtest |
-| Phase 5 — Ổn định & Polish | Sửa bug, chống lag, UI một nút, NPC tầm nhìn/đuổi, chuẩn hóa code | ✅ Code xong · ⏳ chưa playtest |
+| 1 | **Save/Publish place.** `Lobby`, `Park` và mọi instance chỉ có trong Studio được lưu trong place, không nằm trong repo | Lead |
+| 2 | **Test nhiều người thật** bằng Studio > Test > Start Server với 2-3 người, xem mục 4 | QA |
+| 3 | Tạo Gamepass và Developer Product, điền `Id` trong `MonetizationConfig` (đang là 0). Popup Revive chỉ hiện khi có id, nên chưa test được | Lead |
+| 4 | Test giao diện trên điện thoại và máy bảng thật hoặc giả lập, xem mục 4 | QA |
+| 5 | Chơi thử `Zone4` bằng tài khoản đã mở khóa, xem mục 4 | QA |
 
-**Mức hoàn thành so với Dev Backlog (ước tính): ~90%.** Phần còn lại cần thao tác ngoài code (tạo Gamepass/Product trên Roblox, nhạc) hoặc tài liệu chưa có đặc tả (Pet Index, Admin Abuse, Onboarding).
+### Chờ quyết định thiết kế
 
----
-
-## 2. Đối chiếu Dev Backlog
-
-### Epic 1 — Core Loop & Stain System
-| Hạng mục | Trạng thái | Ghi chú |
+| Câu hỏi | Hiện tại trong code | Cách đổi |
 |---|---|---|
-| 1.1 Điều khiển nhân vật | ✅ | Poop lăn, bò tường/trần, camera theo trọng lực |
-| 1.2 Vết bẩn môi trường | ✅ | Tái sử dụng part (ring buffer), giới hạn số vết |
-| 1.3 Tính điểm theo diện tích | ✅ | Điểm = diện tích × hệ số vật thể × hệ số buff |
-| 1.4 Làm bẩn vật thể | ✅ | Vật đổi màu dần → "soiled" + thưởng |
-| 1.5 Stain Meter + NPC hoảng | ✅ | Meter ẩn từng vật, NPC bỏ chạy khi vật gần đó bị bẩn hoàn toàn |
-| 1.6 Lifespan | ✅ | Hết giờ → kết thúc run (có Revive) |
-| 1.7 Đổi điểm → Coins | ✅ | Nhân hệ số map, mode, pet, gamepass, rebirth, boost |
+| Điều kiện mở map | Chỉ tính coins | `MapConfig.RequirePreviousComplete` |
+| Số ô pet mặc định | 3 | `PetConfig.BaseSlots` |
+| Thưởng khi đạt 100% map | Gems | Thêm Pet cần viết logic |
+| Theme các map | Theo bản đã dựng | Đổi theme cần dựng lại map |
+| Bán kính Stain Bomb | Cố định, `StainBombRadius` | Cần định nghĩa rõ cách tính theo kích cỡ |
+| Thời gian cộng theo từng mức Revive | Một giá trị, `ReviveSeconds` | Cần thêm trường theo mức |
 
-### Epic 2 — Level Design
-| Hạng mục | Trạng thái | Ghi chú |
-|---|---|---|
-| 2.1 Lobby | ✅ | Cổng chơi, 5 quầy (Upgrade, Eggs, Skins, Daily, Rebirth), 3 bảng xếp hạng |
-| 2.2 Zone 1 — Kitchen (x1) | ✅ | Miễn phí |
-| 2.3 Zone 2 — Shopping Mall (x2.5) | ✅ | 5.000 coins |
-| 2.4 Zone 3 — Park (x6) | ✅ | 40.000 coins |
-| 2.5 Zone 4 — Grand Hotel (x15) | ✅ | 250.000 coins |
-| 2.6 Sự kiện ngẫu nhiên | ✅ | Special Time + Golden Targets |
+### Chưa làm
 
-Tất cả bản đồ dùng **texture Studs** cho mọi MaterialVariant và có chi tiết chuyển động (quạt trần, cây đung đưa, đu quay, xích đu, đèn chùm, bóng bay, biển neon).
+- Pet Index và cơ chế pet tạo tài nguyên: chưa có đặc tả chi tiết.
+- Giá Robux của thuốc: `PotionConfig` chưa có trường giá.
+- Hiệu ứng lửa cho trail của một loại thuốc.
+- Nhạc nền và âm `LevelUp`: chưa có asset.
+- Onboarding cho người mới.
+- NPC đuổi theo đường thẳng, chưa có pathfinding.
 
-### Epic 3 — Stats & Perks
-| Hạng mục | Trạng thái |
-|---|---|
-| 3.1–3.2 Nâng cấp Lifespan / Speed / Stain Size, giá tăng theo cấp số nhân | ✅ |
-| 3.3–3.4 Perk spawn ngẫu nhiên: Speed Boost, Time Bonus, Big Splat, Coin Rush, Combo Saver, Mini Bomb, Mega Size (cộng dồn) | ✅ |
-| Stink Potions (x2 Lifespan / Speed / Stink theo thời gian) | ✅ |
+### Lỗi đã biết
 
-### Epic 4 — Economy & Monetization
-| Hạng mục | Trạng thái | Ghi chú |
-|---|---|---|
-| 4.1 Poop Coins + Gems | ✅ | |
-| 4.2 Gamepass: x2 Coins, x2 Gems, Magnet, +3 Pet Slots, VIP | ⚠️ | Code xong, **ID = 0** chờ tạo trên Roblox |
-| 4.3 Dev Products: gói Gems/Coins, Revive (4/9/13 R$), Stain Bomb, Newbie Pack | ⚠️ | Như trên; ProcessReceipt chống trùng |
-| 4.4 Gacha crate skin/trail | ✅ | Skins: Gold, Rainbow, Frozen, Ninja, Alien… · Trails: Neon, Fire, Water, Ice Cream |
-| 4.5 Tỉ lệ rơi 8 bậc hiếm | ✅ | Common → Darkness |
-
-### Epic 5 — UI & Retention
-| Hạng mục | Trạng thái |
-|---|---|
-| 5.1 HUD: timer, điểm, icon perk, thanh % map, banner sự kiện, popup Revive | ✅ |
-| 5.2 Menu nâng cấp | ✅ |
-| 5.3 Bảng xếp hạng "Best Stinker" theo ngày / tuần / mọi thời đại | ✅ |
-| 5.4 Daily reward 7 ngày (ngày 7 skin độc quyền) | ✅ |
-| 5.6 Phong cách cartoon | ✅ |
-
-### Mở rộng (Phase 2 trong backlog)
-| Hạng mục | Trạng thái |
-|---|---|
-| 6.1 Pets: 4 trứng × 6 pet, gộp 5 con → Golden → Rainbow, pet theo sau | ✅ |
-| 6.2 Special Time: mỗi 4 phút, kéo dài 2 phút, map ngẫu nhiên | ✅ |
-| 6.3 Thưởng Gems khi map đạt 100% | ✅ |
-| Rebirth (reset coins/nâng cấp, nhận hệ số vĩnh viễn + gems) | ✅ Bản cơ bản |
+- `rbxassetid://203785492` báo sai loại asset khi Play. Không tìm thấy id này trong `src` hay trong các thuộc tính asset phổ biến của map và lobby, nên chưa xác định được nguồn. Không ảnh hưởng lối chơi trong các lần test.
+- `rbxasset://sounds/action_landing.mp3` báo lỗi đọc tạm trong Studio. Cần kiểm tra lại ngoài Studio, đây là âm `RunEnd`.
 
 ---
 
-## 3. Phase 5 — Thay đổi mới nhất
+## 2. Thay đổi ở đợt này
 
-| Yêu cầu | Kết quả |
+| Hạng mục | Kết quả |
 |---|---|
-| Bug cục poop vàng vĩnh viễn | Save cũ thiếu skin `Default` → không đổi lại được. Default nay luôn sở hữu và khôi phục đúng màu 3 tầng gốc; trail có thể tháo |
-| UI chưa scale | Thay thanh nút bên trái (tràn màn hình mobile) bằng dock co giãn theo vùng an toàn |
-| UI tinh gọn | **Một nút MENU ở giữa** → bấm bung **một hàng ngang** 8 nút (PLAY to nhất ở giữa, có tia sáng xoay) |
-| Lag | Pet kéo lệch nhân vật người chơi (nguyên nhân chính) đã sửa; tái sử dụng vết bẩn; gói mạng giảm ~50%; hệ số pet được cache; animation map gom 1 lệnh BulkMoveTo/30 Hz |
-| NPC tầm nhìn | Vùng **bầu dục đỏ** dưới chân NPC chỉ hướng nhìn. Vào vùng → NPC đuổi (đỏ đậm); ra khỏi vùng đủ lâu → NPC bỏ cuộc về tuyến tuần tra |
-| Chuẩn code | Chỉ ghi chú ở đầu file; mọi giá trị cân bằng được nằm trong Config, tên ngắn gọn |
+| Config | Mọi file dùng dạng `return { Field = value }` |
+| Assets | `ReplicatedStorage.Assets` và `ServerStorage.Assets`, Rojo không xóa instance tạo tay |
+| Id dạng text | Animation và texture nằm ở `AssetConfig` |
+| Map | Mọi map trừ Lobby nằm ở `ServerStorage.Assets.Maps`, được clone cho từng phòng |
+| Phòng chơi | Tạo phòng, chọn số người, chỉ bạn bè, danh sách phòng, mời, sẵn sàng, đếm ngược, kick, đổi host |
+| Hitbox | Một capsule theo thân cho bắt, nhặt đồ và tầm nhìn NPC; chặn bắt xuyên tường |
+| Thuật toán | Khóa ô vết bẩn dạng số, bỏ attribute được gửi qua mạng, NPC tách theo phòng, dọn tham chiếu khi hủy map, giảm cấp phát trong vòng lặp |
+| Giao diện | Scale và layout mới, Lifespan ở giữa trên, Score ở góc phải trên |
+| Nội dung | `ContentCheckService` cảnh báo thiếu asset khi Play trong Studio; `docs/CONTENT_GUIDE.md` cho team không lập trình |
 
 ---
 
-## 4. Việc còn lại
+## 3. Dành cho team không lập trình
 
-1. **Playtest Phase 5** trong Studio (NPC đuổi, sửa skin vàng, đo lag thực tế).
-2. **Tạo Gamepass và Developer Product** trên Roblox, điền ID vào `src/modules/Config/MonetizationConfig.lua`.
-3. **Nhạc nền**: điền asset ID vào `src/modules/Config/SoundConfig.lua`.
-4. Chờ đặc tả: **Pet Index**, **Admin Abuse**, chi tiết **Rebirth**.
-5. **Onboarding / tutorial** cho người chơi mới (mục Polish).
-6. NPC đuổi theo đường thẳng (chưa pathfinding), có thể xuyên đồ vật ở góc.
+Đọc **[docs/CONTENT_GUIDE.md](docs/CONTENT_GUIDE.md)**: lưu asset ở đâu, thêm map, thay animation, chỉnh cân bằng, giao diện, âm thanh.
+
+Khi Play trong Studio, Output in `[ContentCheck] N problems, M notes`. `problems` phải bằng 0.
 
 ---
 
-## 5. Cân bằng game (không cần sửa code)
+## 4. Báo cáo kiểm thử
 
-Mọi số liệu nằm trong `src/modules/Config/` (dữ liệu thuần, mỗi file có phần đầu giải thích từng trường và đơn vị):
+### Đã playtest trong Studio (một client)
 
-| File | Chỉnh |
+| Ca | Kết quả |
 |---|---|
-| `GameConfig` | Điểm, quy đổi coins/XP, kích thước ô vết bẩn |
-| `MapConfig` | Giá mở map, hệ số thưởng, gems khi đạt 100% |
-| `UpgradeConfig` | Nâng cấp, giá, giá trị mỗi cấp |
-| `PowerupConfig` / `PotionConfig` | Perk trong map, thuốc |
-| `NpcConfig` | Tầm nhìn (`ViewLength`, `ViewWidth`), tốc độ đuổi (`ChaseSpeed`), thời gian bỏ cuộc (`LoseTime`), phạt khi bị bắt |
-| `PetConfig` | Trứng, pet, độ hiếm, hệ số |
-| `CosmeticConfig` | Skin, trail, crate, tỉ lệ rơi |
-| `DailyRewardConfig` / `RebirthConfig` / `EventConfig` | Daily, rebirth, Special Time |
-| `MonetizationConfig` | ID và giá Robux |
-| `UIConfig` / `LobbyUIConfig` / `RunUIConfig` | Màu, kích thước, chữ trên UI |
+| Mở cửa sổ từ MENU > PLAY, các tab Create và Browse | Đạt |
+| Tạo phòng bằng giao diện, màn hình phòng, START | Đạt |
+| Trạng thái `Waiting` > `Countdown` > `Running` | Đạt |
+| Clone map đúng slot, nhân vật đáp trên sàn, không rơi | Đạt: Kitchen, Mall, Park |
+| Di chuyển, vết bẩn, điểm, thanh % map | Đạt |
+| NPC tuần tra đúng vị trí trong bản clone, có vùng nhìn | Đạt |
+| NPC bắt người chơi, trừ thời gian, hiện thông báo | Đạt |
+| Hết giờ: màn hình kết quả, thưởng, về lobby | Đạt |
+| Sau khi hết phòng: map clone, vùng nhìn và thư mục perk được dọn, map gốc không đổi | Đạt |
+| Rời phòng khi đang chơi | Đạt (qua packet) |
+| Chạm Portal mở cửa sổ phòng, không vào thẳng map | Đạt |
+| HUD đúng vị trí ở độ phân giải đang test | Đạt |
+| `[ContentCheck]` | 0 problems |
+
+### Chưa kiểm thử được
+
+| Ca | Lý do |
+|---|---|
+| **Nhiều người chơi thật**: vào phòng, ready, kick, mời, chỉ bạn bè, đổi host | Công cụ test tự động chỉ chạy một client. Logic được kiểm bằng test headless (bên dưới), chưa chạy với client thật |
+| **Giao diện điện thoại và máy bảng** | Chỉ tính toán kích thước, chưa chạy trên màn hình thật |
+| **`Zone4`** | Tài khoản test chưa mở khóa. Chỉ qua `ContentCheck` |
+| **Revive, Gamepass, Product** | Id đang là 0 |
+| **Perk, Golden Target, Mega Size, pet theo sau khi đổi hitbox** | Chưa test riêng trong đợt này |
+| **Leo tường trên các viền sàn sau khi đổi điểm dò** | Chưa test có chủ đích |
+| **Rojo kết nối lại thật sự** | Đã kiểm metadata `ignoreUnknownInstances` trên server Rojo là `true` cho cả hai thư mục Assets và thư mục con; chưa thử ngắt và kết nối lại |
+| **Tải với nhiều phòng cùng lúc** | Chưa đo |
+
+### Kiểm tra tĩnh
+
+```bash
+selene src          # 0 errors
+rojo build -o /tmp/bap.rbxlx
+tools/tests/run.sh  # 45 ca config + công thức + hitbox, 69 ca lifecycle phòng: đều đạt
+```
+
+Test phòng chạy `RoomService` thật với người chơi giả và service giả: vào phòng, ready, đếm ngược, host rời, kick, chỉ bạn bè, phòng đầy, khởi động thất bại, rời trong lúc streaming, người chơi thoát game ở mọi trạng thái, map được giải phóng đúng một lần. Test này không thay thế được việc chơi thử nhiều người thật.
+
+Vị trí đầu và đuôi của capsule hitbox được kiểm bằng test toán; playtest trong Studio mới xác nhận được NPC bắt khi đứng sát, chưa xác nhận riêng ca chạm đuôi.
 
 ---
 
-## 6. Kiến trúc
+## 5. Kiến trúc
 
 ```
 src/
-├── modules/                 → ReplicatedStorage.Modules (dùng chung)
-│   ├── Config/              dữ liệu cân bằng (không có logic)
-│   ├── Shared/              Net (gói mạng), ConfigLookup (công thức), runFramework
-│   ├── Controllers/         client: Data, Gravity, Camera, Sound, MapAnim, NpcVision, GoldenGlow…
-│   ├── UIs/ Screens/ UIComponents/   giao diện React (App, LobbyDock, các cửa sổ, thư viện nút/thẻ)
-├── serverstorage/Modules/   → ServerStorage.Modules (chỉ server)
-│   ├── Services/            Run, Data, Npc, Pet, Cosmetic, Monetization, Daily, Event, Leaderboard…
-│   ├── Remotes/             Outbound (server → client) + *Remotes (client → server, có RemoteGuard)
-│   └── Config/              DataConfig (cấu trúc save), RemoteConfig (giới hạn tần suất)
-├── workspace/               Lobby + Zone1–4 (sinh từ tools/mapgen/gen_maps.py)
+├── assets/
+│   ├── replicated/          → ReplicatedStorage.Assets (Sounds, Models, Effects)
+│   └── server/              → ServerStorage.Assets (Maps, Models)
+├── modules/                 → ReplicatedStorage.Modules
+│   ├── Config/              dữ liệu thuần, không logic
+│   ├── Shared/              Net, ConfigLookup, Hitbox, runFramework
+│   ├── Controllers/         client: Data, Gravity, Camera, Sound, Room, MapAnim, NpcVision...
+│   └── UIs/ Screens/ UIComponents/   giao diện React
+├── serverstorage/Modules/   → ServerStorage.Modules
+│   ├── Services/            Run, Room, MapInstance, Data, Npc, Pet, Monetization...
+│   ├── Remotes/             Outbound và các *Remotes qua RemoteGuard
+│   └── Config/              DataConfig, RemoteConfig
+├── character/ characterscripts/
 └── server/ client/          cầu nối gọi runFramework
 ```
 
-- **Mạng**: mọi gói tin định nghĩa ở `Shared/Net.lua`; server chỉ gửi qua `Remotes/Outbound`; mọi yêu cầu từ client đi qua `RemoteGuard` (giới hạn tần suất + kiểm tra kiểu).
-- **Dữ liệu**: ProfileStore, chỉ thêm khóa mới vào `DataConfig.Template` (không đổi tên/xóa).
-- **Bản đồ**: chỉnh trong `tools/mapgen/gen_maps.py` rồi chạy `python3 tools/mapgen/gen_maps.py .`.
+- **Lobby** nằm ở `Workspace.Lobby`, không thuộc Rojo.
+- **Park** là instance chỉ có trong Studio, nằm ở `ServerStorage.Assets.Maps`, tương ứng map id `Zone3`.
+- `src/workspace/` chỉ còn bản JSON cũ của Lobby và Zone3 do `tools/mapgen` sinh ra, không được map vào game.
+
+### Phòng và map
+
+1. Client gửi `CreateRoom` hoặc `JoinRoom`. `RoomService` kiểm tra toàn bộ ở server: quyền sở hữu map, cấp, số người, bạn bè, danh sách bị kick.
+2. Host bấm START, đếm ngược theo `RoomConfig`.
+3. `MapInstanceService` clone map sang một ô lưới riêng, cách nhau xa hơn bán kính streaming nên client không tải phòng khác. Bản clone stream nguyên khối (`Atomic`).
+4. Mỗi thành viên có một run riêng trong bản clone: điểm, vết bẩn và thưởng tính riêng; NPC và perk thuộc về bản clone hoặc run đó.
+5. Xong run, người chơi về lobby và rời phòng. Run cuối kết thúc thì phòng đóng, map bị hủy sau `EmptyRoomGrace`.
+
+Tọa độ trong `MapConfig.Spawn` và `RunConfig.NpcPatrols` là **tọa độ gốc của map**. Game tự cộng độ lệch của ô lưới, trên cả server và client.
+
+### Quy tắc mạng và dữ liệu
+
+- Mọi gói tin định nghĩa ở `Shared/Net.lua`. Server gửi qua `Remotes/Outbound`; mọi yêu cầu từ client qua `RemoteGuard`.
+- Dữ liệu dùng ProfileStore. Chỉ thêm khóa vào `DataConfig.Template`, không đổi tên hay xóa.
 
 ---
 
-## 7. Cài đặt & chạy
+## 6. Cài đặt
 
 ```bash
-wally install                                         # cài packages
-rojo build -o "( Project ) Be A Pop (Do All ).rbxlx"  # build place
-rojo serve                                            # đồng bộ với Studio
-selene src                                            # kiểm tra code (phải 0 lỗi)
+rokit install
+wally install
+rojo serve         # kết nối bằng plugin Rojo trong Studio
+selene src
 ```
 
-Mở file `.rbxlx` trong Roblox Studio, bật plugin Rojo và kết nối tới `rojo serve`.
+**Lưu ý:** place cần có sẵn `Workspace.Lobby` và `ServerStorage.Assets.Maps.Park`. Hai instance này không build được từ repo, nên `rojo build` từ đầu sẽ thiếu chúng.
 
 ---
 
-## 8. Quy tắc code
+## 7. Quy tắc code
 
-1. Mỗi file chỉ có **một khối ghi chú ở đầu** (mục đích, API, phụ thuộc); không ghi chú trong thân code.
-2. Mọi giá trị có thể cân bằng/chỉnh sau này nằm trong **Config**, tên ngắn gọn, có giải thích ở đầu file Config.
-3. Config là dữ liệu thuần: không hàm, không require.
-4. Thay đổi nhỏ nhất mà đầy đủ; sửa tận gốc một lần trong code dùng chung.
-5. Trước khi gộp: `selene src` = 0 lỗi và `rojo build` thành công.
+1. Mỗi file có **một khối ghi chú ở đầu** (mục đích, API, phụ thuộc); không ghi chú trong thân code.
+2. Mọi giá trị có thể chỉnh nằm trong **Config**, tên ngắn, có giải thích và đơn vị ở đầu file.
+3. Config là dữ liệu thuần dạng `return { ... }`: không hàm, không require.
+4. Thay đổi nhỏ nhất mà đầy đủ; sửa tận gốc trong code dùng chung.
+5. Không bỏ kiểm tra phía server hay bảo vệ dữ liệu.
+6. Trước khi gộp: `selene src` 0 lỗi và `rojo build` thành công.
