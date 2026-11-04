@@ -13,7 +13,8 @@
 	ball is made frictionless so pressing into a surface can never lock it in place.
 
 	Public API: none (the returned function is spawned by runFramework at Priority 2).
-	Dependencies: ReplicatedStorage.Modules.Config.MovementConfig, Players.LocalPlayer,
+	Dependencies: ReplicatedStorage.Modules.Config.CharacterConfig,
+		ReplicatedStorage.Modules.Config.MovementConfig, Players.LocalPlayer,
 		PlayerScripts.PlayerModule when present (Controls:GetMoveVector, the unified
 		keyboard/gamepad/touch source), RunService, UserInputService.
 	PlayerModule is optional: when the place has no default PlayerModule the controller falls
@@ -26,6 +27,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local CharacterConfig = require(ReplicatedStorage.Modules.Config.CharacterConfig)
 local MovementConfig = require(ReplicatedStorage.Modules.Config.MovementConfig)
 
 local WORLD_UP = Vector3.yAxis
@@ -56,6 +58,7 @@ local lastPosition: Vector3? = nil
 local moveVelocity = Vector3.zero
 local jumpQueued = false
 local characterGeneration = 0
+local currentScale = 1
 
 local raycastParams = RaycastParams.new()
 raycastParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -184,6 +187,13 @@ local function refreshExclusions()
 		local npcs = child:FindFirstChild("NPCs")
 		if npcs then
 			table.insert(excluded, npcs)
+		elseif child.Name == "Rooms" then
+			for _, roomMap in child:GetChildren() do
+				local roomNpcs = roomMap:FindFirstChild("NPCs")
+				if roomNpcs then
+					table.insert(excluded, roomNpcs)
+				end
+			end
 		end
 	end
 	raycastParams.FilterDescendantsInstances = excluded
@@ -209,6 +219,13 @@ local function applyBodyPhysics(part: BasePart)
 		MovementConfig.BodyFrictionWeight,
 		MovementConfig.BodyElasticityWeight
 	)
+	local mass = part.AssemblyMass
+	if velocityActuator then
+		velocityActuator.MaxForce = mass * MovementConfig.MaxAcceleration
+	end
+	if alignActuator then
+		alignActuator.MaxTorque = mass * MovementConfig.AlignmentTorquePerMass
+	end
 end
 
 local function teardown()
@@ -271,11 +288,11 @@ local function onCharacterAdded(char: Model)
 	local part: BasePart = foundRoot
 	humanoid = hum
 	root = part
+	currentScale = char:GetScale()
 
 	hum.PlatformStand = true
 	hum.AutoRotate = false
 
-	applyBodyPhysics(part)
 	refreshExclusions()
 
 	local anchor = Instance.new("Attachment")
@@ -306,6 +323,7 @@ local function onCharacterAdded(char: Model)
 	attachment = anchor
 	velocityActuator = velocity
 	alignActuator = align
+	applyBodyPhysics(part)
 
 	table.insert(
 		characterConnections,
@@ -316,6 +334,7 @@ local function onCharacterAdded(char: Model)
 	table.insert(
 		characterConnections,
 		part:GetPropertyChangedSignal("Size"):Connect(function()
+			currentScale = char:GetScale()
 			applyBodyPhysics(part)
 		end)
 	)
@@ -394,7 +413,8 @@ local function update(dt: number)
 		end
 	end
 
-	local scale = char:GetScale()
+	local scale = currentScale
+	local probeOrigin = position + up * (CharacterConfig.HitboxOffset.Y * scale)
 	local canStick = timeSinceJump > MovementConfig.JumpCooldown
 	local probing = moving and probeDirection.Magnitude > MovementConfig.ProbeMinInput
 	local candidate: Vector3? = nil
@@ -403,7 +423,7 @@ local function update(dt: number)
 		if probing then
 			local wallProbe = MovementConfig.WallProbeDistance * scale
 			local wallReach = wallProbe / math.max(MovementConfig.WallClimbHeadOnDot, 0.01)
-			local wallHit = cast(position, probeDirection, wallReach)
+			local wallHit = cast(probeOrigin, probeDirection, wallReach)
 			if wallHit then
 				local headOn = -wallHit.Normal:Dot(probeDirection)
 				if
@@ -417,14 +437,15 @@ local function update(dt: number)
 		end
 
 		if not candidate then
-			local groundHit = cast(position, -up, MovementConfig.GroundProbeDistance * scale)
+			local groundReach = (CharacterConfig.HitboxOffset.Y + MovementConfig.GroundProbeDistance) * scale
+			local groundHit = cast(probeOrigin, -up, groundReach)
 			if groundHit and isClimbable(groundHit.Normal, false) then
 				candidate = groundHit.Normal
 			end
 		end
 
 		if not candidate and probing then
-			local edgeOrigin = position + up * (MovementConfig.EdgeProbeUpOffset * scale)
+			local edgeOrigin = probeOrigin + up * (MovementConfig.EdgeProbeUpOffset * scale)
 			local edgeDirection = probeDirection - up * MovementConfig.EdgeProbeDownBias
 			local edgeHit = cast(edgeOrigin, edgeDirection, MovementConfig.EdgeProbeDistance * scale)
 			if edgeHit and isClimbable(edgeHit.Normal, true) then
@@ -492,10 +513,8 @@ local function update(dt: number)
 		desiredVelocity = moveVelocity + up * upVelocity
 	end
 
-	velocity.MaxForce = part.AssemblyMass * MovementConfig.MaxAcceleration
 	velocity.VectorVelocity = desiredVelocity
 
-	align.MaxTorque = part.AssemblyMass * MovementConfig.AlignmentTorquePerMass
 	local alignTarget = position + facing
 	if facing:Cross(up).Magnitude < 1e-3 then
 		local fallback = up:Cross(Vector3.xAxis)

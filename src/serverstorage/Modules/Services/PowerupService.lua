@@ -232,16 +232,19 @@ local function step(session: PowerupSession, now: number)
 		reach = MonetizationConfig.MagnetPickupRadius * session.appliedScale
 	end
 
+	local reachSq = reach * reach
 	local root = if hrp ~= nil then hrp.CFrame else nil
 	for part, food in session.foods do
 		local position = part.Position
-		if
-			root ~= nil
-			and (Hitbox.ClosestPoint(root, session.appliedScale, position) - position).Magnitude <= reach
-		then
-			removeFood(session, part)
-			eat(session, food.powerupId, now)
-		elseif now >= food.expiresAt then
+		if root ~= nil then
+			local delta = Hitbox.ClosestPoint(root, session.appliedScale, position) - position
+			if delta:Dot(delta) <= reachSq then
+				removeFood(session, part)
+				eat(session, food.powerupId, now)
+				continue
+			end
+		end
+		if now >= food.expiresAt then
 			removeFood(session, part)
 		end
 	end

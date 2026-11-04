@@ -26,14 +26,16 @@ type Detail = {
 	phase: number,
 	rest: CFrame,
 	hinge: CFrame,
+	hingeOffset: CFrame,
 	parts: { BasePart },
 	offsets: { CFrame },
 	baseTransparency: { number },
-	near: boolean,
 }
 
 local TAU = math.pi + math.pi
 local details: { [PVInstance]: Detail } = {}
+local nearDetails: { Detail } = {}
+local lastCull = 0
 
 local function collectParts(instance: Instance): { BasePart }
 	local parts = {}
@@ -72,9 +74,10 @@ local function track(instance: Instance)
 	local phase = instance:GetAttribute("AnimPhase")
 	local boundsCFrame, boundsSize = getBounds(pv)
 	local rest = pv:GetPivot()
+	local hinge = CFrame.new(boundsCFrame.Position + Vector3.new(0, boundsSize.Y / 2, 0))
 	local parts = collectParts(instance)
-	local baseTransparency = {}
-	local offsets = {}
+	local baseTransparency = table.create(#parts)
+	local offsets = table.create(#parts)
 	for index, part in parts do
 		baseTransparency[index] = part.Transparency
 		offsets[index] = rest:ToObjectSpace(part.CFrame)
@@ -84,14 +87,16 @@ local function track(instance: Instance)
 		kind = kind,
 		phase = if typeof(phase) == "number" then phase else 0,
 		rest = rest,
-		hinge = CFrame.new(boundsCFrame.Position + Vector3.new(0, boundsSize.Y / 2, 0)),
+		hinge = hinge,
+		hingeOffset = hinge:Inverse() * rest,
 		parts = parts,
 		offsets = offsets,
 		baseTransparency = baseTransparency,
-		near = false,
 	}
+	lastCull = 0
 	instance.Destroying:Connect(function()
 		details[pv] = nil
+		lastCull = 0
 	end)
 end
 
@@ -105,12 +110,12 @@ local function poseFor(detail: Detail, now: number): CFrame?
 		return detail.rest + Vector3.new(0, math.sin(t * kind.Frequency * TAU) * kind.Amplitude, 0)
 	elseif kind.Type == "Sway" then
 		local wave = math.rad(kind.Angle)
-		local tilt = CFrame.Angles(math.sin(t * kind.Frequency * TAU) * wave, 0, math.cos(t * kind.Frequency * TAU) * wave)
+		local tilt =
+			CFrame.Angles(math.sin(t * kind.Frequency * TAU) * wave, 0, math.cos(t * kind.Frequency * TAU) * wave)
 		return detail.rest * tilt
 	elseif kind.Type == "Swing" then
 		local angle = math.sin(t * kind.Frequency * TAU) * math.rad(kind.Angle)
-		local hinge = detail.hinge
-		return hinge * CFrame.Angles(angle, 0, 0) * hinge:Inverse() * detail.rest
+		return detail.hinge * CFrame.Angles(angle, 0, 0) * detail.hingeOffset
 	end
 	return nil
 end
@@ -124,23 +129,26 @@ local function applyPulse(detail: Detail, now: number)
 	end
 end
 
-local lastCull = 0
-
 local function refreshCulling(now: number)
 	if now - lastCull < MapAnimConfig.CullCheckInterval then
 		return
 	end
 	lastCull = now
+	table.clear(nearDetails)
 	local camera = Workspace.CurrentCamera
 	if camera == nil then
 		return
 	end
 	local cameraPosition = camera.CFrame.Position
+	local maxDistSq = MapAnimConfig.MaxDistance * MapAnimConfig.MaxDistance
 	for instance, detail in details do
 		if instance.Parent == nil then
 			details[instance] = nil
 		else
-			detail.near = (detail.rest.Position - cameraPosition).Magnitude <= MapAnimConfig.MaxDistance
+			local delta = detail.rest.Position - cameraPosition
+			if delta:Dot(delta) <= maxDistSq then
+				table.insert(nearDetails, detail)
+			end
 		end
 	end
 end
@@ -161,19 +169,20 @@ RunService.RenderStepped:Connect(function()
 	end
 	lastUpdate = now
 	refreshCulling(now)
+	if #nearDetails == 0 then
+		return
+	end
 	table.clear(moveParts)
 	table.clear(moveCFrames)
-	for _, detail in details do
-		if detail.near then
-			if detail.kind.Type == "Pulse" then
-				applyPulse(detail, now)
-			else
-				local pose = poseFor(detail, now)
-				if pose ~= nil then
-					for index, part in detail.parts do
-						table.insert(moveParts, part)
-						table.insert(moveCFrames, pose * detail.offsets[index])
-					end
+	for _, detail in nearDetails do
+		if detail.kind.Type == "Pulse" then
+			applyPulse(detail, now)
+		else
+			local pose = poseFor(detail, now)
+			if pose ~= nil then
+				for index, part in detail.parts do
+					table.insert(moveParts, part)
+					table.insert(moveCFrames, pose * detail.offsets[index])
 				end
 			end
 		end

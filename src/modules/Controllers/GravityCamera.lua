@@ -9,7 +9,8 @@
 	camera in. Direction and distance tuning live in MovementConfig.
 
 	Public API: none (the returned function is spawned by runFramework at Priority 3).
-	Dependencies: ReplicatedStorage.Modules.Config.MovementConfig, Players.LocalPlayer,
+	Dependencies: ReplicatedStorage.Modules.Config.MovementConfig,
+		ReplicatedStorage.Modules.Shared.Hitbox, Players.LocalPlayer,
 		character attribute GravityUp (published by GravityController), RunService,
 		UserInputService.
 ]]
@@ -20,6 +21,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local MovementConfig = require(ReplicatedStorage.Modules.Config.MovementConfig)
+local Hitbox = require(ReplicatedStorage.Modules.Shared.Hitbox)
 
 local WORLD_UP = Vector3.yAxis
 local WORLD_FORWARD = Vector3.new(0, 0, -1)
@@ -31,12 +33,15 @@ local root: BasePart? = nil
 local characterConnections: { RBXScriptConnection } = {}
 
 local upSmooth = WORLD_UP
+local cachedUp = WORLD_UP
+local cachedScale = 1
 local forwardRef = WORLD_FORWARD
 local focus: Vector3? = nil
 local yaw = math.rad(MovementConfig.CameraDefaultYawDegrees)
 local pitch = math.rad(MovementConfig.CameraDefaultPitchDegrees)
 
 local orbitTouch: InputObject? = nil
+local gamepadStick = Vector3.zero
 local dragging = false
 local endDrag: () -> () = function() end
 
@@ -62,15 +67,8 @@ local function rotateAboutAxis(vector: Vector3, from: Vector3, to: Vector3): Vec
 end
 
 local function refreshCameraExclusions()
-	local excluded: { Instance } = {}
 	local char = character
-	if char then
-		table.insert(excluded, char)
-		for _, descendant in char:GetDescendants() do
-			table.insert(excluded, descendant)
-		end
-	end
-	cameraRaycastParams.FilterDescendantsInstances = excluded
+	cameraRaycastParams.FilterDescendantsInstances = if char then { char } else {}
 end
 
 local function readGravityUp(): Vector3
@@ -84,11 +82,17 @@ local function readGravityUp(): Vector3
 	return WORLD_UP
 end
 
+local function focusFor(part: BasePart, upDir: Vector3): Vector3
+	return Hitbox.Center(part.CFrame, cachedScale) + upDir * (MovementConfig.CameraHeightOffset * cachedScale)
+end
+
 local function resetView()
 	local char = character
 	local part = root
 	local targetUp = readGravityUp()
 
+	cachedUp = targetUp
+	cachedScale = if char then char:GetScale() else 1
 	upSmooth = targetUp
 	forwardRef = WORLD_FORWARD
 	yaw = math.rad(MovementConfig.CameraDefaultYawDegrees)
@@ -103,10 +107,10 @@ local function resetView()
 	end
 
 	if part then
-		focus = part.Position + targetUp * MovementConfig.CameraHeightOffset
+		focus = focusFor(part, targetUp)
 	elseif char then
-		local pivot = char:GetPivot().Position
-		focus = pivot + targetUp * MovementConfig.CameraHeightOffset
+		focus = Hitbox.Center(char:GetPivot(), cachedScale)
+			+ targetUp * (MovementConfig.CameraHeightOffset * cachedScale)
 	end
 
 	refreshCameraExclusions()
@@ -127,14 +131,30 @@ local function onCharacterAdded(char: Model)
 	focus = nil
 	resetView()
 
+	table.insert(
+		characterConnections,
+		char:GetAttributeChangedSignal("GravityUp"):Connect(function()
+			cachedUp = readGravityUp()
+		end)
+	)
+
 	task.spawn(function()
 		local foundRoot = char:WaitForChild("HumanoidRootPart", MovementConfig.CharacterWaitTimeout)
 		if character ~= char or not foundRoot or not foundRoot:IsA("BasePart") then
 			return
 		end
 		root = foundRoot
-		focus = foundRoot.Position + upSmooth * MovementConfig.CameraHeightOffset
+		cachedScale = char:GetScale()
+		focus = focusFor(foundRoot, upSmooth)
 		refreshCameraExclusions()
+		table.insert(
+			characterConnections,
+			foundRoot:GetPropertyChangedSignal("Size"):Connect(function()
+				if character == char then
+					cachedScale = char:GetScale()
+				end
+			end)
+		)
 	end)
 
 	table.insert(
@@ -147,22 +167,6 @@ local function onCharacterAdded(char: Model)
 	)
 end
 
-local function readGamepadStick(keyCode: Enum.KeyCode): Vector3?
-	local state: any = UserInputService:GetGamepadState(Enum.UserInputType.Gamepad1)
-	if not state then
-		return nil
-	end
-
-	for _, inputObject in state do
-		if inputObject.KeyCode == keyCode then
-			local position: Vector3 = inputObject.Position
-			return position
-		end
-	end
-
-	return nil
-end
-
 local function applyInput(dt: number)
 	if dragging then
 		local delta = UserInputService:GetMouseDelta()
@@ -170,10 +174,9 @@ local function applyInput(dt: number)
 		pitch += math.rad(delta.Y * MovementConfig.CameraMouseSensitivity)
 	end
 
-	local stickPosition = readGamepadStick(Enum.KeyCode.Thumbstick2)
-	if stickPosition then
-		yaw -= math.rad(MovementConfig.CameraGamepadYawSpeed) * stickPosition.X * dt
-		pitch -= math.rad(MovementConfig.CameraGamepadPitchSpeed) * stickPosition.Y * dt
+	if gamepadStick.Magnitude > 0 then
+		yaw -= math.rad(MovementConfig.CameraGamepadYawSpeed) * gamepadStick.X * dt
+		pitch -= math.rad(MovementConfig.CameraGamepadPitchSpeed) * gamepadStick.Y * dt
 	end
 
 	pitch = math.clamp(
@@ -199,7 +202,7 @@ local function render(dt: number)
 
 	applyInput(dt)
 
-	local targetUp = readGravityUp()
+	local targetUp = cachedUp
 	local blend = 1 - math.exp(-MovementConfig.CameraUpLerpSpeed * dt)
 	local nextUp = upSmooth:Lerp(targetUp, blend)
 	if nextUp.Magnitude > 1e-3 then
@@ -220,7 +223,7 @@ local function render(dt: number)
 		forwardRef = fallback.Unit
 	end
 
-	local targetFocus = part.Position + upSmooth * MovementConfig.CameraHeightOffset
+	local targetFocus = focusFor(part, upSmooth)
 	local currentFocus = focus
 	local nextFocus: Vector3
 	if currentFocus then
@@ -289,6 +292,8 @@ return function()
 		if input.UserInputType == Enum.UserInputType.Touch and input == orbitTouch then
 			yaw -= math.rad(input.Delta.X * MovementConfig.CameraTouchSensitivity)
 			pitch += math.rad(input.Delta.Y * MovementConfig.CameraTouchSensitivity)
+		elseif input.KeyCode == Enum.KeyCode.Thumbstick2 then
+			gamepadStick = input.Position
 		end
 	end)
 
@@ -297,6 +302,8 @@ return function()
 			endDrag()
 		elseif input == orbitTouch then
 			orbitTouch = nil
+		elseif input.KeyCode == Enum.KeyCode.Thumbstick2 then
+			gamepadStick = Vector3.zero
 		end
 	end)
 
