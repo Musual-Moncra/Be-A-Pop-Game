@@ -17,6 +17,15 @@
 		SelectRun(mapId, modeId)
 		StartRun()
 		LeaveRun()
+		CreateRoom(mapId, modeId, maxPlayers, friendsOnly)
+		UpdateRoom(mapId, modeId, maxPlayers, friendsOnly)   host only, while Waiting
+		JoinRoom(roomId)
+		LeaveRoom()
+		SetRoomReady(ready)
+		StartRoom()                        host only
+		KickRoomMember(userId)             host only
+		InviteToRoom(userId)               host only, friend in this server
+		WatchRooms(watching)               true while the room browser is open
 		ClaimDaily()
 		UsePotion(potionId)
 		Rebirth()
@@ -31,6 +40,11 @@
 	Server -> Client:
 		SelectionSync(mapId, modeId)
 		DataSync(snapshot)                 full Profile.Data table
+		RoomState(payload)                 the room this client is in, InRoom false = none;
+		                                   Status "Waiting", "Countdown" or "Running", StartsAt = server clock
+		RoomList({ RoomSummary })          joinable rooms visible to this client, sent while watching
+		RoomInvite(roomId, hostName, mapId)  a friend invited this client to their room
+		OpenRoomMenu()                     lobby portal touched, open the play window
 		RunState(state, timeLeft, score)   timeLeft -1 = untimed
 		RunEnded(summary)                  RunSummary struct, see below
 		PowerupState(active)               { { Id, TimeLeft, Duration } }
@@ -190,6 +204,53 @@ Net.MergePet = Packet.new("MergePet", Packet.String)
 
 Net.PetInventory = Packet.new("PetInventory", PetInventoryState)
 Net.HatchResult = Packet.new("HatchResult", Packet.String, Packet.String)
+
+local RoomMember = {
+	UserId = Packet.NumberF64,
+	Name = Packet.String,
+	Level = Packet.NumberU16,
+	Ready = Packet.Boolean8,
+	IsFriend = Packet.Boolean8,
+}
+
+local RoomStatePayload = {
+	InRoom = Packet.Boolean8,
+	Id = Packet.NumberU16,
+	HostId = Packet.NumberF64,
+	MapId = Packet.String,
+	ModeId = Packet.String,
+	MaxPlayers = Packet.NumberU8,
+	FriendsOnly = Packet.Boolean8,
+	Status = Packet.String,
+	StartsAt = Packet.NumberF64,
+	Members = { RoomMember },
+}
+
+local RoomSummary = {
+	Id = Packet.NumberU16,
+	HostName = Packet.String,
+	MapId = Packet.String,
+	ModeId = Packet.String,
+	Players = Packet.NumberU8,
+	MaxPlayers = Packet.NumberU8,
+	FriendsOnly = Packet.Boolean8,
+	HostIsFriend = Packet.Boolean8,
+}
+
+Net.CreateRoom = Packet.new("CreateRoom", Packet.String, Packet.String, Packet.NumberU8, Packet.Boolean8)
+Net.UpdateRoom = Packet.new("UpdateRoom", Packet.String, Packet.String, Packet.NumberU8, Packet.Boolean8)
+Net.JoinRoom = Packet.new("JoinRoom", Packet.NumberU16)
+Net.LeaveRoom = Packet.new("LeaveRoom")
+Net.SetRoomReady = Packet.new("SetRoomReady", Packet.Boolean8)
+Net.StartRoom = Packet.new("StartRoom")
+Net.KickRoomMember = Packet.new("KickRoomMember", Packet.NumberF64)
+Net.InviteToRoom = Packet.new("InviteToRoom", Packet.NumberF64)
+Net.WatchRooms = Packet.new("WatchRooms", Packet.Boolean8)
+
+Net.RoomState = Packet.new("RoomState", RoomStatePayload)
+Net.RoomList = Packet.new("RoomList", { RoomSummary })
+Net.RoomInvite = Packet.new("RoomInvite", Packet.NumberU16, Packet.String, Packet.String)
+Net.OpenRoomMenu = Packet.new("OpenRoomMenu")
 
 Net.GoldenTargets = Packet.new("GoldenTargets", { Packet.String })
 Net.LeaderboardData = Packet.new("LeaderboardData", LeaderboardDataPayload)

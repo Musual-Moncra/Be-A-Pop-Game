@@ -10,7 +10,8 @@
         "$path": "src/modules"
       },
       "Assets": {
-        "$path": "src/assets"
+        "$path": "src/assets/replicated",
+        "$ignoreUnknownInstances": true
       }
     },
     "ServerScriptService": {
@@ -22,6 +23,10 @@
       },
       "Modules": {
         "$path": "src/serverstorage/Modules"
+      },
+      "Assets": {
+        "$path": "src/assets/server",
+        "$ignoreUnknownInstances": true
       }
     },
     "StarterPlayer": {
@@ -60,18 +65,6 @@
             512
           ]
         }
-      },
-      "Zone1": {
-        "$path": "src/workspace/Zone1.model.json"
-      },
-      "Zone2": {
-        "$path": "src/workspace/Zone2.model.json"
-      },
-      "Zone3": {
-        "$path": "src/workspace/Zone3.model.json"
-      },
-      "Zone4": {
-        "$path": "src/workspace/Zone4.model.json"
       }
     },
     "Lighting": {

@@ -1,7 +1,7 @@
 --[[
 	Animate
 	Plays the walk animation on the poop while it moves and fades it out when it stops.
-	Reads the Animation template and tuning from CharacterConfig, and measures speed on the
+	Reads the animation id from AssetConfig and the tuning from CharacterConfig, and measures speed on the
 	surface plane so GravityController's grounded stick velocity does not count as movement.
 ]]
 
@@ -9,10 +9,10 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local AssetConfig = require(ReplicatedStorage.Modules.Config.AssetConfig)
 local CharacterConfig = require(ReplicatedStorage.Modules.Config.CharacterConfig)
 
 local player = Players.LocalPlayer
-local animationAssets = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("Animations")
 
 local function trackCharacter(character: Model)
 	local humanoid = character:WaitForChild("Humanoid")
@@ -27,12 +27,13 @@ local function trackCharacter(character: Model)
 		animator.Parent = humanoid
 	end
 
-	local template = animationAssets:FindFirstChild(CharacterConfig.WalkAnimationAsset)
-	if template == nil or not template:IsA("Animation") then
+	if AssetConfig.Animations.Walk == "" then
 		return
 	end
 
-	local track = animator:LoadAnimation(template)
+	local animation = Instance.new("Animation")
+	animation.AnimationId = AssetConfig.Animations.Walk
+	local track = animator:LoadAnimation(animation)
 	track.Looped = true
 	track.Priority = Enum.AnimationPriority.Movement
 

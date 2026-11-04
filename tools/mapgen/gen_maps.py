@@ -1,5 +1,6 @@
 """Be A Poop map generator v2: Lobby + Zone1 Kitchen, Zone2 Mall, Zone3 Park, Zone4 Hotel.
-Writes src/workspace/*.model.json and prints RunConfig.NpcPatrols Luau + MapConfig spawns."""
+Writes Zone1/2/4 to src/assets/server/Maps (Lobby and the old Zone3 to src/workspace, both unmapped: their
+live versions are Studio-owned instances) and prints RunConfig.NpcPatrols Luau + MapConfig spawns."""
 import json
 import math
 import random
@@ -719,7 +720,8 @@ def build_zone4():
 maps = {"Lobby": build_lobby(), "Zone1": build_zone1(), "Zone2": build_zone2(), "Zone3": build_zone3(), "Zone4": build_zone4()}
 for name, data in maps.items():
     data.pop("name")
-    with open(f"{ROOT}/src/workspace/{name}.model.json", "w") as fh:
+    folder_path = "src/workspace" if name in ("Lobby", "Zone3") else "src/assets/server/Maps"
+    with open(f"{ROOT}/{folder_path}/{name}.model.json", "w") as fh:
         json.dump(data, fh, separators=(",", ":"))
         fh.write("\n")
 
