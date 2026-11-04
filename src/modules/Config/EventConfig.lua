@@ -19,28 +19,26 @@
 		TargetPanic.Radius: props within this distance of an NPC make it panic when fully soiled (studs)
 ]]
 
-local EventConfig = {}
+return {
+	StepInterval = 0.5,
 
-EventConfig.StepInterval = 0.5
+	SpecialTime = {
+		IntervalSeconds = 240,
+		FirstDelaySeconds = 240,
+		DurationSeconds = 120,
+		PointsMultiplier = 2,
+		GemMultiplier = 2,
+	},
 
-EventConfig.SpecialTime = {
-	IntervalSeconds = 240,
-	FirstDelaySeconds = 240,
-	DurationSeconds = 120,
-	PointsMultiplier = 2,
-	GemMultiplier = 2,
+	MapProgress = {
+		SyncInterval = 0.5,
+		MinSendDelta = 0.1,
+		SaveStepPercent = 10,
+	},
+
+	TargetPanic = {
+		DurationSeconds = 4,
+		SpeedMultiplier = 2.2,
+		Radius = 45,
+	},
 }
-
-EventConfig.MapProgress = {
-	SyncInterval = 0.5,
-	MinSendDelta = 0.1,
-	SaveStepPercent = 10,
-}
-
-EventConfig.TargetPanic = {
-	DurationSeconds = 4,
-	SpeedMultiplier = 2.2,
-	Radius = 45,
-}
-
-return EventConfig

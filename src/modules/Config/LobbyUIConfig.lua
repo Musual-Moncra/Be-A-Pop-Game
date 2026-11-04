@@ -111,201 +111,199 @@
 			Warning: line explaining what resets (text)
 ]]
 
-local LobbyUIConfig = {}
-
-LobbyUIConfig.Dock = {
-	ButtonSize = 118,
-	ItemSize = 86,
-	LabelHeight = 24,
-	Gap = 14,
-	Lift = 18,
-	Margin = 24,
-	Stagger = 0.035,
-	Icon = "💩",
-	OpenIcon = "✖️",
-	Label = "MENU",
-	Swatch = "Orange",
-	OpenSwatch = "Red",
-	BadgeSize = 34,
-	BigScale = 1.25,
-	Items = {
-		{ Id = "Shop", Label = "SHOP", Icon = "🛒", Swatch = "Gold", Route = "Shop", Big = false },
-		{ Id = "Pets", Label = "PETS", Icon = "🐶", Swatch = "Blue", Route = "Pets", Big = false },
-		{ Id = "Skins", Label = "SKINS", Icon = "🎨", Swatch = "Purple", Route = "Skins", Big = false },
-		{ Id = "Play", Label = "PLAY", Icon = "▶️", Swatch = "Green", Route = "Play", Big = true },
-		{ Id = "Upgrades", Label = "UPGRADE", Icon = "⚡", Swatch = "Orange", Route = "Upgrades", Big = false },
-		{ Id = "Daily", Label = "DAILY", Icon = "🎁", Swatch = "Pink", Route = "Daily", Big = false },
-		{ Id = "Rebirth", Label = "REBIRTH", Icon = "🌀", Swatch = "Teal", Route = "Rebirth", Big = false },
-		{ Id = "Stats", Label = "STATS", Icon = "🏆", Swatch = "Grey", Route = "Stats", Big = false },
+return {
+	Dock = {
+		ButtonSize = 118,
+		ItemSize = 86,
+		LabelHeight = 24,
+		Gap = 14,
+		Lift = 18,
+		Margin = 24,
+		Stagger = 0.035,
+		Icon = "💩",
+		OpenIcon = "✖️",
+		Label = "MENU",
+		Swatch = "Orange",
+		OpenSwatch = "Red",
+		BadgeSize = 34,
+		BigScale = 1.25,
+		Items = {
+			{ Id = "Shop", Label = "SHOP", Icon = "🛒", Swatch = "Gold", Route = "Shop", Big = false },
+			{ Id = "Pets", Label = "PETS", Icon = "🐶", Swatch = "Blue", Route = "Pets", Big = false },
+			{ Id = "Skins", Label = "SKINS", Icon = "🎨", Swatch = "Purple", Route = "Skins", Big = false },
+			{ Id = "Play", Label = "PLAY", Icon = "▶️", Swatch = "Green", Route = "Play", Big = true },
+			{ Id = "Upgrades", Label = "UPGRADE", Icon = "⚡", Swatch = "Orange", Route = "Upgrades", Big = false },
+			{ Id = "Daily", Label = "DAILY", Icon = "🎁", Swatch = "Pink", Route = "Daily", Big = false },
+			{ Id = "Rebirth", Label = "REBIRTH", Icon = "🌀", Swatch = "Teal", Route = "Rebirth", Big = false },
+			{ Id = "Stats", Label = "STATS", Icon = "🏆", Swatch = "Grey", Route = "Stats", Big = false },
+		},
 	},
-}
 
-LobbyUIConfig.Rays = {
-	Count = 10,
-	Thickness = 26,
-	Color = Color3.fromRGB(255, 244, 160),
-	Transparency = 0.35,
-	SpinSeconds = 9,
-	SizeRatio = 1.7,
-}
-
-LobbyUIConfig.Bounce = {
-	Scale = 0.06,
-	Seconds = 1.1,
-}
-
-LobbyUIConfig.Badge = {
-	Text = "!",
-	Swatch = "Red",
-	PulseScale = 1.18,
-	PulseSeconds = 0.7,
-}
-
-LobbyUIConfig.Layouts = {
-	PC = {
-		Dock = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -24) },
+	Rays = {
+		Count = 10,
+		Thickness = 26,
+		Color = Color3.fromRGB(255, 244, 160),
+		Transparency = 0.35,
+		SpinSeconds = 9,
+		SizeRatio = 1.7,
 	},
-	Mobile = {
-		Dock = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -12) },
+
+	Bounce = {
+		Scale = 0.06,
+		Seconds = 1.1,
 	},
-}
 
-LobbyUIConfig.Stations = {
-	Upgrades = { Route = "Upgrades", ActionText = "Upgrade", ObjectText = "Upgrade Stand" },
-	Eggs = { Route = "Pets", ActionText = "Hatch", ObjectText = "Pet Eggs" },
-	Crates = { Route = "Skins", ActionText = "Open", ObjectText = "Skin Crates" },
-	Daily = { Route = "Daily", ActionText = "Claim", ObjectText = "Daily Gift" },
-	Rebirth = { Route = "Rebirth", ActionText = "Rebirth", ObjectText = "Golden Poop" },
-}
-
-LobbyUIConfig.StationPrompt = {
-	HoldDuration = 0,
-	MaxActivationDistance = 14,
-	KeyCode = Enum.KeyCode.E,
-}
-
-LobbyUIConfig.Daily = {
-	Width = 980,
-	Height = 600,
-	Columns = 4,
-	TileHeight = 170,
-	ClaimHeight = 80,
-	RaysRatio = 1.4,
-	Swatch = "Pink",
-	KindVisuals = {
-		Coins = { Icon = "💰", Swatch = "Gold" },
-		Gems = { Icon = "💎", Swatch = "Purple" },
-		Boost = { Icon = "🚀", Swatch = "Blue" },
-		Skin = { Icon = "👑", Swatch = "Pink" },
+	Badge = {
+		Text = "!",
+		Swatch = "Red",
+		PulseScale = 1.18,
+		PulseSeconds = 0.7,
 	},
-	Title = "DAILY GIFTS",
-	DayFormat = "DAY %d",
-	Claim = "CLAIM!",
-	NextFormat = "NEXT IN %s",
-	Claimed = "✅",
-	StreakFormat = "Streak: %d / %d days",
-}
 
-LobbyUIConfig.Tabs = {
-	Height = 58,
-	Gap = 10,
-}
+	Layouts = {
+		PC = {
+			Dock = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -24) },
+		},
+		Mobile = {
+			Dock = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -12) },
+		},
+	},
 
-LobbyUIConfig.Card = {
-	Width = 196,
-	Height = 236,
-	IconRatio = 0.36,
-	ButtonHeight = 48,
-}
+	Stations = {
+		Upgrades = { Route = "Upgrades", ActionText = "Upgrade", ObjectText = "Upgrade Stand" },
+		Eggs = { Route = "Pets", ActionText = "Hatch", ObjectText = "Pet Eggs" },
+		Crates = { Route = "Skins", ActionText = "Open", ObjectText = "Skin Crates" },
+		Daily = { Route = "Daily", ActionText = "Claim", ObjectText = "Daily Gift" },
+		Rebirth = { Route = "Rebirth", ActionText = "Rebirth", ObjectText = "Golden Poop" },
+	},
 
-LobbyUIConfig.RarityColors = {
-	Common = Color3.fromRGB(196, 202, 214),
-	Uncommon = Color3.fromRGB(96, 200, 120),
-	Rare = Color3.fromRGB(80, 150, 255),
-	Epic = Color3.fromRGB(170, 95, 240),
-	Legendary = Color3.fromRGB(255, 190, 60),
-	Mythical = Color3.fromRGB(255, 90, 160),
-	Secret = Color3.fromRGB(40, 240, 200),
-	Darkness = Color3.fromRGB(60, 40, 90),
-}
+	StationPrompt = {
+		HoldDuration = 0,
+		MaxActivationDistance = 14,
+		KeyCode = Enum.KeyCode.E,
+	},
 
-LobbyUIConfig.Shop = {
-	Width = 1100,
-	Height = 720,
-	Swatch = "Gold",
-	Title = "SHOP",
+	Daily = {
+		Width = 980,
+		Height = 600,
+		Columns = 4,
+		TileHeight = 170,
+		ClaimHeight = 80,
+		RaysRatio = 1.4,
+		Swatch = "Pink",
+		KindVisuals = {
+			Coins = { Icon = "💰", Swatch = "Gold" },
+			Gems = { Icon = "💎", Swatch = "Purple" },
+			Boost = { Icon = "🚀", Swatch = "Blue" },
+			Skin = { Icon = "👑", Swatch = "Pink" },
+		},
+		Title = "DAILY GIFTS",
+		DayFormat = "DAY %d",
+		Claim = "CLAIM!",
+		NextFormat = "NEXT IN %s",
+		Claimed = "✅",
+		StreakFormat = "Streak: %d / %d days",
+	},
+
 	Tabs = {
-		{ Id = "Passes", Label = "PASSES", Icon = "⭐", Swatch = "Gold" },
-		{ Id = "Gems", Label = "GEMS", Icon = "💎", Swatch = "Purple" },
-		{ Id = "Coins", Label = "COINS", Icon = "💰", Swatch = "Orange" },
-		{ Id = "Potions", Label = "POTIONS", Icon = "🧪", Swatch = "Teal" },
+		Height = 58,
+		Gap = 10,
 	},
-	RobuxFormat = "R$ %d",
-	OwnedText = "OWNED",
-	SoonText = "SOON",
-	UseText = "USE",
-	ActiveFormat = "ACTIVE %s",
-	TimeFormat = "%d:%02d",
-	CountFormat = "x%d",
-}
 
-LobbyUIConfig.Pets = {
-	Width = 1100,
-	Height = 720,
-	Swatch = "Blue",
-	Title = "PETS",
-	Tabs = {
-		{ Id = "Eggs", Label = "EGGS", Icon = "🥚", Swatch = "Gold" },
-		{ Id = "Inventory", Label = "MY PETS", Icon = "🐶", Swatch = "Blue" },
+	Card = {
+		Width = 196,
+		Height = 236,
+		IconRatio = 0.36,
+		ButtonHeight = 48,
 	},
-	EggIcon = "🥚",
-	PetIcon = "🐾",
-	HatchFormat = "💰 %s",
-	LockedText = "🔒 LOCKED",
-	EquipText = "EQUIP",
-	UnequipText = "UNEQUIP",
-	MergeText = "MERGE x5",
-	SlotsFormat = "Equipped %d / %d",
-	MultiplierFormat = "💰 x%s   💩 x%s",
-	EmptyText = "No pets yet. Hatch an egg!",
-	LastHatchFormat = "You hatched %s (%s)!",
-}
 
-LobbyUIConfig.Skins = {
-	Width = 1100,
-	Height = 720,
-	Swatch = "Purple",
-	Title = "SKINS & TRAILS",
-	Tabs = {
-		{ Id = "Crates", Label = "CRATES", Icon = "📦", Swatch = "Gold" },
-		{ Id = "Skins", Label = "SKINS", Icon = "💩", Swatch = "Purple" },
-		{ Id = "Trails", Label = "TRAILS", Icon = "✨", Swatch = "Pink" },
+	RarityColors = {
+		Common = Color3.fromRGB(196, 202, 214),
+		Uncommon = Color3.fromRGB(96, 200, 120),
+		Rare = Color3.fromRGB(80, 150, 255),
+		Epic = Color3.fromRGB(170, 95, 240),
+		Legendary = Color3.fromRGB(255, 190, 60),
+		Mythical = Color3.fromRGB(255, 90, 160),
+		Secret = Color3.fromRGB(40, 240, 200),
+		Darkness = Color3.fromRGB(60, 40, 90),
 	},
-	CrateIcon = "📦",
-	SkinIcon = "💩",
-	TrailIcon = "✨",
-	OpenFormat = "%s %s",
-	EquipText = "EQUIP",
-	EquippedText = "EQUIPPED",
-	UnequipText = "TAKE OFF",
-	LockedText = "🔒",
-	LastCrateFormat = "You got %s!",
-}
 
-LobbyUIConfig.Rebirth = {
-	Width = 640,
-	Height = 600,
-	Swatch = "Teal",
-	Title = "REBIRTH",
-	Icon = "🌀",
-	Lines = {
-		Count = "Rebirths: %d",
-		Multiplier = "Coin bonus now: x%s  ➡️  x%s",
-		Gems = "Reward: +%d 💎",
-		Cost = "Cost: %s 💰",
+	Shop = {
+		Width = 1100,
+		Height = 720,
+		Swatch = "Gold",
+		Title = "SHOP",
+		Tabs = {
+			{ Id = "Passes", Label = "PASSES", Icon = "⭐", Swatch = "Gold" },
+			{ Id = "Gems", Label = "GEMS", Icon = "💎", Swatch = "Purple" },
+			{ Id = "Coins", Label = "COINS", Icon = "💰", Swatch = "Orange" },
+			{ Id = "Potions", Label = "POTIONS", Icon = "🧪", Swatch = "Teal" },
+		},
+		RobuxFormat = "R$ %d",
+		OwnedText = "OWNED",
+		SoonText = "SOON",
+		UseText = "USE",
+		ActiveFormat = "ACTIVE %s",
+		TimeFormat = "%d:%02d",
+		CountFormat = "x%d",
 	},
-	Button = "REBIRTH!",
-	Warning = "Resets your coins and upgrades. Pets, skins and gems stay.",
-}
 
-return LobbyUIConfig
+	Pets = {
+		Width = 1100,
+		Height = 720,
+		Swatch = "Blue",
+		Title = "PETS",
+		Tabs = {
+			{ Id = "Eggs", Label = "EGGS", Icon = "🥚", Swatch = "Gold" },
+			{ Id = "Inventory", Label = "MY PETS", Icon = "🐶", Swatch = "Blue" },
+		},
+		EggIcon = "🥚",
+		PetIcon = "🐾",
+		HatchFormat = "💰 %s",
+		LockedText = "🔒 LOCKED",
+		EquipText = "EQUIP",
+		UnequipText = "UNEQUIP",
+		MergeText = "MERGE x5",
+		SlotsFormat = "Equipped %d / %d",
+		MultiplierFormat = "💰 x%s   💩 x%s",
+		EmptyText = "No pets yet. Hatch an egg!",
+		LastHatchFormat = "You hatched %s (%s)!",
+	},
+
+	Skins = {
+		Width = 1100,
+		Height = 720,
+		Swatch = "Purple",
+		Title = "SKINS & TRAILS",
+		Tabs = {
+			{ Id = "Crates", Label = "CRATES", Icon = "📦", Swatch = "Gold" },
+			{ Id = "Skins", Label = "SKINS", Icon = "💩", Swatch = "Purple" },
+			{ Id = "Trails", Label = "TRAILS", Icon = "✨", Swatch = "Pink" },
+		},
+		CrateIcon = "📦",
+		SkinIcon = "💩",
+		TrailIcon = "✨",
+		OpenFormat = "%s %s",
+		EquipText = "EQUIP",
+		EquippedText = "EQUIPPED",
+		UnequipText = "TAKE OFF",
+		LockedText = "🔒",
+		LastCrateFormat = "You got %s!",
+	},
+
+	Rebirth = {
+		Width = 640,
+		Height = 600,
+		Swatch = "Teal",
+		Title = "REBIRTH",
+		Icon = "🌀",
+		Lines = {
+			Count = "Rebirths: %d",
+			Multiplier = "Coin bonus now: x%s  ➡️  x%s",
+			Gems = "Reward: +%d 💎",
+			Cost = "Cost: %s 💰",
+		},
+		Button = "REBIRTH!",
+		Warning = "Resets your coins and upgrades. Pets, skins and gems stay.",
+	},
+}

@@ -47,131 +47,149 @@
 		IsMiniBomb: whether picking up this perk instantly soils all props/NPCs within MiniBombRadius (boolean)
 ]]
 
-local PowerupConfig = {}
+return {
+	SpawnInterval = 6,
 
-PowerupConfig.SpawnInterval = 6
-PowerupConfig.MaxActivePerRun = 4
-PowerupConfig.ItemLifetime = 20
-PowerupConfig.PickupRadius = 5
-PowerupConfig.SpawnHeight = 2.5
-PowerupConfig.SpawnRayTopInset = 0.5
-PowerupConfig.TickInterval = 0.05
-PowerupConfig.FirstSpawnDelay = 3
-PowerupConfig.ItemShape = Enum.PartType.Ball
-PowerupConfig.ItemMaterial = Enum.Material.Neon
-PowerupConfig.BobHeight = 0.6
-PowerupConfig.BobSpeed = 0.8
-PowerupConfig.SpinSpeed = 90
-PowerupConfig.ItemSize = 2.5
-PowerupConfig.FolderPrefix = "Powerups_"
-PowerupConfig.IconSize = 3.5
-PowerupConfig.IconHeight = 2.5
+	MaxActivePerRun = 4,
 
-PowerupConfig.MaxSpeedMultiplier = 4
-PowerupConfig.MaxStainSizeMultiplier = 4
-PowerupConfig.MaxPointsMultiplier = 8
-PowerupConfig.MaxCharacterScale = 3
-PowerupConfig.MiniBombRadius = 25
+	ItemLifetime = 20,
 
-PowerupConfig.Powerups = {
-	SpeedBoost = {
-		DisplayName = "Speed Boost",
-		Icon = "⚡",
-		Color = Color3.fromRGB(240, 200, 30),
-		Weight = 25,
-		Duration = 10,
-		SpeedMultiplier = 2,
-		StainSizeMultiplier = 1,
-		CharacterScale = 1,
-		PointsMultiplier = 1,
-		TimeBonus = 0,
-		IsComboSaver = false,
-		IsMiniBomb = false,
-	},
-	TimeBonus = {
-		DisplayName = "Time Bonus",
-		Icon = "⏰",
-		Color = Color3.fromRGB(80, 200, 240),
-		Weight = 20,
-		Duration = 0,
-		SpeedMultiplier = 1,
-		StainSizeMultiplier = 1,
-		CharacterScale = 1,
-		PointsMultiplier = 1,
-		TimeBonus = 60,
-		IsComboSaver = false,
-		IsMiniBomb = false,
-	},
-	BigSplat = {
-		DisplayName = "Big Splat",
-		Icon = "💥",
-		Color = Color3.fromRGB(160, 60, 220),
-		Weight = 20,
-		Duration = 10,
-		SpeedMultiplier = 1,
-		StainSizeMultiplier = 2,
-		CharacterScale = 1,
-		PointsMultiplier = 1,
-		TimeBonus = 0,
-		IsComboSaver = false,
-		IsMiniBomb = false,
-	},
-	CoinRush = {
-		DisplayName = "Coin Rush",
-		Icon = "🪙",
-		Color = Color3.fromRGB(255, 215, 0),
-		Weight = 15,
-		Duration = 10,
-		SpeedMultiplier = 1,
-		StainSizeMultiplier = 1,
-		CharacterScale = 1,
-		PointsMultiplier = 2,
-		TimeBonus = 0,
-		IsComboSaver = false,
-		IsMiniBomb = false,
-	},
-	MegaSize = {
-		DisplayName = "Mega Size",
-		Icon = "🐘",
-		Color = Color3.fromRGB(220, 120, 40),
-		Weight = 15,
-		Duration = 10,
-		SpeedMultiplier = 0.9,
-		StainSizeMultiplier = 2,
-		CharacterScale = 2,
-		PointsMultiplier = 1.5,
-		TimeBonus = 0,
-		IsComboSaver = false,
-		IsMiniBomb = false,
-	},
-	ComboSaver = {
-		DisplayName = "Combo Saver",
-		Icon = "🔄",
-		Color = Color3.fromRGB(50, 220, 120),
-		Weight = 10,
-		Duration = 0,
-		SpeedMultiplier = 1,
-		StainSizeMultiplier = 1,
-		CharacterScale = 1,
-		PointsMultiplier = 1,
-		TimeBonus = 0,
-		IsComboSaver = true,
-		IsMiniBomb = false,
-	},
-	MiniBomb = {
-		DisplayName = "Mini Bomb",
-		Icon = "💣",
-		Color = Color3.fromRGB(240, 50, 50),
-		Weight = 10,
-		Duration = 0,
-		SpeedMultiplier = 1,
-		StainSizeMultiplier = 1,
-		CharacterScale = 1,
-		PointsMultiplier = 1,
-		TimeBonus = 0,
-		IsComboSaver = false,
-		IsMiniBomb = true,
+	PickupRadius = 5,
+
+	SpawnHeight = 2.5,
+
+	SpawnRayTopInset = 0.5,
+
+	TickInterval = 0.05,
+
+	FirstSpawnDelay = 3,
+
+	ItemShape = Enum.PartType.Ball,
+
+	ItemMaterial = Enum.Material.Neon,
+
+	BobHeight = 0.6,
+
+	BobSpeed = 0.8,
+
+	SpinSpeed = 90,
+
+	ItemSize = 2.5,
+
+	FolderPrefix = "Powerups_",
+
+	IconSize = 3.5,
+
+	IconHeight = 2.5,
+
+	MaxSpeedMultiplier = 4,
+
+	MaxStainSizeMultiplier = 4,
+
+	MaxPointsMultiplier = 8,
+
+	MaxCharacterScale = 3,
+
+	MiniBombRadius = 25,
+
+	Powerups = {
+		SpeedBoost = {
+			DisplayName = "Speed Boost",
+			Icon = "⚡",
+			Color = Color3.fromRGB(240, 200, 30),
+			Weight = 25,
+			Duration = 10,
+			SpeedMultiplier = 2,
+			StainSizeMultiplier = 1,
+			CharacterScale = 1,
+			PointsMultiplier = 1,
+			TimeBonus = 0,
+			IsComboSaver = false,
+			IsMiniBomb = false,
+		},
+		TimeBonus = {
+			DisplayName = "Time Bonus",
+			Icon = "⏰",
+			Color = Color3.fromRGB(80, 200, 240),
+			Weight = 20,
+			Duration = 0,
+			SpeedMultiplier = 1,
+			StainSizeMultiplier = 1,
+			CharacterScale = 1,
+			PointsMultiplier = 1,
+			TimeBonus = 60,
+			IsComboSaver = false,
+			IsMiniBomb = false,
+		},
+		BigSplat = {
+			DisplayName = "Big Splat",
+			Icon = "💥",
+			Color = Color3.fromRGB(160, 60, 220),
+			Weight = 20,
+			Duration = 10,
+			SpeedMultiplier = 1,
+			StainSizeMultiplier = 2,
+			CharacterScale = 1,
+			PointsMultiplier = 1,
+			TimeBonus = 0,
+			IsComboSaver = false,
+			IsMiniBomb = false,
+		},
+		CoinRush = {
+			DisplayName = "Coin Rush",
+			Icon = "🪙",
+			Color = Color3.fromRGB(255, 215, 0),
+			Weight = 15,
+			Duration = 10,
+			SpeedMultiplier = 1,
+			StainSizeMultiplier = 1,
+			CharacterScale = 1,
+			PointsMultiplier = 2,
+			TimeBonus = 0,
+			IsComboSaver = false,
+			IsMiniBomb = false,
+		},
+		MegaSize = {
+			DisplayName = "Mega Size",
+			Icon = "🐘",
+			Color = Color3.fromRGB(220, 120, 40),
+			Weight = 15,
+			Duration = 10,
+			SpeedMultiplier = 0.9,
+			StainSizeMultiplier = 2,
+			CharacterScale = 2,
+			PointsMultiplier = 1.5,
+			TimeBonus = 0,
+			IsComboSaver = false,
+			IsMiniBomb = false,
+		},
+		ComboSaver = {
+			DisplayName = "Combo Saver",
+			Icon = "🔄",
+			Color = Color3.fromRGB(50, 220, 120),
+			Weight = 10,
+			Duration = 0,
+			SpeedMultiplier = 1,
+			StainSizeMultiplier = 1,
+			CharacterScale = 1,
+			PointsMultiplier = 1,
+			TimeBonus = 0,
+			IsComboSaver = true,
+			IsMiniBomb = false,
+		},
+		MiniBomb = {
+			DisplayName = "Mini Bomb",
+			Icon = "💣",
+			Color = Color3.fromRGB(240, 50, 50),
+			Weight = 10,
+			Duration = 0,
+			SpeedMultiplier = 1,
+			StainSizeMultiplier = 1,
+			CharacterScale = 1,
+			PointsMultiplier = 1,
+			TimeBonus = 0,
+			IsComboSaver = false,
+			IsMiniBomb = true,
+		},
 	},
 }
-
-return PowerupConfig

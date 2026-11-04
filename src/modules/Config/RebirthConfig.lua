@@ -12,12 +12,14 @@
 		ResetUnlockedMaps: whether rebirth also resets unlocked maps back to Zone1 (boolean)
 ]]
 
-local RebirthConfig = {}
+return {
+	BaseCost = 50000,
 
-RebirthConfig.BaseCost = 50000
-RebirthConfig.CostGrowth = 2.5
-RebirthConfig.MultiplierPerRebirth = 0.25
-RebirthConfig.GemsPerRebirth = 25
-RebirthConfig.ResetUnlockedMaps = false
+	CostGrowth = 2.5,
 
-return RebirthConfig
+	MultiplierPerRebirth = 0.25,
+
+	GemsPerRebirth = 25,
+
+	ResetUnlockedMaps = false,
+}

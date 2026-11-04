@@ -13,11 +13,12 @@
 		PlaybackSpeed: playback speed multiplier while moving (multiplier)
 ]]
 
-local CharacterConfig = {}
+return {
+	WalkAnimationAsset = "Walk",
 
-CharacterConfig.WalkAnimationAsset = "Walk"
-CharacterConfig.MoveThreshold = 0.5
-CharacterConfig.FadeTime = 0.15
-CharacterConfig.PlaybackSpeed = 1
+	MoveThreshold = 0.5,
 
-return CharacterConfig
+	FadeTime = 0.15,
+
+	PlaybackSpeed = 1,
+}

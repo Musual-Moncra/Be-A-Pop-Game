@@ -28,29 +28,46 @@
 		FloorRayHeight: the floor snap ray starts this far above the NPC and is twice as long (studs)
 ]]
 
-local NpcConfig = {}
+return {
+	ViewLength = 22,
 
-NpcConfig.ViewLength = 22
-NpcConfig.ViewWidth = 16
-NpcConfig.ViewHeight = 3
-NpcConfig.LoseMargin = 3
-NpcConfig.LoseTime = 2
-NpcConfig.ChaseSpeed = 1.15
-NpcConfig.ChaseMax = 13
-NpcConfig.ReturnSpeed = 1.1
-NpcConfig.CatchRadius = 4
-NpcConfig.CatchHeight = 3
-NpcConfig.CatchCooldown = 2
-NpcConfig.CatchPenalty = 5
-NpcConfig.RestTime = 4
-NpcConfig.TurnaroundPause = 0.5
+	ViewWidth = 16,
 
-NpcConfig.ZoneColor = Color3.fromRGB(255, 150, 60)
-NpcConfig.ChaseColor = Color3.fromRGB(255, 30, 30)
-NpcConfig.ZoneTransparency = 0.55
-NpcConfig.RingColor = Color3.fromRGB(255, 40, 40)
-NpcConfig.RingTransparency = 0.35
-NpcConfig.ZoneHeight = 0.2
-NpcConfig.FloorRayHeight = 30
+	ViewHeight = 3,
 
-return NpcConfig
+	LoseMargin = 3,
+
+	LoseTime = 2,
+
+	ChaseSpeed = 1.15,
+
+	ChaseMax = 13,
+
+	ReturnSpeed = 1.1,
+
+	CatchRadius = 4,
+
+	CatchHeight = 3,
+
+	CatchCooldown = 2,
+
+	CatchPenalty = 5,
+
+	RestTime = 4,
+
+	TurnaroundPause = 0.5,
+
+	ZoneColor = Color3.fromRGB(255, 150, 60),
+
+	ChaseColor = Color3.fromRGB(255, 30, 30),
+
+	ZoneTransparency = 0.55,
+
+	RingColor = Color3.fromRGB(255, 40, 40),
+
+	RingTransparency = 0.35,
+
+	ZoneHeight = 0.2,
+
+	FloorRayHeight = 30,
+}

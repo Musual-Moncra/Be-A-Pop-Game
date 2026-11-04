@@ -14,33 +14,31 @@
 			Description: description of what the potion does (text)
 ]]
 
-local PotionConfig = {}
-
-PotionConfig.Potions = {
-	LifespanPotion = {
-		DisplayName = "Lifespan Potion",
-		Icon = "⏳",
-		Duration = 600,
-		Multiplier = 2,
-		Stat = "Lifespan",
-		Description = "x2 Lifespan duration for 10 minutes",
-	},
-	SpeedPotion = {
-		DisplayName = "Speed Potion",
-		Icon = "⚡",
-		Duration = 900,
-		Multiplier = 2,
-		Stat = "Speed",
-		Description = "x2 WalkSpeed for 15 minutes",
-	},
-	StinkPotion = {
-		DisplayName = "Stink Potion",
-		Icon = "💨",
-		Duration = 900,
-		Multiplier = 2,
-		Stat = "StainSize",
-		Description = "x2 Stain size for 15 minutes",
+return {
+	Potions = {
+		LifespanPotion = {
+			DisplayName = "Lifespan Potion",
+			Icon = "⏳",
+			Duration = 600,
+			Multiplier = 2,
+			Stat = "Lifespan",
+			Description = "x2 Lifespan duration for 10 minutes",
+		},
+		SpeedPotion = {
+			DisplayName = "Speed Potion",
+			Icon = "⚡",
+			Duration = 900,
+			Multiplier = 2,
+			Stat = "Speed",
+			Description = "x2 WalkSpeed for 15 minutes",
+		},
+		StinkPotion = {
+			DisplayName = "Stink Potion",
+			Icon = "💨",
+			Duration = 900,
+			Multiplier = 2,
+			Stat = "StainSize",
+			Description = "x2 Stain size for 15 minutes",
+		},
 	},
 }
-
-return PotionConfig

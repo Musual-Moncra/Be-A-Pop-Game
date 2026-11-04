@@ -58,55 +58,94 @@
 		CameraCollisionPadding: gap kept between the camera and geometry it would clip (studs)
 ]]
 
-local MovementConfig = {}
+return {
+	GravityStrength = 196,
 
-MovementConfig.GravityStrength = 196
-MovementConfig.TerminalFallSpeed = 150
-MovementConfig.MaxAcceleration = 900
-MovementConfig.GroundStickSpeed = 8
-MovementConfig.JumpVelocity = 50
-MovementConfig.JumpCooldown = 0.2
-MovementConfig.GroundCoyoteTime = 0.12
-MovementConfig.AirGravityHoldTime = 0.35
-MovementConfig.AirControl = 0.45
-MovementConfig.MoveInputDeadzone = 0.08
-MovementConfig.MoveSmoothingSpeed = 18
+	TerminalFallSpeed = 150,
 
-MovementConfig.NormalLerpSpeed = 7
-MovementConfig.AlignmentResponsiveness = 90
-MovementConfig.AlignmentTorquePerMass = 8000
-MovementConfig.GravityUpPublishMinAngleDegrees = 2
-MovementConfig.TeleportResetDistance = 40
+	MaxAcceleration = 900,
 
-MovementConfig.GroundProbeDistance = 3
-MovementConfig.WallProbeDistance = 3.2
-MovementConfig.WallClimbHeadOnDot = 0.35
-MovementConfig.EdgeProbeDistance = 2.6
-MovementConfig.EdgeProbeUpOffset = 0.6
-MovementConfig.EdgeProbeDownBias = 0.9
-MovementConfig.MinWallAngleDegrees = 35
-MovementConfig.MaxClimbAngleDegrees = 110
-MovementConfig.ProbeMinInput = 0.5
-MovementConfig.CharacterWaitTimeout = 10
-MovementConfig.BodyFriction = 0
-MovementConfig.BodyFrictionWeight = 100
-MovementConfig.BodyElasticity = 0
-MovementConfig.BodyElasticityWeight = 100
+	GroundStickSpeed = 8,
 
-MovementConfig.CameraDistance = 14
-MovementConfig.CameraMinDistance = 2.5
-MovementConfig.CameraHeightOffset = 2
-MovementConfig.CameraUpLerpSpeed = 6
-MovementConfig.CameraFollowLerpSpeed = 14
-MovementConfig.CameraMinPitchDegrees = -25
-MovementConfig.CameraMaxPitchDegrees = 75
-MovementConfig.CameraDefaultPitchDegrees = 14
-MovementConfig.CameraDefaultYawDegrees = 0
-MovementConfig.CameraMouseSensitivity = 0.35
-MovementConfig.CameraTouchSensitivity = 0.3
-MovementConfig.CameraGamepadYawSpeed = 130
-MovementConfig.CameraGamepadPitchSpeed = 90
-MovementConfig.CameraTouchOrbitScreenFraction = 0.5
-MovementConfig.CameraCollisionPadding = 0.6
+	JumpVelocity = 50,
 
-return MovementConfig
+	JumpCooldown = 0.2,
+
+	GroundCoyoteTime = 0.12,
+
+	AirGravityHoldTime = 0.35,
+
+	AirControl = 0.45,
+
+	MoveInputDeadzone = 0.08,
+
+	MoveSmoothingSpeed = 18,
+
+	NormalLerpSpeed = 7,
+
+	AlignmentResponsiveness = 90,
+
+	AlignmentTorquePerMass = 8000,
+
+	GravityUpPublishMinAngleDegrees = 2,
+
+	TeleportResetDistance = 40,
+
+	GroundProbeDistance = 3,
+
+	WallProbeDistance = 3.2,
+
+	WallClimbHeadOnDot = 0.35,
+
+	EdgeProbeDistance = 2.6,
+
+	EdgeProbeUpOffset = 0.6,
+
+	EdgeProbeDownBias = 0.9,
+
+	MinWallAngleDegrees = 35,
+
+	MaxClimbAngleDegrees = 110,
+
+	ProbeMinInput = 0.5,
+
+	CharacterWaitTimeout = 10,
+
+	BodyFriction = 0,
+
+	BodyFrictionWeight = 100,
+
+	BodyElasticity = 0,
+
+	BodyElasticityWeight = 100,
+
+	CameraDistance = 14,
+
+	CameraMinDistance = 2.5,
+
+	CameraHeightOffset = 2,
+
+	CameraUpLerpSpeed = 6,
+
+	CameraFollowLerpSpeed = 14,
+
+	CameraMinPitchDegrees = -25,
+
+	CameraMaxPitchDegrees = 75,
+
+	CameraDefaultPitchDegrees = 14,
+
+	CameraDefaultYawDegrees = 0,
+
+	CameraMouseSensitivity = 0.35,
+
+	CameraTouchSensitivity = 0.3,
+
+	CameraGamepadYawSpeed = 130,
+
+	CameraGamepadPitchSpeed = 90,
+
+	CameraTouchOrbitScreenFraction = 0.5,
+
+	CameraCollisionPadding = 0.6,
+}

@@ -31,53 +31,51 @@
 			PulseFillTransparency: most faded fill transparency during the pulse (0 to 1)
 ]]
 
-local RunUIConfig = {}
-
-RunUIConfig.Meter = {
-	Width = 360,
-	Height = 30,
-	Swatch = "Brown",
-	Format = "💩 MAP %.1f%%",
-	BestFormat = "Best %.1f%%",
-}
-
-RunUIConfig.Event = {
-	Width = 520,
-	Height = 54,
-	Swatch = "Gold",
-	Format = "🌟 SPECIAL TIME: %s  %s",
-	TimeFormat = "%d:%02d",
-}
-
-RunUIConfig.Revive = {
-	Width = 480,
-	Height = 230,
-	Swatch = "Green",
-	Title = "OUT OF TIME!",
-	ButtonFormat = "💖 REVIVE  R$ %d",
-	CountdownFormat = "%ds",
-}
-
-RunUIConfig.Layouts = {
-	PC = {
-		Meter = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 262) },
-		Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 316) },
-		Revive = { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) },
+return {
+	Meter = {
+		Width = 360,
+		Height = 30,
+		Swatch = "Brown",
+		Format = "💩 MAP %.1f%%",
+		BestFormat = "Best %.1f%%",
 	},
-	Mobile = {
-		Meter = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 236) },
-		Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 290) },
-		Revive = { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) },
+
+	Event = {
+		Width = 520,
+		Height = 54,
+		Swatch = "Gold",
+		Format = "🌟 SPECIAL TIME: %s  %s",
+		TimeFormat = "%d:%02d",
+	},
+
+	Revive = {
+		Width = 480,
+		Height = 230,
+		Swatch = "Green",
+		Title = "OUT OF TIME!",
+		ButtonFormat = "💖 REVIVE  R$ %d",
+		CountdownFormat = "%ds",
+	},
+
+	Layouts = {
+		PC = {
+			Meter = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 262) },
+			Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 316) },
+			Revive = { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) },
+		},
+		Mobile = {
+			Meter = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 236) },
+			Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 290) },
+			Revive = { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) },
+		},
+	},
+
+	Glow = {
+		FillColor = Color3.fromRGB(255, 214, 40),
+		OutlineColor = Color3.fromRGB(255, 255, 200),
+		FillTransparency = 0.45,
+		OutlineTransparency = 0,
+		PulseSeconds = 0.6,
+		PulseFillTransparency = 0.8,
 	},
 }
-
-RunUIConfig.Glow = {
-	FillColor = Color3.fromRGB(255, 214, 40),
-	OutlineColor = Color3.fromRGB(255, 255, 200),
-	FillTransparency = 0.45,
-	OutlineTransparency = 0,
-	PulseSeconds = 0.6,
-	PulseFillTransparency = 0.8,
-}
-
-return RunUIConfig

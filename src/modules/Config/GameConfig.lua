@@ -20,27 +20,33 @@
 		GemsPerLevelUp: gems awarded every time the player levels up (gems)
 ]]
 
-local GameConfig = {}
+return {
+	RunStates = {
+		Idle = "Idle",
+		Running = "Running",
+	},
 
-GameConfig.RunStates = {
-	Idle = "Idle",
-	Running = "Running",
+	LobbySpawn = Vector3.new(1.7, 13.5, -3),
+
+	StainInterval = 0.12,
+
+	StainCellSize = 3,
+
+	MaxStainParts = 900,
+
+	MaxStainsPerStep = 2,
+
+	PointsPerStud = 0.25,
+
+	CoinsPerPoint = 0.5,
+
+	XpPerPoint = 1,
+
+	LevelXpBase = 100,
+
+	LevelXpGrowth = 1.35,
+
+	MaxLevel = 100,
+
+	GemsPerLevelUp = 5,
 }
-
-GameConfig.LobbySpawn = Vector3.new(1.7, 13.5, -3)
-
-GameConfig.StainInterval = 0.12
-GameConfig.StainCellSize = 3
-GameConfig.MaxStainParts = 900
-GameConfig.MaxStainsPerStep = 2
-
-GameConfig.PointsPerStud = 0.25
-GameConfig.CoinsPerPoint = 0.5
-GameConfig.XpPerPoint = 1
-
-GameConfig.LevelXpBase = 100
-GameConfig.LevelXpGrowth = 1.35
-GameConfig.MaxLevel = 100
-GameConfig.GemsPerLevelUp = 5
-
-return GameConfig

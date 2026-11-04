@@ -67,120 +67,123 @@
 				CoinBoostSeconds: how long the coin boost lasts (seconds)
 ]]
 
-local MonetizationConfig = {}
+return {
+	ReviveWindow = 8,
 
-MonetizationConfig.ReviveWindow = 8
-MonetizationConfig.ReviveSeconds = 20
-MonetizationConfig.StainBombRadius = 75
-MonetizationConfig.MagnetPickupRadius = 30
-MonetizationConfig.MaxPurchaseHistory = 100
-MonetizationConfig.PassCacheSeconds = 120
+	ReviveSeconds = 20,
 
-MonetizationConfig.Messages = {
-	ReviveGranted = "Revived! +%ds",
-	StainBombUsed = "Stain Bomb! Nearby props are wrecked!",
-	NewbiePackGranted = "Newbie Pack unlocked!",
-	PassPurchased = "%s activated!",
+	StainBombRadius = 75,
+
+	MagnetPickupRadius = 30,
+
+	MaxPurchaseHistory = 100,
+
+	PassCacheSeconds = 120,
+
+	Messages = {
+		ReviveGranted = "Revived! +%ds",
+		StainBombUsed = "Stain Bomb! Nearby props are wrecked!",
+		NewbiePackGranted = "Newbie Pack unlocked!",
+		PassPurchased = "%s activated!",
+	},
+
+	Gamepasses = {
+		DoubleCoins = {
+			Id = 0,
+			DisplayName = "x2 Coins",
+			Description = "Double Poop Coins from every run.",
+			PriceRobux = 299,
+			Icon = "🪙",
+			CoinMultiplier = 2,
+			GemMultiplier = 1,
+			ExtraPetSlots = 0,
+			Vip = false,
+			Magnet = false,
+		},
+		DoubleGems = {
+			Id = 0,
+			DisplayName = "x2 Gems",
+			Description = "Double Gems from every run.",
+			PriceRobux = 399,
+			Icon = "💎",
+			CoinMultiplier = 1,
+			GemMultiplier = 2,
+			ExtraPetSlots = 0,
+			Vip = false,
+			Magnet = false,
+		},
+		Magnet = {
+			Id = 0,
+			DisplayName = "Magnet",
+			Description = "Pull in every snack around you.",
+			PriceRobux = 199,
+			Icon = "🧲",
+			CoinMultiplier = 1,
+			GemMultiplier = 1,
+			ExtraPetSlots = 0,
+			Vip = false,
+			Magnet = true,
+		},
+		ExtraPetSlots = {
+			Id = 0,
+			DisplayName = "+3 Pet Slots",
+			Description = "Bring three more pets on every run.",
+			PriceRobux = 349,
+			Icon = "🐾",
+			CoinMultiplier = 1,
+			GemMultiplier = 1,
+			ExtraPetSlots = 3,
+			Vip = false,
+			Magnet = false,
+		},
+		VIP = {
+			Id = 0,
+			DisplayName = "VIP Stainer",
+			Description = "Exclusive VIP stainer look.",
+			PriceRobux = 0,
+			Icon = "⭐",
+			CoinMultiplier = 1,
+			GemMultiplier = 1,
+			ExtraPetSlots = 0,
+			Vip = true,
+			Magnet = false,
+		},
+	},
+
+	DevProducts = {
+		GemPacks = {
+			{ Id = 0, DisplayName = "Pocket Gems", PriceRobux = 36, Gems = 50 },
+			{ Id = 0, DisplayName = "Pouch of Gems", PriceRobux = 199, Gems = 300 },
+			{ Id = 0, DisplayName = "Bag of Gems", PriceRobux = 499, Gems = 800 },
+			{ Id = 0, DisplayName = "Chest of Gems", PriceRobux = 1499, Gems = 2000 },
+			{ Id = 0, DisplayName = "Vault of Gems", PriceRobux = 3999, Gems = 6000 },
+		},
+		CoinPacks = {
+			{ Id = 0, DisplayName = "Handful of Coins", PriceRobux = 25, Coins = 1000 },
+			{ Id = 0, DisplayName = "Bucket of Coins", PriceRobux = 99, Coins = 5000 },
+			{ Id = 0, DisplayName = "Sack of Coins", PriceRobux = 349, Coins = 20000 },
+			{ Id = 0, DisplayName = "Truck of Coins", PriceRobux = 1499, Coins = 100000 },
+		},
+		Revive = {
+			{ Id = 0, DisplayName = "Revive", PriceRobux = 4, Tier = 1 },
+			{ Id = 0, DisplayName = "Revive Again", PriceRobux = 9, Tier = 2 },
+			{ Id = 0, DisplayName = "Last Revive", PriceRobux = 13, Tier = 3 },
+		},
+		StainBomb = {
+			Id = 0,
+			DisplayName = "Stain Bomb",
+			PriceRobux = 20,
+		},
+		NewbiePack = {
+			Id = 0,
+			DisplayName = "Newbie Pack",
+			PriceRobux = 89,
+			Gems = 200,
+			Coins = 5000,
+			PetId = "GoldenPoopDoge",
+			PetVariant = "Default",
+			CoinBoostMultiplier = 2,
+			CoinBoostSeconds = 3600,
+		},
+	},
 }
-
-MonetizationConfig.Gamepasses = {
-	DoubleCoins = {
-		Id = 0,
-		DisplayName = "x2 Coins",
-		Description = "Double Poop Coins from every run.",
-		PriceRobux = 299,
-		Icon = "🪙",
-		CoinMultiplier = 2,
-		GemMultiplier = 1,
-		ExtraPetSlots = 0,
-		Vip = false,
-		Magnet = false,
-	},
-	DoubleGems = {
-		Id = 0,
-		DisplayName = "x2 Gems",
-		Description = "Double Gems from every run.",
-		PriceRobux = 399,
-		Icon = "💎",
-		CoinMultiplier = 1,
-		GemMultiplier = 2,
-		ExtraPetSlots = 0,
-		Vip = false,
-		Magnet = false,
-	},
-	Magnet = {
-		Id = 0,
-		DisplayName = "Magnet",
-		Description = "Pull in every snack around you.",
-		PriceRobux = 199,
-		Icon = "🧲",
-		CoinMultiplier = 1,
-		GemMultiplier = 1,
-		ExtraPetSlots = 0,
-		Vip = false,
-		Magnet = true,
-	},
-	ExtraPetSlots = {
-		Id = 0,
-		DisplayName = "+3 Pet Slots",
-		Description = "Bring three more pets on every run.",
-		PriceRobux = 349,
-		Icon = "🐾",
-		CoinMultiplier = 1,
-		GemMultiplier = 1,
-		ExtraPetSlots = 3,
-		Vip = false,
-		Magnet = false,
-	},
-	VIP = {
-		Id = 0,
-		DisplayName = "VIP Stainer",
-		Description = "Exclusive VIP stainer look.",
-		PriceRobux = 0,
-		Icon = "⭐",
-		CoinMultiplier = 1,
-		GemMultiplier = 1,
-		ExtraPetSlots = 0,
-		Vip = true,
-		Magnet = false,
-	},
-}
-
-MonetizationConfig.DevProducts = {
-	GemPacks = {
-		{ Id = 0, DisplayName = "Pocket Gems", PriceRobux = 36, Gems = 50 },
-		{ Id = 0, DisplayName = "Pouch of Gems", PriceRobux = 199, Gems = 300 },
-		{ Id = 0, DisplayName = "Bag of Gems", PriceRobux = 499, Gems = 800 },
-		{ Id = 0, DisplayName = "Chest of Gems", PriceRobux = 1499, Gems = 2000 },
-		{ Id = 0, DisplayName = "Vault of Gems", PriceRobux = 3999, Gems = 6000 },
-	},
-	CoinPacks = {
-		{ Id = 0, DisplayName = "Handful of Coins", PriceRobux = 25, Coins = 1000 },
-		{ Id = 0, DisplayName = "Bucket of Coins", PriceRobux = 99, Coins = 5000 },
-		{ Id = 0, DisplayName = "Sack of Coins", PriceRobux = 349, Coins = 20000 },
-		{ Id = 0, DisplayName = "Truck of Coins", PriceRobux = 1499, Coins = 100000 },
-	},
-	Revive = {
-		{ Id = 0, DisplayName = "Revive", PriceRobux = 4, Tier = 1 },
-		{ Id = 0, DisplayName = "Revive Again", PriceRobux = 9, Tier = 2 },
-		{ Id = 0, DisplayName = "Last Revive", PriceRobux = 13, Tier = 3 },
-	},
-	StainBomb = {
-		Id = 0,
-		DisplayName = "Stain Bomb",
-		PriceRobux = 20,
-	},
-	NewbiePack = {
-		Id = 0,
-		DisplayName = "Newbie Pack",
-		PriceRobux = 89,
-		Gems = 200,
-		Coins = 5000,
-		PetId = "GoldenPoopDoge",
-		PetVariant = "Default",
-		CoinBoostMultiplier = 2,
-		CoinBoostSeconds = 3600,
-	},
-}
-
-return MonetizationConfig

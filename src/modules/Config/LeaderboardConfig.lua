@@ -40,50 +40,76 @@
 		MinSaveBudget: remaining SetIncrementAsync requests needed before an immediate write (count)
 ]]
 
-local LeaderboardConfig = {}
+return {
+	StoreName = "AllTimeScoreLeaderboard_v1",
 
-LeaderboardConfig.StoreName = "AllTimeScoreLeaderboard_v1"
-LeaderboardConfig.DailyStoreName = "DailyScoreLeaderboard_v1"
-LeaderboardConfig.WeeklyStoreName = "WeeklyScoreLeaderboard_v1"
+	DailyStoreName = "DailyScoreLeaderboard_v1",
 
-LeaderboardConfig.PeriodDaily = "Daily"
-LeaderboardConfig.PeriodWeekly = "Weekly"
-LeaderboardConfig.PeriodAllTime = "AllTime"
+	WeeklyStoreName = "WeeklyScoreLeaderboard_v1",
 
-LeaderboardConfig.DailyKeyFormat = "!%Y-%m-%d"
+	PeriodDaily = "Daily",
 
-LeaderboardConfig.TopCount = 10
-LeaderboardConfig.RefreshInterval = 60
-LeaderboardConfig.FirstRefreshDelay = 1
-LeaderboardConfig.BoardWaitTimeout = 5
-LeaderboardConfig.BoardModelName = "LeaderboardBoard"
-LeaderboardConfig.BoardModels = {
-	Daily = "LeaderboardDaily",
-	Weekly = "LeaderboardWeekly",
-	AllTime = "LeaderboardAllTime",
+	PeriodWeekly = "Weekly",
+
+	PeriodAllTime = "AllTime",
+
+	DailyKeyFormat = "!%Y-%m-%d",
+
+	TopCount = 10,
+
+	RefreshInterval = 60,
+
+	FirstRefreshDelay = 1,
+
+	BoardWaitTimeout = 5,
+
+	BoardModelName = "LeaderboardBoard",
+
+	BoardModels = {
+		Daily = "LeaderboardDaily",
+		Weekly = "LeaderboardWeekly",
+		AllTime = "LeaderboardAllTime",
+	},
+
+	PeriodTitles = {
+		Daily = "TODAY'S BEST",
+		Weekly = "THIS WEEK'S BEST",
+		AllTime = "ALL-TIME BEST",
+	},
+
+	TitleText = "TOP POOPERS",
+
+	TitleTextColor = Color3.fromRGB(255, 230, 100),
+
+	TitleTextSize = 42,
+
+	TitleHeight = 56,
+
+	RowTextColor = Color3.fromRGB(240, 240, 245),
+
+	RowTextSize = 26,
+
+	RowHeight = 36,
+
+	NameWidth = 0.68,
+
+	ScoreWidth = 0.32,
+
+	Top1Color = Color3.fromRGB(255, 215, 0),
+
+	Top2Color = Color3.fromRGB(210, 215, 225),
+
+	Top3Color = Color3.fromRGB(215, 145, 80),
+
+	Font = Enum.Font.FredokaOne,
+
+	EmptyText = "No scores yet - be the first!",
+
+	CanvasPadding = 16,
+
+	RowSpacing = 4,
+
+	MinRefreshBudget = 1,
+
+	MinSaveBudget = 1,
 }
-LeaderboardConfig.PeriodTitles = {
-	Daily = "TODAY'S BEST",
-	Weekly = "THIS WEEK'S BEST",
-	AllTime = "ALL-TIME BEST",
-}
-LeaderboardConfig.TitleText = "TOP POOPERS"
-LeaderboardConfig.TitleTextColor = Color3.fromRGB(255, 230, 100)
-LeaderboardConfig.TitleTextSize = 42
-LeaderboardConfig.TitleHeight = 56
-LeaderboardConfig.RowTextColor = Color3.fromRGB(240, 240, 245)
-LeaderboardConfig.RowTextSize = 26
-LeaderboardConfig.RowHeight = 36
-LeaderboardConfig.NameWidth = 0.68
-LeaderboardConfig.ScoreWidth = 0.32
-LeaderboardConfig.Top1Color = Color3.fromRGB(255, 215, 0)
-LeaderboardConfig.Top2Color = Color3.fromRGB(210, 215, 225)
-LeaderboardConfig.Top3Color = Color3.fromRGB(215, 145, 80)
-LeaderboardConfig.Font = Enum.Font.FredokaOne
-LeaderboardConfig.EmptyText = "No scores yet - be the first!"
-LeaderboardConfig.CanvasPadding = 16
-LeaderboardConfig.RowSpacing = 4
-LeaderboardConfig.MinRefreshBudget = 1
-LeaderboardConfig.MinSaveBudget = 1
-
-return LeaderboardConfig

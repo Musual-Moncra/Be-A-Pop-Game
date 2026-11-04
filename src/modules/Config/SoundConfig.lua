@@ -32,114 +32,113 @@
 				Volume: playback volume, 0..1 (linear volume)
 ]]
 
-local SoundConfig = {}
+return {
+	FolderName = "Sound",
 
-SoundConfig.FolderName = "Sound"
-SoundConfig.MaxSoundLifetime = 10
+	MaxSoundLifetime = 10,
 
-SoundConfig.Sfx = {
-	Stain = {
-		Asset = "Stain",
-		Volume = 0.3,
-		PitchMin = 0.8,
-		PitchMax = 1.1,
-		MaxConcurrent = 3,
-		Throttle = 0.09,
+	Sfx = {
+		Stain = {
+			Asset = "Stain",
+			Volume = 0.3,
+			PitchMin = 0.8,
+			PitchMax = 1.1,
+			MaxConcurrent = 3,
+			Throttle = 0.09,
+		},
+		Soiled = {
+			Asset = "Soiled",
+			Volume = 0.5,
+			PitchMin = 1,
+			PitchMax = 1.15,
+			MaxConcurrent = 2,
+			Throttle = 0.05,
+		},
+		FoodEaten = {
+			Asset = "FoodEaten",
+			Volume = 0.45,
+			PitchMin = 0.95,
+			PitchMax = 1.15,
+			MaxConcurrent = 2,
+			Throttle = 0.06,
+		},
+		NpcCaught = {
+			Asset = "NpcCaught",
+			Volume = 0.55,
+			PitchMin = 1,
+			PitchMax = 1,
+			MaxConcurrent = 1,
+			Throttle = 0.5,
+		},
+		RunStart = {
+			Asset = "RunStart",
+			Volume = 0.55,
+			PitchMin = 1,
+			PitchMax = 1.1,
+			MaxConcurrent = 1,
+			Throttle = 1,
+		},
+		RunEnd = {
+			Asset = "RunEnd",
+			Volume = 0.5,
+			PitchMin = 1,
+			PitchMax = 1,
+			MaxConcurrent = 1,
+			Throttle = 1,
+		},
+		LevelUp = {
+			Asset = "",
+			Volume = 0.6,
+			PitchMin = 1,
+			PitchMax = 1,
+			MaxConcurrent = 1,
+			Throttle = 1,
+		},
+		CoinGain = {
+			Asset = "CoinGain",
+			Volume = 0.32,
+			PitchMin = 1.3,
+			PitchMax = 1.5,
+			MaxConcurrent = 2,
+			Throttle = 0.25,
+		},
+		PurchaseSuccess = {
+			Asset = "PurchaseSuccess",
+			Volume = 0.5,
+			PitchMin = 1.1,
+			PitchMax = 1.2,
+			MaxConcurrent = 1,
+			Throttle = 0.2,
+		},
+		PurchaseError = {
+			Asset = "PurchaseError",
+			Volume = 0.5,
+			PitchMin = 0.75,
+			PitchMax = 0.85,
+			MaxConcurrent = 1,
+			Throttle = 0.2,
+		},
+		UIButton = {
+			Asset = "UIButton",
+			Volume = 0.35,
+			PitchMin = 0.95,
+			PitchMax = 1.05,
+			MaxConcurrent = 2,
+			Throttle = 0.04,
+		},
 	},
-	Soiled = {
-		Asset = "Soiled",
-		Volume = 0.5,
-		PitchMin = 1,
-		PitchMax = 1.15,
-		MaxConcurrent = 2,
-		Throttle = 0.05,
-	},
-	FoodEaten = {
-		Asset = "FoodEaten",
-		Volume = 0.45,
-		PitchMin = 0.95,
-		PitchMax = 1.15,
-		MaxConcurrent = 2,
-		Throttle = 0.06,
-	},
-	NpcCaught = {
-		Asset = "NpcCaught",
-		Volume = 0.55,
-		PitchMin = 1,
-		PitchMax = 1,
-		MaxConcurrent = 1,
-		Throttle = 0.5,
-	},
-	RunStart = {
-		Asset = "RunStart",
-		Volume = 0.55,
-		PitchMin = 1,
-		PitchMax = 1.1,
-		MaxConcurrent = 1,
-		Throttle = 1,
-	},
-	RunEnd = {
-		Asset = "RunEnd",
-		Volume = 0.5,
-		PitchMin = 1,
-		PitchMax = 1,
-		MaxConcurrent = 1,
-		Throttle = 1,
-	},
-	LevelUp = {
-		Asset = "",
-		Volume = 0.6,
-		PitchMin = 1,
-		PitchMax = 1,
-		MaxConcurrent = 1,
-		Throttle = 1,
-	},
-	CoinGain = {
-		Asset = "CoinGain",
-		Volume = 0.32,
-		PitchMin = 1.3,
-		PitchMax = 1.5,
-		MaxConcurrent = 2,
-		Throttle = 0.25,
-	},
-	PurchaseSuccess = {
-		Asset = "PurchaseSuccess",
-		Volume = 0.5,
-		PitchMin = 1.1,
-		PitchMax = 1.2,
-		MaxConcurrent = 1,
-		Throttle = 0.2,
-	},
-	PurchaseError = {
-		Asset = "PurchaseError",
-		Volume = 0.5,
-		PitchMin = 0.75,
-		PitchMax = 0.85,
-		MaxConcurrent = 1,
-		Throttle = 0.2,
-	},
-	UIButton = {
-		Asset = "UIButton",
-		Volume = 0.35,
-		PitchMin = 0.95,
-		PitchMax = 1.05,
-		MaxConcurrent = 2,
-		Throttle = 0.04,
+
+	Music = {
+		CrossfadeSeconds = 1.5,
+		Lobby = {
+			SoundId = "",
+			Volume = 0.35,
+		},
+		Maps = {
+			Zone1 = { SoundId = "", Volume = 0.35 },
+			Zone2 = { SoundId = "", Volume = 0.35 },
+			Zone3 = { SoundId = "", Volume = 0.35 },
+			Zone4 = { SoundId = "", Volume = 0.35 },
+		},
 	},
 }
-
-SoundConfig.Music = {
-	CrossfadeSeconds = 1.5,
-	Lobby = {
-		SoundId = "",
-		Volume = 0.35,
-	},
-	Maps = {
-		Zone1 = { SoundId = "", Volume = 0.35 },
-		Zone2 = { SoundId = "", Volume = 0.35 },
-		Zone3 = { SoundId = "", Volume = 0.35 },
-		Zone4 = { SoundId = "", Volume = 0.35 },
-	},
-}
-
-return SoundConfig

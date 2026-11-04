@@ -12,12 +12,14 @@
 		PointsMultiplier: extra score for a golden target, as a multiple of the object's SoilBonus (multiplier)
 ]]
 
-local GoldenTargetConfig = {}
+return {
+	Chance = 0.5,
 
-GoldenTargetConfig.Chance = 0.5
-GoldenTargetConfig.MinCount = 1
-GoldenTargetConfig.MaxCount = 3
-GoldenTargetConfig.GemReward = 3
-GoldenTargetConfig.PointsMultiplier = 2
+	MinCount = 1,
 
-return GoldenTargetConfig
+	MaxCount = 3,
+
+	GemReward = 3,
+
+	PointsMultiplier = 2,
+}

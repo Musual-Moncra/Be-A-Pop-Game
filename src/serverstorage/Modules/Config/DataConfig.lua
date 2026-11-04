@@ -53,65 +53,65 @@
 		SessionEndedKick: kick message when the save is opened on another server (text)
 ]]
 
-local DataConfig = {}
+return {
+	StoreName = "PlayerData_v1",
 
-DataConfig.StoreName = "PlayerData_v1"
+	Template = {
+		Coins = 0,
+		Gems = 0,
+		Level = 1,
+		Xp = 0,
+		Upgrades = {
+			Lifespan = 0,
+			Speed = 0,
+			StainSize = 0,
+			CoinBonus = 0,
+			PowerupDuration = 0,
+		},
+		UnlockedMaps = {
+			Zone1 = true,
+		},
+		Stats = {
+			BestScore = 0,
+			TotalRuns = 0,
+			ObjectsSoiled = 0,
+			PowerupsEaten = 0,
+			QuestsCompleted = 0,
+		},
+		Daily = {
+			LastClaim = 0,
+			Streak = 0,
+		},
+		Boosts = {},
+		Purchases = {},
+		GrantedPets = {},
+		CoinBoostUntil = 0,
+		MapProgress = {},
+		Potions = {},
+		PotionInventory = {
+			LifespanPotion = 1,
+			SpeedPotion = 1,
+			StinkPotion = 1,
+		},
+		Rebirths = 0,
+		OwnedSkins = {
+			Default = true,
+		},
+		OwnedTrails = {},
+		EquippedSkin = "Default",
+		EquippedTrail = "",
+		Pets = {
+			Inventory = {},
+			Equipped = {},
+			ExtraSlots = 0,
+		},
+	},
 
-DataConfig.Template = {
-	Coins = 0,
-	Gems = 0,
-	Level = 1,
-	Xp = 0,
-	Upgrades = {
-		Lifespan = 0,
-		Speed = 0,
-		StainSize = 0,
-		CoinBonus = 0,
-		PowerupDuration = 0,
-	},
-	UnlockedMaps = {
-		Zone1 = true,
-	},
-	Stats = {
-		BestScore = 0,
-		TotalRuns = 0,
-		ObjectsSoiled = 0,
-		PowerupsEaten = 0,
-		QuestsCompleted = 0,
-	},
-	Daily = {
-		LastClaim = 0,
-		Streak = 0,
-	},
-	Boosts = {},
-	Purchases = {},
-	GrantedPets = {},
-	CoinBoostUntil = 0,
-	MapProgress = {},
-	Potions = {},
-	PotionInventory = {
-		LifespanPotion = 1,
-		SpeedPotion = 1,
-		StinkPotion = 1,
-	},
-	Rebirths = 0,
-	OwnedSkins = {
-		Default = true,
-	},
-	OwnedTrails = {},
-	EquippedSkin = "Default",
-	EquippedTrail = "",
-	Pets = {
-		Inventory = {},
-		Equipped = {},
-		ExtraSlots = 0,
-	},
+	ShutdownSaveWait = 2,
+
+	HumanoidWaitTimeout = 5,
+
+	LoadFailedKick = "Your data could not be loaded. Please rejoin.",
+
+	SessionEndedKick = "Your data session ended. Please rejoin.",
 }
-
-DataConfig.ShutdownSaveWait = 2
-DataConfig.HumanoidWaitTimeout = 5
-
-DataConfig.LoadFailedKick = "Your data could not be loaded. Please rejoin."
-DataConfig.SessionEndedKick = "Your data session ended. Please rejoin."
-
-return DataConfig

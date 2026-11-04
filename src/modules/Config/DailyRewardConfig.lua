@@ -21,28 +21,29 @@
 			Duration: default length of one boost (seconds)
 ]]
 
-local DailyRewardConfig = {}
+return {
+	StreakLength = 7,
 
-DailyRewardConfig.StreakLength = 7
-DailyRewardConfig.ClaimCooldown = 20 * 60 * 60
-DailyRewardConfig.StreakResetAfter = 48 * 60 * 60
-DailyRewardConfig.ClaimToast = "%s claimed!"
+	ClaimCooldown = 20 * 60 * 60,
 
-DailyRewardConfig.Days = {
-	{ Kind = "Coins", Amount = 100, BoostId = "", Duration = 0, SkinId = "", Label = "100 Coins" },
-	{ Kind = "Coins", Amount = 250, BoostId = "", Duration = 0, SkinId = "", Label = "250 Coins" },
-	{ Kind = "Gems", Amount = 5, BoostId = "", Duration = 0, SkinId = "", Label = "5 Gems" },
-	{ Kind = "Boost", Amount = 0, BoostId = "Coins", Duration = 60 * 60, SkinId = "", Label = "2x Coins for 1h" },
-	{ Kind = "Coins", Amount = 500, BoostId = "", Duration = 0, SkinId = "", Label = "500 Coins" },
-	{ Kind = "Gems", Amount = 15, BoostId = "", Duration = 0, SkinId = "", Label = "15 Gems" },
-	{ Kind = "Skin", Amount = 0, BoostId = "", Duration = 0, SkinId = "DailyStreak7", Label = "Exclusive Skin" },
-}
+	StreakResetAfter = 48 * 60 * 60,
 
-DailyRewardConfig.Boosts = {
-	Coins = {
-		Multiplier = 2,
-		Duration = 60 * 60,
+	ClaimToast = "%s claimed!",
+
+	Days = {
+		{ Kind = "Coins", Amount = 100, BoostId = "", Duration = 0, SkinId = "", Label = "100 Coins" },
+		{ Kind = "Coins", Amount = 250, BoostId = "", Duration = 0, SkinId = "", Label = "250 Coins" },
+		{ Kind = "Gems", Amount = 5, BoostId = "", Duration = 0, SkinId = "", Label = "5 Gems" },
+		{ Kind = "Boost", Amount = 0, BoostId = "Coins", Duration = 60 * 60, SkinId = "", Label = "2x Coins for 1h" },
+		{ Kind = "Coins", Amount = 500, BoostId = "", Duration = 0, SkinId = "", Label = "500 Coins" },
+		{ Kind = "Gems", Amount = 15, BoostId = "", Duration = 0, SkinId = "", Label = "15 Gems" },
+		{ Kind = "Skin", Amount = 0, BoostId = "", Duration = 0, SkinId = "DailyStreak7", Label = "Exclusive Skin" },
+	},
+
+	Boosts = {
+		Coins = {
+			Multiplier = 2,
+			Duration = 60 * 60,
+		},
 	},
 }
-
-return DailyRewardConfig

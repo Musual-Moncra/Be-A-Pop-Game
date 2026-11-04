@@ -22,21 +22,21 @@
 			MaxTransparency: Pulse only, most faded transparency (0 to 1)
 ]]
 
-local MapAnimConfig = {}
+return {
+	MaxDistance = 260,
 
-MapAnimConfig.MaxDistance = 260
-MapAnimConfig.CullCheckInterval = 0.5
-MapAnimConfig.UpdateRate = 30
+	CullCheckInterval = 0.5,
 
-MapAnimConfig.Kinds = {
-	Spin = { Type = "Spin", Speed = 160 },
-	SpinSlow = { Type = "Spin", Speed = 28 },
-	Bob = { Type = "Bob", Amplitude = 0.9, Frequency = 0.45 },
-	Jet = { Type = "Bob", Amplitude = 0.6, Frequency = 1.3 },
-	Sway = { Type = "Sway", Angle = 3, Frequency = 0.3 },
-	Wobble = { Type = "Sway", Angle = 7, Frequency = 0.55 },
-	Swing = { Type = "Swing", Angle = 24, Frequency = 0.4 },
-	Pulse = { Type = "Pulse", MinTransparency = 0, MaxTransparency = 0.45, Frequency = 0.7 },
+	UpdateRate = 30,
+
+	Kinds = {
+		Spin = { Type = "Spin", Speed = 160 },
+		SpinSlow = { Type = "Spin", Speed = 28 },
+		Bob = { Type = "Bob", Amplitude = 0.9, Frequency = 0.45 },
+		Jet = { Type = "Bob", Amplitude = 0.6, Frequency = 1.3 },
+		Sway = { Type = "Sway", Angle = 3, Frequency = 0.3 },
+		Wobble = { Type = "Sway", Angle = 7, Frequency = 0.55 },
+		Swing = { Type = "Swing", Angle = 24, Frequency = 0.4 },
+		Pulse = { Type = "Pulse", MinTransparency = 0, MaxTransparency = 0.45, Frequency = 0.7 },
+	},
 }
-
-return MapAnimConfig

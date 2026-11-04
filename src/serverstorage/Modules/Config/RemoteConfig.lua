@@ -25,26 +25,25 @@
 		MaxStringLength: longest string argument a client may send on any remote (characters)
 ]]
 
-local RemoteConfig = {}
+return {
+	RateLimits = {
+		PurchaseUpgrade = 0.2,
+		UnlockMap = 0.2,
+		SelectRun = 0.1,
+		StartRun = 0.5,
+		LeaveRun = 0.5,
+		ClaimDaily = 1,
+		Rebirth = 0.5,
+		OpenCrate = 0.3,
+		EquipCosmetic = 0.2,
+		HatchEgg = 0.5,
+		EquipPet = 0.1,
+		UnequipPet = 0.1,
+		DeletePet = 0.2,
+		MergePet = 0.5,
+	},
 
-RemoteConfig.RateLimits = {
-	PurchaseUpgrade = 0.2,
-	UnlockMap = 0.2,
-	SelectRun = 0.1,
-	StartRun = 0.5,
-	LeaveRun = 0.5,
-	ClaimDaily = 1,
-	Rebirth = 0.5,
-	OpenCrate = 0.3,
-	EquipCosmetic = 0.2,
-	HatchEgg = 0.5,
-	EquipPet = 0.1,
-	UnequipPet = 0.1,
-	DeletePet = 0.2,
-	MergePet = 0.5,
+	DefaultRateLimit = 0.2,
+
+	MaxStringLength = 64,
 }
-
-RemoteConfig.DefaultRateLimit = 0.2
-RemoteConfig.MaxStringLength = 64
-
-return RemoteConfig
