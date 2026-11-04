@@ -24,7 +24,7 @@
 		PetService.GrantPet(plr, petId, variantId) -> boolean
 		PetService.Sync(plr)            re-send the PetInventory packet
 
-	Dependencies: DataService, Outbound, ConfigLookup, PetConfig, MessageConfig, MonetizationService
+	Dependencies: DataService, Outbound, ConfigLookup, CharacterConfig, PetConfig, MessageConfig, MonetizationService
 ]]
 
 local Players = game:GetService("Players")
@@ -35,10 +35,13 @@ local DataService = require(script.Parent.DataService)
 local MonetizationService = require(script.Parent.MonetizationService)
 local Outbound = require(script.Parent.Parent.Remotes.Outbound)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local CharacterConfig = require(ReplicatedStorage.Modules.Config.CharacterConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local PetConfig = require(ReplicatedStorage.Modules.Config.PetConfig)
 
 local PetService = {}
+
+local NEUTRAL_MULTIPLIERS: ConfigLookup.PetMultipliers = table.freeze({ Coins = 1, Stink = 1 })
 
 local followers: { [Player]: { Instance } } = {}
 local synced: { [Player]: boolean } = {}
@@ -77,13 +80,16 @@ local function findIndex(pets: any, uid: string): number?
 end
 
 local function newUid(pets: any): string
-	while true do
-		uidCounter += 1
-		local uid = string.format("pet%d", uidCounter)
-		if findIndex(pets, uid) == nil then
-			return uid
+	for _, entry in pets.Inventory do
+		if type(entry) == "table" and type(entry.Uid) == "string" then
+			local num = tonumber(string.match(entry.Uid, "^pet(%d+)$"))
+			if num ~= nil and num > uidCounter then
+				uidCounter = num
+			end
 		end
 	end
+	uidCounter += 1
+	return string.format("pet%d", uidCounter)
 end
 
 local function buildState(pets: any, slots: number): any
@@ -146,7 +152,7 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 	end
 	local variant = ConfigLookup.GetVariant(entry.Variant)
 	local offsets = PetConfig.FollowOffsets
-	local offset = offsets[(slot - 1) % #offsets + 1]
+	local offset = CharacterConfig.HitboxOffset + offsets[(slot - 1) % #offsets + 1]
 
 	local model = Instance.new("Model")
 	model.Name = PetConfig.FollowModelPrefix .. pet.DisplayName
@@ -176,7 +182,12 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 		eye.CanQuery = false
 		eye.CanTouch = false
 		eye.Massless = true
-		eye.CFrame = body.CFrame * CFrame.new(side * pet.Size * PetConfig.EyeSpread, pet.Size * PetConfig.EyeHeight, -pet.Size * PetConfig.EyeDepth)
+		eye.CFrame = body.CFrame
+			* CFrame.new(
+				side * pet.Size * PetConfig.EyeSpread,
+				pet.Size * PetConfig.EyeHeight,
+				-pet.Size * PetConfig.EyeDepth
+			)
 		local weld = Instance.new("WeldConstraint")
 		weld.Part0 = body
 		weld.Part1 = eye
@@ -266,7 +277,7 @@ function PetService.GetMultipliers(plr: Player): ConfigLookup.PetMultipliers
 	end
 	local pets = getPets(plr)
 	if pets == nil then
-		return { Coins = 1, Stink = 1 }
+		return NEUTRAL_MULTIPLIERS
 	end
 	local coins = 0
 	local stink = 0
@@ -421,13 +432,20 @@ function PetService.Delete(plr: Player, uid: string): boolean
 		return false
 	end
 	table.remove(pets.Inventory, index)
+	local equippedChanged = false
 	for equippedIndex = #pets.Equipped, 1, -1 do
 		if pets.Equipped[equippedIndex] == uid then
 			table.remove(pets.Equipped, equippedIndex)
+			equippedChanged = true
 		end
 	end
-	publish(plr)
-	rebuild(plr)
+	if equippedChanged then
+		publish(plr)
+		rebuild(plr)
+	else
+		DataService.MarkChanged(plr)
+		PetService.Sync(plr)
+	end
 	return true
 end
 
@@ -472,19 +490,26 @@ function PetService.Merge(plr: Player, uid: string): boolean
 	table.sort(matches, function(a, b)
 		return a > b
 	end)
+	local equippedChanged = false
 	for _, removeIndex in matches do
 		local removed = table.remove(pets.Inventory, removeIndex)
 		if type(removed) == "table" then
 			for equippedIndex = #pets.Equipped, 1, -1 do
 				if pets.Equipped[equippedIndex] == removed.Uid then
 					table.remove(pets.Equipped, equippedIndex)
+					equippedChanged = true
 				end
 			end
 		end
 	end
 	table.insert(pets.Inventory, { Uid = newUid(pets), PetId = entry.PetId, Variant = nextVariant })
-	publish(plr)
-	rebuild(plr)
+	if equippedChanged then
+		publish(plr)
+		rebuild(plr)
+	else
+		DataService.MarkChanged(plr)
+		PetService.Sync(plr)
+	end
 
 	local variantDef = ConfigLookup.GetVariant(nextVariant)
 	local variantName = if variantDef ~= nil then variantDef.DisplayName else nextVariant

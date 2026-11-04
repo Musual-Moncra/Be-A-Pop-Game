@@ -10,7 +10,6 @@
 		StainInterval: delay between two stain attempts while moving (seconds)
 		StainCellSize: grid cell used to decide if a spot is already stained (studs)
 		MaxStainParts: most stain parts one player may have in the world at once (count)
-		MaxStainsPerStep: most stain splats processed for one player in one update step (count)
 		PointsPerStud: score earned per square stud of newly stained surface (points)
 		CoinsPerPoint: coins paid per score point at the end of a rewarded run (coins)
 		XpPerPoint: experience earned per score point at the end of a run (xp)
@@ -33,8 +32,6 @@ return {
 	StainCellSize = 3,
 
 	MaxStainParts = 900,
-
-	MaxStainsPerStep = 2,
 
 	PointsPerStud = 0.25,
 

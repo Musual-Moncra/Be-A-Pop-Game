@@ -123,7 +123,7 @@ return {
 
 	CameraMinDistance = 2.5,
 
-	CameraHeightOffset = 2,
+	CameraHeightOffset = 0.65,
 
 	CameraUpLerpSpeed = 6,
 

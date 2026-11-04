@@ -30,6 +30,7 @@
 ]]
 
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -133,15 +134,23 @@ local function closestOnLine(npc: Npc, point: Vector3): Vector3
 end
 
 local function inView(pivot: CFrame, position: Vector3, margin: number): boolean
-	if math.abs(position.Y - pivot.Position.Y) > NpcConfig.ViewHeight + margin then
+	local pivotPos = pivot.Position
+	if math.abs(position.Y - pivotPos.Y) > NpcConfig.ViewHeight + margin then
+		return false
+	end
+	local dx = position.X - pivotPos.X
+	local dz = position.Z - pivotPos.Z
+	local maxForward = NpcConfig.ViewLength + margin
+	local maxHalfWidth = NpcConfig.ViewWidth * 0.5 + margin
+	if dx * dx + dz * dz > maxForward * maxForward + maxHalfWidth * maxHalfWidth then
 		return false
 	end
 	local localPos = pivot:PointToObjectSpace(position)
 	local ahead = -localPos.Z
-	if ahead < -margin or ahead > NpcConfig.ViewLength + margin then
+	if ahead < -margin or ahead > maxForward then
 		return false
 	end
-	local halfWidth = math.max(ahead, 0) / NpcConfig.ViewLength * NpcConfig.ViewWidth * 0.5
+	local halfWidth = math.max(ahead, 0) / NpcConfig.ViewLength * (NpcConfig.ViewWidth * 0.5)
 	return math.abs(localPos.X) <= halfWidth + margin
 end
 
@@ -360,24 +369,32 @@ function NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
 	local root = hrp.CFrame
 	local character = hrp.Parent :: Model
 	local scale = character:GetScale()
+	local catchRadiusSq = NpcConfig.CatchRadius * NpcConfig.CatchRadius
 	for _, npc in npcs[run.mapModel] or {} do
-		local npcPosition = npc.model:GetPivot().Position
-		local position = Hitbox.ClosestPoint(root, scale, npcPosition)
-		local flat = Vector3.new(npcPosition.X - position.X, 0, npcPosition.Z - position.Z).Magnitude
-		if flat <= NpcConfig.CatchRadius and math.abs(npcPosition.Y - position.Y) <= NpcConfig.CatchHeight then
-			local caught = if npc.state == CHASE then npc.target == run.player else true
-			if caught then
-				if npc.state == CHASE then
-					local now = os.clock()
-					giveUp(npc, now)
-					npc.restUntil = now + NpcConfig.RestTime
+		if npc.state ~= CHASE or npc.target == run.player then
+			local npcPosition = npc.model:GetPivot().Position
+			local position = Hitbox.ClosestPoint(root, scale, npcPosition)
+			local dx = npcPosition.X - position.X
+			local dz = npcPosition.Z - position.Z
+			if math.abs(npcPosition.Y - position.Y) <= NpcConfig.CatchHeight and dx * dx + dz * dz <= catchRadiusSq then
+				local rayParams = RaycastParams.new()
+				rayParams.FilterType = Enum.RaycastFilterType.Include
+				rayParams.FilterDescendantsInstances = { run.mapModel }
+				rayParams.RespectCanCollide = true
+				local blocked = Workspace:Raycast(npcPosition, position - npcPosition, rayParams)
+				if blocked == nil or blocked.Instance:IsDescendantOf(npc.model) then
+					if npc.state == CHASE then
+						local now = os.clock()
+						giveUp(npc, now)
+						npc.restUntil = now + NpcConfig.RestTime
+					end
+					run.npcCooldown = NpcConfig.CatchCooldown
+					if run.hasTimer then
+						run.timeLeft = math.max(0, run.timeLeft - NpcConfig.CatchPenalty)
+					end
+					Outbound.NpcCaught(run.player, NpcConfig.CatchPenalty)
+					return
 				end
-				run.npcCooldown = NpcConfig.CatchCooldown
-				if run.hasTimer then
-					run.timeLeft = math.max(0, run.timeLeft - NpcConfig.CatchPenalty)
-				end
-				Outbound.NpcCaught(run.player, NpcConfig.CatchPenalty)
-				return
 			end
 		end
 	end

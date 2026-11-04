@@ -54,6 +54,7 @@ local MonetizationConfig = require(ReplicatedStorage.Modules.Config.Monetization
 local ObjectConfig = require(ReplicatedStorage.Modules.Config.ObjectConfig)
 local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local Hitbox = require(ReplicatedStorage.Modules.Shared.Hitbox)
 local Trove = require(ReplicatedStorage.Packages.Trove)
 
 export type MapInstance = {
@@ -299,12 +300,12 @@ local function cellKey(hitPos: Vector3, normal: Vector3): number
 end
 
 local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: PowerupService.Multipliers)
-	local gravityUp = hrp.CFrame.UpVector
-	local rayResult = Workspace:Raycast(
-		hrp.Position + gravityUp * RunConfig.StainRayUpOffset,
-		-gravityUp * RunConfig.StainRayLength,
-		run.rayParams
-	)
+	local character = hrp.Parent
+	local scale = if character ~= nil and character:IsA("Model") then character:GetScale() else 1
+	local rootCFrame = hrp.CFrame
+	local gravityUp = rootCFrame.UpVector
+	local origin = Hitbox.Center(rootCFrame, scale) + gravityUp * (RunConfig.StainRayUpOffset * scale)
+	local rayResult = Workspace:Raycast(origin, -gravityUp * (RunConfig.StainRayLength * scale), run.rayParams)
 	if rayResult == nil then
 		return
 	end
@@ -350,14 +351,9 @@ local function stepRun(run: ActiveRun, dt: number)
 		hum.WalkSpeed = walkSpeed
 	end
 
-	local stains = 0
-	while run.stainTimer >= GameConfig.StainInterval and stains < GameConfig.MaxStainsPerStep do
-		run.stainTimer -= GameConfig.StainInterval
-		dropSurfaceStain(run, hrp, multipliers)
-		stains += 1
-	end
 	if run.stainTimer >= GameConfig.StainInterval then
-		run.stainTimer = GameConfig.StainInterval
+		run.stainTimer %= GameConfig.StainInterval
+		dropSurfaceStain(run, hrp, multipliers)
 	end
 
 	NpcService.CheckCatch(run, hrp)

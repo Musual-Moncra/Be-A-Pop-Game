@@ -21,17 +21,15 @@ local PowerupVisualController = {}
 local tracked: { [BasePart]: CFrame } = {}
 
 local function trackPart(instance: Instance)
-	if not instance:IsA("BasePart") then
+	if not instance:IsA("BasePart") or tracked[instance] ~= nil then
 		return
 	end
-	if instance:GetAttribute("PowerupId") == nil then
-		return
-	end
-	if tracked[instance] ~= nil then
+	local powerupId = instance:GetAttribute("PowerupId")
+	if typeof(powerupId) ~= "string" then
 		return
 	end
 	tracked[instance] = instance.CFrame
-	local definition = ConfigLookup.GetPowerup(instance:GetAttribute("PowerupId"))
+	local definition = ConfigLookup.GetPowerup(powerupId)
 	if definition ~= nil then
 		local billboard = Instance.new("BillboardGui")
 		billboard.Name = "Icon"
@@ -71,17 +69,28 @@ end
 Workspace.ChildAdded:Connect(trackFolder)
 
 local TAU = math.pi + math.pi
+local moveParts: { BasePart } = {}
+local moveCFrames: { CFrame } = {}
 
 RunService.RenderStepped:Connect(function()
+	if next(tracked) == nil then
+		return
+	end
 	local now = os.clock()
-	local bobOffset = math.sin(now * PowerupConfig.BobSpeed * TAU) * PowerupConfig.BobHeight
+	local bobOffset = Vector3.new(0, math.sin(now * PowerupConfig.BobSpeed * TAU) * PowerupConfig.BobHeight, 0)
 	local rot = CFrame.Angles(0, math.rad(now * PowerupConfig.SpinSpeed), 0)
+	table.clear(moveParts)
+	table.clear(moveCFrames)
 	for part, baseCFrame in tracked do
 		if part.Parent ~= nil then
-			part.CFrame = (baseCFrame + Vector3.new(0, bobOffset, 0)) * rot
+			table.insert(moveParts, part)
+			table.insert(moveCFrames, (baseCFrame + bobOffset) * rot)
 		else
 			tracked[part] = nil
 		end
+	end
+	if #moveParts > 0 then
+		Workspace:BulkMoveTo(moveParts, moveCFrames, Enum.BulkMoveMode.FireCFrameChanged)
 	end
 end)
 
