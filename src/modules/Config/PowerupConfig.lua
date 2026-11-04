@@ -8,7 +8,7 @@
 		SpawnInterval: time between two food spawns on a map while a run is active (seconds)
 		MaxActivePerRun: most food items lying on the map for one player at once (count)
 		ItemLifetime: food disappears if nobody eats it within this time (seconds)
-		PickupRadius: how close the poop must get to eat food, multiplied by the poop's current size (studs)
+		PickupRadius: distance from the centre line of the poop's Hitbox capsule at which food is eaten, multiplied by the poop's current size (studs)
 		SpawnHeight: how high above the floor food floats (studs)
 		SpawnRayTopInset: the spawn ray starts this far below the top of the map's PlayArea, under the ceiling (studs)
 		TickInterval: how often the server checks pickups, expiry and spawning for every run (seconds)
@@ -54,7 +54,7 @@ return {
 
 	ItemLifetime = 20,
 
-	PickupRadius = 5,
+	PickupRadius = 3.5,
 
 	SpawnHeight = 2.5,
 

@@ -17,7 +17,8 @@
 	Vision test: triangle on the floor with its tip at the NPC, ViewLength deep along the look
 	direction and ViewWidth wide at the far edge (half width grows linearly with distance),
 	widened by LoseMargin when losing a target. Chase speed is capped by NpcConfig.ChaseMax.
-	Height counts: a player more than ViewHeight above or below the NPC is not seen, and more
+	Player positions are the body centre of the Hitbox capsule, and catches measure from its centre
+	line, so the head and tail count. Height counts: a player more than ViewHeight above or below the NPC is not seen, and more
 	than CatchHeight away vertically is not caught (standing on furniture is safe).
 	A chasing NPC that catches its target gives up and ignores everyone for RestTime, so it never camps.
 	The NpcState attribute is "Patrol", "Chase" or "Return"; NpcVisionController draws it.
@@ -39,6 +40,7 @@ local EventConfig = require(ReplicatedStorage.Modules.Config.EventConfig)
 local NpcConfig = require(ReplicatedStorage.Modules.Config.NpcConfig)
 local RunConfig = require(ReplicatedStorage.Modules.Config.RunConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local Hitbox = require(ReplicatedStorage.Modules.Shared.Hitbox)
 
 export type CatchRun = {
 	player: Player,
@@ -177,7 +179,7 @@ local function stepChase(npc: Npc, now: number, dt: number)
 		local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
 		local humanoid = if character ~= nil then character:FindFirstChildOfClass("Humanoid") else nil
 		if hrp ~= nil and humanoid ~= nil and humanoid.Health > 0 then
-			targetPosition = hrp.Position
+			targetPosition = Hitbox.Center(hrp.CFrame, (character :: Model):GetScale())
 		end
 	end
 	if targetPosition == nil then
@@ -199,7 +201,8 @@ local function stepChase(npc: Npc, now: number, dt: number)
 	local distance = delta.Magnitude
 	local stopDistance = NpcConfig.CatchRadius * 0.5
 	if distance > stopDistance then
-		local move = math.min(distance - stopDistance, math.min(npc.baseSpeed * NpcConfig.ChaseSpeed, NpcConfig.ChaseMax) * dt)
+		local move =
+			math.min(distance - stopDistance, math.min(npc.baseSpeed * NpcConfig.ChaseSpeed, NpcConfig.ChaseMax) * dt)
 		poseAt(npc, pivot.Position + delta.Unit * move, delta)
 	else
 		poseAt(npc, pivot.Position, delta)
@@ -251,7 +254,7 @@ local function collectRuns(): { RunPlayer }
 			table.insert(runs, {
 				player = plr,
 				mapId = mapId,
-				position = hrp.Position,
+				position = Hitbox.Center(hrp.CFrame, (character :: Model):GetScale()),
 			})
 		end
 	end
@@ -334,10 +337,13 @@ function NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
 		return
 	end
 
-	local position = hrp.Position
+	local root = hrp.CFrame
+	local character = hrp.Parent :: Model
+	local scale = character:GetScale()
 	for _, npc in npcs do
 		if npc.mapId == run.mapDef.Id and npc.model.Parent ~= nil then
 			local npcPosition = npc.model:GetPivot().Position
+			local position = Hitbox.ClosestPoint(root, scale, npcPosition)
 			local flat = Vector3.new(npcPosition.X - position.X, 0, npcPosition.Z - position.Z).Magnitude
 			if flat <= NpcConfig.CatchRadius and math.abs(npcPosition.Y - position.Y) <= NpcConfig.CatchHeight then
 				local caught = if npc.state == CHASE then npc.target == run.player else true

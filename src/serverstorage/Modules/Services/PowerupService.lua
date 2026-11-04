@@ -29,6 +29,7 @@ local Workspace = game:GetService("Workspace")
 local PowerupConfig = require(ReplicatedStorage.Modules.Config.PowerupConfig)
 local MonetizationConfig = require(ReplicatedStorage.Modules.Config.MonetizationConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local Hitbox = require(ReplicatedStorage.Modules.Shared.Hitbox)
 local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataService = require(script.Parent.DataService)
@@ -206,7 +207,8 @@ local function eat(session: PowerupSession, powerupId: string, now: number)
 		local character = plr.Character
 		local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
 		if hrp ~= nil then
-			RunEvents.MiniBombDetonated:Fire(plr, hrp.Position, PowerupConfig.MiniBombRadius)
+			local center = Hitbox.Center(hrp.CFrame, session.appliedScale)
+			RunEvents.MiniBombDetonated:Fire(plr, center, PowerupConfig.MiniBombRadius)
 		end
 	end
 
@@ -230,8 +232,13 @@ local function step(session: PowerupSession, now: number)
 		reach = MonetizationConfig.MagnetPickupRadius * session.appliedScale
 	end
 
+	local root = if hrp ~= nil then hrp.CFrame else nil
 	for part, food in session.foods do
-		if hrp ~= nil and (hrp.Position - part.Position).Magnitude <= reach then
+		local position = part.Position
+		if
+			root ~= nil
+			and (Hitbox.ClosestPoint(root, session.appliedScale, position) - position).Magnitude <= reach
+		then
 			removeFood(session, part)
 			eat(session, food.powerupId, now)
 		elseif now >= food.expiresAt then

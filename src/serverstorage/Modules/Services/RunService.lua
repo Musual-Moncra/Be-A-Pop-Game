@@ -67,7 +67,8 @@ export type ActiveRun = {
 	timeLeft: number,
 	elapsedTime: number,
 	score: number,
-	visitedCells: { [string]: boolean },
+	visitedCells: { [number]: boolean },
+	stainKeys: { [BasePart]: number },
 	stainCells: number,
 	objectStains: { [Model]: number },
 	objectCache: { [Instance]: Model | false },
@@ -84,6 +85,10 @@ export type ActiveRun = {
 	reviveDeadline: number,
 	active: boolean,
 }
+
+local CELL_KEY_OFFSET = 32768
+local CELL_KEY_RANGE = 65536
+local FACE_COUNT = 6
 
 local RunService = {}
 
@@ -139,7 +144,7 @@ local function findObjectType(hit: BasePart, props: Instance?, cache: { [Instanc
 	return nil, nil
 end
 
-local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stainSize: number, key: string)
+local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stainSize: number, key: number)
 	local centerPos = position + normal * (RunConfig.StainThickness * 0.5 + RunConfig.StainSurfaceOffset)
 	local cframe = getSurfaceCFrame(centerPos, normal)
 	local size = Vector3.new(stainSize, RunConfig.StainThickness, stainSize)
@@ -151,14 +156,15 @@ local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stai
 			run.stainCursor = 1
 		end
 		stain = run.stainParts[run.stainCursor]
-		local oldKey = stain:GetAttribute("StainCell")
-		if typeof(oldKey) == "string" and run.visitedCells[oldKey] then
+		local oldKey = run.stainKeys[stain]
+		if run.visitedCells[oldKey] then
 			run.visitedCells[oldKey] = nil
 			run.stainCells -= 1
 		end
-		stain.Size = size
+		if stain.Size ~= size then
+			stain.Size = size
+		end
 		stain.CFrame = cframe
-		stain:SetAttribute("StainCell", key)
 	else
 		stain = Instance.new("Part")
 		stain.Name = "Stain"
@@ -172,10 +178,10 @@ local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stai
 		stain.Transparency = RunConfig.StainTransparency
 		stain.Size = size
 		stain.CFrame = cframe
-		stain:SetAttribute("StainCell", key)
 		stain.Parent = run.stainFolder
 		table.insert(run.stainParts, stain)
 	end
+	run.stainKeys[stain] = key
 end
 
 local function queueTint(run: ActiveRun, objectModel: Model, step: number)
@@ -266,17 +272,22 @@ local function soilPropsInRadius(run: ActiveRun, origin: Vector3, radius: number
 	end
 end
 
-local function cellKey(hitPos: Vector3, normal: Vector3): string
+local function faceIndex(normal: Vector3): number
+	local x, y, z = math.abs(normal.X), math.abs(normal.Y), math.abs(normal.Z)
+	if y >= x and y >= z then
+		return if normal.Y > 0 then 0 else 1
+	elseif x >= z then
+		return if normal.X > 0 then 2 else 3
+	end
+	return if normal.Z > 0 then 4 else 5
+end
+
+local function cellKey(hitPos: Vector3, normal: Vector3): number
 	local cellSize = GameConfig.StainCellSize
-	return string.format(
-		"%d:%d:%d|%d:%d:%d",
-		math.floor(hitPos.X / cellSize + 0.5),
-		math.floor(hitPos.Y / cellSize + 0.5),
-		math.floor(hitPos.Z / cellSize + 0.5),
-		math.round(normal.X * 10),
-		math.round(normal.Y * 10),
-		math.round(normal.Z * 10)
-	)
+	local x = math.floor(hitPos.X / cellSize + 0.5) + CELL_KEY_OFFSET
+	local y = math.floor(hitPos.Y / cellSize + 0.5) + CELL_KEY_OFFSET
+	local z = math.floor(hitPos.Z / cellSize + 0.5) + CELL_KEY_OFFSET
+	return ((x * CELL_KEY_RANGE + y) * CELL_KEY_RANGE + z) * FACE_COUNT + faceIndex(normal)
 end
 
 local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: PowerupService.Multipliers)
@@ -563,6 +574,7 @@ function RunService.StartRun(plr: Player): boolean
 		elapsedTime = 0,
 		score = 0,
 		visitedCells = {},
+		stainKeys = {},
 		stainCells = 0,
 		objectStains = {},
 		objectCache = {},
