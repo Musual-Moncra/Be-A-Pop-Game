@@ -131,7 +131,8 @@ return function(props: any)
 		end
 	end
 	rowWidth += Dock.Gap * (#Dock.Items - 1)
-	local fit = math.min(1, (props.ui.safeWidth - Dock.Margin * 2) / rowWidth)
+	local minFit = UIConfig.Scale.MinTouchTarget / Dock.ItemSize
+	local fit = math.max(minFit, math.min(1, (props.ui.safeWidth - Dock.Margin * 2) / rowWidth))
 
 	local function pick(route: string)
 		setOpen(false)

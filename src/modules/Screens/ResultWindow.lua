@@ -135,53 +135,54 @@ return function(props: any)
 		end
 	end
 	local badgeRows = math.ceil(badgeCount / Sizes.BadgesPerRow)
-	local items = if badgeRows > 0 then 7 else 6
+	local footerHeight = UIConfig.Sizes.Play.PlayButtonHeight
 	local contentHeight = TextSizes.Body
 		+ TextSizes.Huge
 		+ Shape.Stroke * 2
 		+ Sizes.RowHeight * 3
-		+ UIConfig.Sizes.Play.PlayButtonHeight
 		+ badgeRows * (Sizes.BadgeHeight + Shape.Stroke * 2)
-		+ (items - 1) * Gap / 2
-	local width, height = WindowSize.fit(ui, Sizes.Width, contentHeight + WindowSize.chrome())
+		+ (Sizes.BaseRows - 1) * Gap / 2
+	local width, height = WindowSize.fit(ui, Sizes.Width, contentHeight + WindowSize.chrome(footerHeight))
 
 	return e(Window, {
+		footer = e(ChunkyButton, {
+			onActivated = DataController.DismissResult,
+			size = UDim2.fromScale(1, 1),
+			swatch = "Green",
+			text = Text.Continue,
+			textSize = TextSizes.Title,
+		}),
+		footerHeight = footerHeight,
 		height = height,
 		swatch = if summary.OutOfTime then "Red" else "Gold",
 		title = if summary.OutOfTime then Text.ResultTimeUp else Text.ResultTitle,
 		width = width,
 	}, {
-		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2, Enum.HorizontalAlignment.Center),
-		Caption = Primitives.text({
-			Color = Palette.TextSoft,
-			LayoutOrder = 1,
-			Size = UDim2.new(1, 0, 0, TextSizes.Body),
-			Text = Text.ResultScore,
-			TextSize = TextSizes.Body,
-		}),
-		Score = Primitives.text({
-			Color = Palette.Sparkle,
-			LayoutOrder = 2,
-			Size = UDim2.new(1, 0, 0, TextSizes.Huge + Shape.Stroke * 2),
-			Text = Format.commas(summary.Score),
-			TextSize = TextSizes.Huge,
-		}),
-		Coins = rewardRow(3, Text.CoinIcon, Text.ResultCoins, summary.Coins, "Gold"),
-		Gems = rewardRow(4, Text.GemIcon, Text.ResultGems, summary.Gems, "Purple"),
-		Xp = rewardRow(5, Text.XpIcon, Text.ResultXp, summary.Xp, "Green"),
-		Badges = e("Frame", {
-			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundTransparency = 1,
-			LayoutOrder = 6,
-			Size = UDim2.fromScale(1, 0),
-		}, badges),
-		Continue = e(ChunkyButton, {
-			layoutOrder = 7,
-			onActivated = DataController.DismissResult,
-			size = UDim2.new(1, 0, 0, UIConfig.Sizes.Play.PlayButtonHeight),
-			swatch = "Green",
-			text = Text.Continue,
-			textSize = TextSizes.Title,
+		Scroll = Primitives.scroll({}, {
+			Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2, Enum.HorizontalAlignment.Center),
+			Caption = Primitives.text({
+				Color = Palette.TextSoft,
+				LayoutOrder = 1,
+				Size = UDim2.new(1, 0, 0, TextSizes.Body),
+				Text = Text.ResultScore,
+				TextSize = TextSizes.Body,
+			}),
+			Score = Primitives.text({
+				Color = Palette.Sparkle,
+				LayoutOrder = 2,
+				Size = UDim2.new(1, 0, 0, TextSizes.Huge + Shape.Stroke * 2),
+				Text = Format.commas(summary.Score),
+				TextSize = TextSizes.Huge,
+			}),
+			Coins = rewardRow(3, Text.CoinIcon, Text.ResultCoins, summary.Coins, "Gold"),
+			Gems = rewardRow(4, Text.GemIcon, Text.ResultGems, summary.Gems, "Purple"),
+			Xp = rewardRow(5, Text.XpIcon, Text.ResultXp, summary.Xp, "Green"),
+			Badges = e("Frame", {
+				AutomaticSize = Enum.AutomaticSize.Y,
+				BackgroundTransparency = 1,
+				LayoutOrder = 6,
+				Size = UDim2.fromScale(1, 0),
+			}, badges),
 		}),
 	})
 end

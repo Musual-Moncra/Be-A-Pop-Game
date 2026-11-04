@@ -24,6 +24,8 @@
 			ButtonFormat: buy button text (format: robux price)
 			CountdownFormat: seconds left line (format: seconds)
 		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of Meter, Event and Revive
+		NarrowWidth: safe widths below this move Meter and Event to the bottom centre (design pixels)
+		Narrow: Meter / Event AnchorPoint + Position used below NarrowWidth
 		Glow: highlight drawn on golden targets during a run
 			FillColor / OutlineColor: highlight colours (RGB)
 			FillTransparency / OutlineTransparency: highlight transparency (0 to 1)
@@ -68,6 +70,12 @@ return {
 			Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 290) },
 			Revive = { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) },
 		},
+	},
+
+	NarrowWidth = 1150,
+	Narrow = {
+		Meter = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -120) },
+		Event = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -180) },
 	},
 
 	Glow = {

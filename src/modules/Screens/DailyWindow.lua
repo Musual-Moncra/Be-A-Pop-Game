@@ -146,9 +146,12 @@ return function(props: any)
 		width = width,
 	}, {
 		Tiles = e(Inset, {
+			clip = true,
 			padding = Gap,
 			size = UDim2.new(1, 0, 1, -(Daily.ClaimHeight + Gap * 2 + TextSizes.Body)),
-		}, tiles),
+		}, {
+			Scroll = Primitives.scroll({}, tiles),
+		}),
 		Streak = Primitives.text({
 			AnchorPoint = Vector2.new(0.5, 1),
 			Color = Palette.TextSoft,

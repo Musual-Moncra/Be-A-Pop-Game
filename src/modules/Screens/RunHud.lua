@@ -270,6 +270,14 @@ end
 return function(props: any)
 	local data = props.data
 	local layouts = UIConfig.Layouts[if props.ui.mobile then "Mobile" else "PC"]
+	local narrow = props.ui.safeWidth < Sizes.NarrowWidth
+	local margin = layouts.WindowMargin
+	local scoreLayout = if narrow
+		then { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -margin, 0, Sizes.NarrowScoreTop) }
+		else layouts.RunScore
+	local questLayout = if narrow
+		then { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -margin, 0, Sizes.NarrowQuestTop) }
+		else layouts.RunQuests
 
 	local popups: { [string]: any } = {
 		Layout = Primitives.list(Enum.FillDirection.Vertical, 0, Enum.HorizontalAlignment.Center),
@@ -282,8 +290,8 @@ return function(props: any)
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
 	}, {
-		Score = e(ScorePanel, { data = data, layout = layouts.RunScore }),
-		Quests = e(QuestPanel, { layout = layouts.RunQuests, quests = data.Quests }),
+		Score = e(ScorePanel, { data = data, layout = scoreLayout }),
+		Quests = e(QuestPanel, { layout = questLayout, quests = data.Quests }),
 		Powerups = e(PowerupSlots, { layout = layouts.RunPowerups, powerups = data.Powerups }),
 		Popups = e("Frame", {
 			AnchorPoint = layouts.Popups.AnchorPoint,

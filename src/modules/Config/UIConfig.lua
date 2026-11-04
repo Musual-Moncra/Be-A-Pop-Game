@@ -11,6 +11,7 @@
 		MobileReferenceHeight / MobileReferenceWidth: same for phones/tablets, smaller = bigger UI (pixels)
 		Min / Max: smallest / largest UI scale allowed (multiplier)
 		MobileMaxWidth: safe areas narrower than this, or touch-only devices, use the Mobile layout (pixels)
+		MinTouchTarget: smallest clickable control on a touch device (design pixels)
 
 	Fonts:
 		Display / DisplayWeight: chunky font (asset path) and weight for titles, numbers and buttons
@@ -83,6 +84,9 @@
 		Hud.XpBarHeight: XP bar height
 		Hud.PillHeight / Hud.PillIconSize: coin/gem pill height / round icon diameter
 		Hud.Gap: gap between wallet rows
+		Hud.XpBarLeftRatio / XpBarDropDivisor: XP bar start and vertical drop as fractions of BadgeSize
+		Hud.CaptionHeightRatio / CaptionHeightDivisor: level caption height as a fraction of BadgeSize
+		Hud.CaptionInsetRatio: caption lift as a fraction of Shape.Radius
 		Window.HeaderHeight: height of the ribbon title
 		Window.CloseSize: red close button size
 		Window.Padding: space between the window edge and its content
@@ -101,6 +105,22 @@
 		Play.ChipHeight: height of info chips (size, rewards, rules)
 		Play.PlayButtonHeight: height of the PLAY and CONTINUE buttons
 		Play.ActionButtonWidth / ActionButtonHeight: size of the UNLOCK price button; map card chips match its face height
+		Play.DescriptionLines: wrapped description lines a map or mode block makes room for (count)
+		Play.ModeColumns: mode tiles per row (count)
+		Play.NarrowWidth: windows narrower than this stack maps and modes in one scroll (design pixels)
+		Room.ActionHeight: height of the CREATE / SAVE action in the window footer
+		Room.RowHeight / FriendRowHeight: height of a member row / an invite friend row
+		Room.BrowseRowHeight / BrowseIconSize: height of a room browser row / its map icon diameter
+		Room.JoinWidth / JoinHeight: JOIN button size on a browser row
+		Room.PlayerOptionWidth / PlayerOptionHeight: size of one room-size selector button
+		Room.ToggleWidth / ToggleHeight: size of the friends-only switch
+		Room.SummaryIconSize: map icon diameter in the room summary
+		Room.PillWidth / PillHeight / PillIconSize: lobby room pill size and its icon
+		Room.PillButtonWidth / PillButtonHeight: OPEN / JOIN button on a pill
+		Room.PillDismissSize: dismiss button on an invite pill
+		Room.FooterHeight: height of the room window footer (hint and action buttons)
+		Room.KickWidth / KickHeight: KICK button size on a member row
+		Room.InviteWidth / InviteHeight: INVITE button size on a friend row
 		Upgrade.Width / Upgrade.Height: upgrade window size (shrinks to fit small screens)
 		Upgrade.Columns: most upgrade cards per row (count); fewer when the window is narrow
 		Upgrade.MinCardWidth: narrowest an upgrade card may get before a column is dropped
@@ -117,16 +137,21 @@
 		Run.QuestRowHeight: height of a quest row
 		Run.PowerupSize: power-up icon diameter
 		Run.LeaveWidth / Run.LeaveHeight: LEAVE button size
+		Run.NarrowWidth: below this safe width the score moves to the top-right and the quest panel drops under it (design pixels)
+		Run.NarrowScoreTop: top of the score panel in the narrow run layout (design pixels)
+		Run.NarrowQuestTop: top of the quest panel in the narrow run layout (design pixels)
 		Result.Width: result window width; its height follows its content
 		Result.BadgesPerRow: badges that fit on one row, used to size the window (count)
 		Result.RowHeight: height of a reward row
 		Result.BadgeHeight: height of the level-up / target / quest badges
+		Result.BaseRows: rows above the badges (caption, score, three rewards, badge block) (count)
 		Toast.Width / Toast.Height / Toast.Gap: toast size and the gap between stacked toasts
 		Popup.Width / Popup.Height: size of a floating in-run popup
 
 	Layouts.PC / Layouts.Mobile: where the big pieces sit. Each entry has AnchorPoint (fraction of its
 		own size) and Position (scale of the screen + design-pixel offset):
-		Wallet (level and currency), Toasts, RunScore, RunQuests, RunPowerups, RunLeave, Popups.
+		Wallet (level and currency), Toasts, RunScore, RunQuests, RunPowerups, RunLeave, Popups,
+		RoomPills (room and invite prompts).
 		WindowMargin: gap kept between a window and the screen edge (design pixels)
 
 	MapVisuals: per map id, Icon (emoji) and Swatch (colour) of its map card
@@ -160,6 +185,22 @@
 		RewardTarget: target bonus line (format: coins, gems)
 		RewardLines: how two reward lines are joined (format: line, line)
 		PlayButton / PlayLocked: PLAY button text when playable / locked
+		CreateTab / BrowseTab / RoomTab: play window view tabs
+		PlayersHeader: room-size section title
+		FriendsOnly: friends-only switch label
+		CreateRoom / EditSettings / SaveSettings / BackSettings: room form buttons
+		EmptyRooms: room browser empty state
+		BrowseHostFormat / BrowseDetailsFormat / BrowsePlayersFormat: browser row lines (host, map + mode, players)		FriendsBadge: badge on a browser row whose host is a friend
+		Join / JoinFull: browser JOIN button when open / full
+		RoomTitle / RoomPlayersFormat: room view title and player count
+		RoomPublic / RoomFriendsOnly: room privacy chip
+		MembersHeader / HostMark / ReadyMark / WaitingMark: member list title and marks
+		InviteHeader / NoFriends / Invite: invite list title, empty state and button
+		Kick / LeaveRoom: member kick and room leave buttons
+		ReadyButton / UnreadyButton / StartButton: room action buttons
+		StartHint / SoloStartHint / WaitingText / CountdownFormat: room status lines (countdown format: seconds)
+		RoomPillFormat / RoomPillOpen: lobby room pill (map, players, max) and open button
+		InvitePillFormat / InviteToastFormat / InvitePillJoin / DismissIcon: invite prompt and toast
 		UpgradesTitle: upgrade window title
 		UpgradeLevel: level bar text (format: level, max level)
 		UpgradeArrow: current and next value (format: current, next)
@@ -205,6 +246,7 @@ return {
 		Min = 0.4,
 		Max = 1.5,
 		MobileMaxWidth = 900,
+		MinTouchTarget = 44,
 	},
 
 	Fonts = {
@@ -361,6 +403,11 @@ return {
 			PillHeight = 58,
 			PillIconSize = 74,
 			Gap = 14,
+			XpBarLeftRatio = 0.5,
+			XpBarDropDivisor = 6,
+			CaptionHeightRatio = 0.5,
+			CaptionHeightDivisor = 4,
+			CaptionInsetRatio = 0.5,
 		},
 		Window = {
 			HeaderHeight = 74,
@@ -387,6 +434,34 @@ return {
 			PlayButtonHeight = 92,
 			ActionButtonWidth = 130,
 			ActionButtonHeight = 44,
+			DescriptionLines = 2,
+			ModeColumns = 2,
+			NarrowWidth = 1000,
+		},
+		Room = {
+			ActionHeight = 84,
+			RowHeight = 64,
+			FriendRowHeight = 56,
+			BrowseRowHeight = 108,
+			BrowseIconSize = 72,
+			JoinWidth = 140,
+			JoinHeight = 64,
+			PlayerOptionWidth = 64,
+			PlayerOptionHeight = 52,
+			ToggleWidth = 250,
+			ToggleHeight = 52,
+			SummaryIconSize = 64,
+			PillWidth = 380,
+			PillHeight = 76,
+			PillIconSize = 54,
+			PillButtonWidth = 96,
+			PillButtonHeight = 52,
+			PillDismissSize = 44,
+			FooterHeight = 116,
+			KickWidth = 96,
+			KickHeight = 44,
+			InviteWidth = 120,
+			InviteHeight = 44,
 		},
 		Upgrade = {
 			Width = 1100,
@@ -412,12 +487,16 @@ return {
 			PowerupSize = 84,
 			LeaveWidth = 170,
 			LeaveHeight = 64,
+			NarrowWidth = 1150,
+			NarrowScoreTop = 10,
+			NarrowQuestTop = 250,
 		},
 		Result = {
 			Width = 620,
 			BadgesPerRow = 2,
 			RowHeight = 64,
 			BadgeHeight = 44,
+			BaseRows = 6,
 		},
 		Toast = {
 			Width = 560,
@@ -439,16 +518,18 @@ return {
 			RunPowerups = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 330) },
 			RunLeave = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -28, 1, -28) },
 			Popups = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 200) },
+			RoomPills = { AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 28, 1, -28) },
 			WindowMargin = 40,
 		},
 		Mobile = {
 			Wallet = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 12) },
-			Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12) },
+			Toasts = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 12) },
 			RunScore = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10) },
 			RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 12) },
 			RunPowerups = { AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 16, 1, -16) },
 			RunLeave = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -16) },
 			Popups = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 180) },
+			RoomPills = { AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 16, 1, -12) },
 			WindowMargin = 16,
 		},
 	},
@@ -528,6 +609,49 @@ return {
 		RewardLines = "%s\n%s",
 		PlayButton = "PLAY!",
 		PlayLocked = "LOCKED",
+
+		CreateTab = "CREATE",
+		BrowseTab = "BROWSE",
+		RoomTab = "ROOM",
+		PlayersHeader = "ROOM SIZE",
+		FriendsOnly = "FRIENDS ONLY",
+		CreateRoom = "CREATE ROOM",
+		EditSettings = "EDIT",
+		SaveSettings = "SAVE",
+		BackSettings = "BACK",
+		EmptyRooms = "No rooms open right now.\nCreate one and invite your friends!",
+		BrowseHostFormat = "%s's room",
+		BrowseDetailsFormat = "%s  •  %s",
+		BrowsePlayersFormat = "%d/%d",
+		FriendsBadge = "FRIENDS",
+		Join = "JOIN",
+		JoinFull = "FULL",
+		RoomTitle = "YOUR ROOM",
+		RoomPlayersFormat = "%d / %d",
+		RoomPublic = "PUBLIC",
+		RoomFriendsOnly = "FRIENDS ONLY",
+		MembersHeader = "PLAYERS",
+		HostMark = "HOST",
+		ReadyMark = "READY",
+		WaitingMark = "WAITING",
+		InviteHeader = "INVITE FRIENDS",
+		NoFriends = "No friends in this server to invite",
+		Invite = "INVITE",
+		Kick = "KICK",
+		LeaveRoom = "LEAVE",
+		ReadyButton = "READY",
+		UnreadyButton = "UNREADY",
+		StartButton = "START",
+		StartHint = "Everyone must be ready",
+		SoloStartHint = "You can start alone",
+		WaitingText = "WAITING FOR PLAYERS",
+		CountdownFormat = "STARTING IN %d",
+		RoomPillFormat = "%s  %d/%d",
+		RoomPillOpen = "OPEN",
+		InvitePillFormat = "%s invited you",
+		InviteToastFormat = "%s invited you to a room",
+		InvitePillJoin = "JOIN",
+		DismissIcon = "X",
 
 		UpgradesTitle = "UPGRADES",
 		UpgradeLevel = "LV %d / %d",
