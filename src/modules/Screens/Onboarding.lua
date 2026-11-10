@@ -21,6 +21,7 @@ local Workspace = game:GetService("Workspace")
 local React = require(ReplicatedStorage.Packages.React)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local LobbyState = require(ReplicatedStorage.Modules.UIs.LobbyState)
+local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local OnboardingConfig = require(ReplicatedStorage.Modules.Config.OnboardingConfig)
 local OnboardingController = require(ReplicatedStorage.Modules.Controllers.OnboardingController)
 local Components = ReplicatedStorage.Modules.UIComponents
@@ -39,17 +40,20 @@ local function buildHint(step: number, data: any, route: string): any
 		if inRun or showResult or reveal then
 			return nil
 		end
-		if route == LobbyState.Routes.Play then
-			return { Text = OnboardingConfig.Text.Play, TargetKind = "UI", TargetKey = "Play" }
-		elseif route == LobbyState.Routes.None then
-			return { Text = OnboardingConfig.Text.Play, TargetKind = "World", TargetKey = "Play" }
+		if route == LobbyState.Routes.Play or route == LobbyState.Routes.None then
+			return {
+				Text = OnboardingConfig.Text.Play,
+				TargetKind = "UI",
+				TargetKey = "Play",
+				Placement = "Dock",
+			}
 		end
 		return nil
 	elseif step == OnboardingConfig.StepStain then
 		if not inRun then
 			return nil
 		end
-		return { Text = OnboardingConfig.Text.Stain, PanelY = OnboardingConfig.PanelYInRun }
+		return { Text = OnboardingConfig.Text.Stain, Placement = "InRun" }
 	elseif step == OnboardingConfig.StepSplat then
 		if not inRun then
 			return nil
@@ -58,17 +62,22 @@ local function buildHint(step: number, data: any, route: string): any
 			Text = OnboardingConfig.Text.Splat,
 			TargetKind = "World",
 			TargetKey = "Soil",
-			PanelY = OnboardingConfig.PanelYInRun,
+			Placement = "InRun",
 		}
 	elseif step == OnboardingConfig.StepLifespan then
 		if not OnboardingController.HasLowLifespan() then
 			return nil
 		end
 		if showResult then
-			return { Text = OnboardingConfig.Text.Lifespan, PanelY = OnboardingConfig.PanelYResult }
+			return { Text = OnboardingConfig.Text.Lifespan, Placement = "Result" }
 		end
 		if not inRun and not reveal and route == LobbyState.Routes.None then
-			return { Text = OnboardingConfig.Text.Lifespan, TargetKind = "UI", TargetKey = "Upgrades" }
+			return {
+				Text = OnboardingConfig.Text.Lifespan,
+				TargetKind = "UI",
+				TargetKey = "Upgrades",
+				Placement = "Dock",
+			}
 		end
 		return nil
 	elseif step == OnboardingConfig.StepPet then
@@ -78,7 +87,12 @@ local function buildHint(step: number, data: any, route: string): any
 		if not OnboardingController.HasPetSeen() then
 			return nil
 		end
-		return { Text = OnboardingConfig.Text.Pet, TargetKind = "UI", TargetKey = "Pets" }
+		return {
+			Text = OnboardingConfig.Text.Pet,
+			TargetKind = "UI",
+			TargetKey = "Pets",
+			Placement = "Dock",
+		}
 	end
 	return nil
 end
@@ -126,6 +140,13 @@ local function fallbackPoint(key: string?, ui: any): Vector2?
 	return Vector2.new(ui.safeWidth * fallback.X, ui.safeHeight * fallback.Y)
 end
 
+local function dockOffset(ui: any): number
+	local layout = LobbyUIConfig.Layouts[if ui.mobile then "Mobile" else "PC"].Dock
+	local dock = LobbyUIConfig.Dock
+	local tallest = dock.ItemSize * dock.BigScale + dock.LabelHeight
+	return math.abs(layout.Position.Y.Offset) + dock.ButtonSize + dock.Lift + tallest + OnboardingConfig.PanelDockGap
+end
+
 return function(props: any)
 	local data = props.data
 	local ui = props.ui
@@ -147,10 +168,31 @@ return function(props: any)
 	local step = OnboardingController.GetStep()
 	local hint = buildHint(step, data, route)
 	local hintKey = if hint ~= nil
-		then string.format("%d:%s:%s", step, tostring(hint.TargetKind), tostring(hint.TargetKey))
+		then string.format(
+			"%d:%s:%s:%s",
+			step,
+			tostring(hint.TargetKind),
+			tostring(hint.TargetKey),
+			tostring(hint.Placement)
+		)
 		else ""
 	local layoutKey =
 		string.format("%.4f:%.2f:%.2f:%.2f:%.2f", ui.scale, ui.safe.Left, ui.safe.Top, ui.safeWidth, ui.safeHeight)
+
+	local panelTop: number? = nil
+	local panelBottom: number? = nil
+	if hint ~= nil then
+		if hint.Placement == "Dock" then
+			panelBottom = ui.safeHeight - dockOffset(ui)
+			panelTop = panelBottom - OnboardingConfig.PanelHeight
+		elseif hint.Placement == "Result" then
+			panelBottom = ui.safeHeight * OnboardingConfig.PanelYResult + OnboardingConfig.PanelHeight / 2
+			panelTop = panelBottom - OnboardingConfig.PanelHeight
+		else
+			panelBottom = ui.safeHeight * OnboardingConfig.PanelYInRun + OnboardingConfig.PanelHeight / 2
+			panelTop = panelBottom - OnboardingConfig.PanelHeight
+		end
+	end
 
 	React.useEffect(function()
 		if hint == nil or hint.TargetKey == nil then
@@ -182,9 +224,7 @@ return function(props: any)
 			local size = Vector2.new(OnboardingConfig.RingSize, OnboardingConfig.RingSize)
 			local worldPosition: Vector3? = nil
 			if hint.TargetKind == "World" then
-				worldPosition = if hint.TargetKey == "Play"
-					then OnboardingController.GetPortalPosition()
-					else OnboardingController.GetNearestTargetPosition()
+				worldPosition = OnboardingController.GetNearestTargetPosition()
 			end
 
 			if hint.TargetKind == "UI" and target ~= nil then
@@ -204,10 +244,18 @@ return function(props: any)
 				return
 			end
 
-			arrow.Visible = true
 			ring.Visible = true
 			local bounce = math.sin(now * OnboardingConfig.BounceSpeed * TAU) * OnboardingConfig.BounceHeight
-			arrow.Position = UDim2.fromOffset(center.X, center.Y - OnboardingConfig.ArrowOffsetY + bounce)
+			local arrowBottom = center.Y - OnboardingConfig.ArrowOffsetY + bounce
+			local arrowTop = arrowBottom - OnboardingConfig.ArrowBoxSize
+			local overlapsPanel = panelBottom ~= nil
+				and panelTop ~= nil
+				and arrowTop < panelBottom
+				and arrowBottom > panelTop
+			arrow.Visible = not overlapsPanel
+			if not overlapsPanel then
+				arrow.Position = UDim2.fromOffset(center.X, arrowBottom)
+			end
 			ring.Position = UDim2.fromOffset(center.X, center.Y)
 			ring.Size =
 				UDim2.fromOffset(size.X + OnboardingConfig.RingPadding * 2, size.Y + OnboardingConfig.RingPadding * 2)
@@ -226,18 +274,28 @@ return function(props: any)
 	local panelWidth = math.min(OnboardingConfig.PanelWidth, ui.safeWidth - OnboardingConfig.PanelMargin * 2)
 	local padding = OnboardingConfig.PanelPadding
 	local skipWidth = OnboardingConfig.SkipWidth
-	local labelWidth = panelWidth - padding * 2 - skipWidth - OnboardingConfig.SkipGap
+	local sideReserve = skipWidth + OnboardingConfig.SkipGap
+	local labelWidth = math.max(0, panelWidth - padding * 2 - sideReserve * 2)
+
+	local panelAnchor = Vector2.new(0.5, 0.5)
+	local panelPosition = UDim2.fromScale(OnboardingConfig.PanelX, OnboardingConfig.PanelYInRun)
+	if hint.Placement == "Dock" then
+		panelAnchor = Vector2.new(0.5, 1)
+		panelPosition = UDim2.new(OnboardingConfig.PanelX, 0, 1, -dockOffset(ui))
+	elseif hint.Placement == "Result" then
+		panelPosition = UDim2.fromScale(OnboardingConfig.PanelX, OnboardingConfig.PanelYResult)
+	end
 
 	return e("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
 	}, {
 		Panel = e("Frame", {
-			AnchorPoint = Vector2.new(0.5, 0.5),
+			AnchorPoint = panelAnchor,
 			BackgroundColor3 = OnboardingConfig.PanelColor,
 			BackgroundTransparency = OnboardingConfig.PanelTransparency,
 			BorderSizePixel = 0,
-			Position = UDim2.fromScale(OnboardingConfig.PanelX, hint.PanelY or OnboardingConfig.PanelY),
+			Position = panelPosition,
 			Size = UDim2.fromOffset(panelWidth, OnboardingConfig.PanelHeight),
 		}, {
 			Corner = e("UICorner", { CornerRadius = UDim.new(0, OnboardingConfig.PanelRadius) }),
@@ -248,12 +306,13 @@ return function(props: any)
 			}),
 			Label = Primitives.text({
 				Color = OnboardingConfig.TextColor,
-				Position = UDim2.fromOffset(padding, padding),
+				Position = UDim2.fromOffset(padding + sideReserve, padding),
 				Size = UDim2.fromOffset(labelWidth, OnboardingConfig.PanelHeight - padding * 2),
 				Text = hint.Text,
 				TextSize = OnboardingConfig.TextSize,
 				Wrapped = true,
-				XAlign = Enum.TextXAlignment.Left,
+				XAlign = Enum.TextXAlignment.Center,
+				YAlign = Enum.TextYAlignment.Center,
 			}),
 			Skip = e(ChunkyButton, {
 				AnchorPoint = Vector2.new(1, 0.5),
@@ -261,6 +320,7 @@ return function(props: any)
 					OnboardingController.Skip()
 				end,
 				Position = UDim2.new(1, -padding, 0.5, 0),
+				radius = OnboardingConfig.SkipRadius,
 				size = UDim2.fromOffset(skipWidth, OnboardingConfig.SkipHeight),
 				swatch = "Grey",
 				text = OnboardingConfig.Text.Skip,

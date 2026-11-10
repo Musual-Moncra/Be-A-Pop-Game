@@ -23,16 +23,17 @@
 			Menu: MENU button that opens the lobby dock row
 		Fallbacks: screen scale point used when the target GUI or prop is not on screen
 			Play / Upgrades / Pets / Soil: X and Y inside the safe area (scale 0..1)
-		PanelX / PanelY: hint panel centre on screen (scale 0..1)
-		PanelYInRun: hint panel centre while a run is active, above the bottom HUD (scale 0..1)
-		PanelYResult: hint panel centre on the result screen, below the result card (scale 0..1)
+		PanelX: hint panel horizontal centre on screen (scale 0..1)
+		PanelYInRun: hint panel centre while a run is active (scale 0..1)
+		PanelYResult: hint panel centre on the result screen (scale 0..1)
+		PanelDockGap: gap kept between the panel bottom and the tallest open dock item (design pixels)
 		PanelWidth / PanelHeight: hint panel size (design pixels)
 		PanelMargin: smallest gap kept from the safe-area edge (design pixels)
 		PanelRadius / PanelPadding: corner radius and inner padding (design pixels)
 		PanelColor / PanelTransparency: panel fill (RGB, 0 to 1)
 		PanelStrokeColor / PanelStrokeThickness: panel outline (RGB, design pixels)
 		TextSize / TextColor: hint line (design pixels, RGB)
-		SkipWidth / SkipHeight / SkipTextSize: small skip button (design pixels)
+		SkipWidth / SkipHeight / SkipRadius / SkipTextSize: small skip pill (design pixels)
 		SkipGap: gap between the hint line and the skip button (design pixels)
 		ArrowText / ArrowTextSize / ArrowBoxSize / ArrowColor: bouncing pointer (text, design
 			pixels, RGB)
@@ -84,9 +85,9 @@ return {
 	},
 
 	PanelX = 0.5,
-	PanelY = 0.82,
 	PanelYInRun = 0.6,
 	PanelYResult = 0.9,
+	PanelDockGap = 28,
 	PanelWidth = 620,
 	PanelHeight = 92,
 	PanelMargin = 16,
@@ -98,18 +99,19 @@ return {
 	PanelStrokeThickness = 3,
 	TextSize = 22,
 	TextColor = Color3.fromRGB(255, 255, 255),
-	SkipWidth = 100,
-	SkipHeight = 48,
-	SkipTextSize = 18,
+	SkipWidth = 86,
+	SkipHeight = 38,
+	SkipRadius = 20,
+	SkipTextSize = 16,
 	SkipGap = 12,
 
 	ArrowText = "⬇",
-	ArrowTextSize = 54,
-	ArrowBoxSize = 84,
+	ArrowTextSize = 44,
+	ArrowBoxSize = 64,
 	ArrowColor = Color3.fromRGB(255, 214, 40),
 	ArrowStrokeColor = Color3.fromRGB(48, 26, 10),
 	ArrowOffsetY = 70,
-	BounceHeight = 12,
+	BounceHeight = 10,
 	BounceSpeed = 1.6,
 
 	RingSize = 96,
