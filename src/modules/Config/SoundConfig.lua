@@ -125,6 +125,38 @@ return {
 			MaxConcurrent = 2,
 			Throttle = 0.04,
 		},
+		Combo = {
+			Asset = "",
+			Volume = 0.55,
+			PitchMin = 1,
+			PitchMax = 1.15,
+			MaxConcurrent = 2,
+			Throttle = 0.12,
+		},
+		Milestone = {
+			Asset = "",
+			Volume = 0.6,
+			PitchMin = 1,
+			PitchMax = 1,
+			MaxConcurrent = 1,
+			Throttle = 0.4,
+		},
+		PetReveal = {
+			Asset = "",
+			Volume = 0.65,
+			PitchMin = 1,
+			PitchMax = 1,
+			MaxConcurrent = 1,
+			Throttle = 1,
+		},
+		PetPoop = {
+			Asset = "",
+			Volume = 0.42,
+			PitchMin = 1.1,
+			PitchMax = 1.3,
+			MaxConcurrent = 2,
+			Throttle = 0.2,
+		},
 	},
 
 	Music = {

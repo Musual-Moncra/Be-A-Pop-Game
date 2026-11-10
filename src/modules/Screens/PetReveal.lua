@@ -2,13 +2,14 @@
 
 --[[
 	PetReveal
-	Full-screen pet drop reveal: the pet shakes as a dark silhouette for a moment, then bursts
-	with rarity-coloured rays showing its name, rarity, variant, Stink value and NEW tag (or the
-	gems it turned into when the bag was full). Tapping after a short delay, or waiting, closes it.
+	Full-screen pet drop reveal: waits for the MAP CLEARED banner to finish, then the pet shakes
+	as a dark silhouette for a moment and bursts with rarity-coloured rays showing its name,
+	rarity, variant, Stink value and NEW tag (or the gems it turned into when the bag was full).
+	Tapping after a short delay, or waiting, closes it.
 
 	Props: data (DataController state with LastPetDrop), ui (useUIScale result)
-	Dependencies: React, TweenService, DataController, ConfigLookup, UIConfig, LobbyUIConfig,
-		PetView, Primitives, ChunkyButton, Chip, Inset, Rays, Format, WindowSize
+	Dependencies: React, TweenService, DataController, ConfigLookup, JuiceConfig, UIConfig,
+		LobbyUIConfig, PetView, Primitives, ChunkyButton, Chip, Inset, Rays, Format, WindowSize
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,6 +17,7 @@ local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local JuiceConfig = require(ReplicatedStorage.Modules.Config.JuiceConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
@@ -38,19 +40,24 @@ local TextSizes = UIConfig.TextSizes
 
 return function(props: any)
 	local drop = props.data.LastPetDrop
-	local phase, setPhase = React.useState("shake")
+	local phase, setPhase = React.useState("waiting")
 	local startedAt = React.useRef(os.clock())
 	local iconScaleRef = React.useRef(nil)
 	local iconRef = React.useRef(nil)
+	local bannerSeconds = JuiceConfig.MilestoneClearSeconds
 
 	React.useEffect(function()
 		startedAt.current = os.clock()
-		setPhase("shake")
-		local thread = task.delay(Reveal.ShakeSeconds, function()
+		setPhase("waiting")
+		local shakeThread = task.delay(bannerSeconds, function()
+			setPhase("shake")
+		end)
+		local revealThread = task.delay(bannerSeconds + Reveal.ShakeSeconds, function()
 			setPhase("revealed")
 		end)
 		return function()
-			task.cancel(thread)
+			task.cancel(shakeThread)
+			task.cancel(revealThread)
 		end
 	end, { drop.At } :: { any })
 
@@ -106,10 +113,14 @@ return function(props: any)
 	local iconCenter = UDim2.fromScale(0.5, 0.32)
 
 	local function tap()
-		if os.clock() - startedAt.current < Reveal.TapAfter then
+		if os.clock() - startedAt.current < bannerSeconds + Reveal.TapAfter then
 			return
 		end
 		DataController.DismissPetDrop()
+	end
+
+	if phase == "waiting" then
+		return nil
 	end
 
 	return e("TextButton", {

@@ -161,7 +161,7 @@
 	PowerupSwatch: colour of power-up icons in the run HUD (Swatches key)
 	ToastSwatches: per toast kind (Info, Success, Error), the Swatches key used
 
-	Layers: drawing order, higher = on top (number): Wallet, RunHud, Extras (map meter, Special Time, revive), LobbyMenu, Backdrop (full-screen
+	Layers: drawing order, higher = on top (number): Wallet, RunHud, Juice (combo meter, milestone banners), Extras (map meter, Special Time, revive), LobbyMenu, Backdrop (full-screen
 		dimmer behind open windows), Window, Result, Toasts, Reveal (pet drop)
 
 	Text (every word the UI shows; %s = text, %d = whole number, %.1f = one decimal):
@@ -563,6 +563,7 @@ return {
 	Layers = {
 		Wallet = 1,
 		RunHud = 2,
+		Juice = 2,
 		Extras = 2,
 		LobbyMenu = 3,
 		Backdrop = 4,

@@ -43,7 +43,7 @@
 		RoomList({ RoomSummary })          joinable rooms visible to this client, sent while watching
 		RoomInvite(roomId, hostName, mapId)  a friend invited this client to their room
 		OpenRoomMenu()                     lobby portal touched, open the play window
-		RunState(state, timeLeft, score)   timeLeft -1 = untimed
+		RunState(state, timeLeft, score, combo)   timeLeft -1 = untimed, combo 1..ComboMax
 		RunEnded(summary)                  RunSummary struct, see below
 		PowerupState(active)               { { Id, TimeLeft, Duration } }
 		PowerupPicked(powerupId)
@@ -169,7 +169,7 @@ Net.LeaveRun = Packet.new("LeaveRun")
 
 Net.SelectionSync = Packet.new("SelectionSync", Packet.String, Packet.String)
 Net.DataSync = Packet.new("DataSync", Packet.Any)
-Net.RunState = Packet.new("RunState", Packet.String, Packet.NumberF32, Packet.NumberU32)
+Net.RunState = Packet.new("RunState", Packet.String, Packet.NumberF32, Packet.NumberU32, Packet.NumberU8)
 Net.RunEnded = Packet.new("RunEnded", RunSummary)
 Net.PowerupState = Packet.new("PowerupState", { PowerupEntry })
 Net.PowerupPicked = Packet.new("PowerupPicked", Packet.String)
