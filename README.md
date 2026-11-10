@@ -2,7 +2,7 @@
 
 Game Roblox thể loại Arcade / Simulator, viết bằng Luau với Rojo, React-lua, Packet và ProfileStore.
 
-> Cập nhật: **04/11/2026** · Nhánh: `release/prep`
+> Cập nhật: **10/11/2026** · Nhánh: `release/prep`
 >
 > Tài liệu thiết kế (GDD, backlog) có NDA nên không nằm trong repo này. README chỉ mô tả kỹ thuật và kết quả kiểm thử.
 
@@ -10,59 +10,44 @@ Game Roblox thể loại Arcade / Simulator, viết bằng Luau với Rojo, Reac
 
 ## 1. Trạng thái phát hành
 
-**Chưa sẵn sàng phát hành.** Vòng chơi một người đã được playtest trong Studio. Cần làm xong các mục dưới đây trước.
+**Gần sẵn sàng.** Vòng chơi đầy đủ (lobby → PLAY → bôi bẩn → 100% → rơi pet → kết quả) đã chạy trong Studio. Thiết kế Phase 7: `.coordination/PHASE7/DESIGN.md`. Việc của team ngoài code nằm trong Tasko, goal "BAP Launch – Phase 7".
 
 ### Bắt buộc trước khi phát hành
 
 | # | Việc | Người làm |
 |---|---|---|
-| 1 | **Save/Publish place.** `Lobby`, `Park` và mọi instance chỉ có trong Studio được lưu trong place, không nằm trong repo | Lead |
-| 2 | **Test nhiều người thật** bằng Studio > Test > Start Server với 2-3 người, xem mục 4 | QA |
-| 3 | Tạo Gamepass và Developer Product, điền `Id` trong `MonetizationConfig` (đang là 0). Popup Revive chỉ hiện khi có id, nên chưa test được | Lead |
-| 4 | Test giao diện trên điện thoại và máy bảng thật hoặc giả lập, xem mục 4 | QA |
-| 5 | Chơi thử `Zone4` bằng tài khoản đã mở khóa, xem mục 4 | QA |
-
-### Chờ quyết định thiết kế
-
-| Câu hỏi | Hiện tại trong code | Cách đổi |
-|---|---|---|
-| Điều kiện mở map | Chỉ tính coins | `MapConfig.RequirePreviousComplete` |
-| Số ô pet mặc định | 3 | `PetConfig.BaseSlots` |
-| Thưởng khi đạt 100% map | Gems | Thêm Pet cần viết logic |
-| Theme các map | Theo bản đã dựng | Đổi theme cần dựng lại map |
-| Bán kính Stain Bomb | Cố định, `StainBombRadius` | Cần định nghĩa rõ cách tính theo kích cỡ |
-| Thời gian cộng theo từng mức Revive | Một giá trị, `ReviveSeconds` | Cần thêm trường theo mức |
-
-### Chưa làm
-
-- Pet Index và cơ chế pet tạo tài nguyên: chưa có đặc tả chi tiết.
-- Giá Robux của thuốc: `PotionConfig` chưa có trường giá.
-- Hiệu ứng lửa cho trail của một loại thuốc.
-- Nhạc nền và âm `LevelUp`: chưa có asset.
-- Onboarding cho người mới.
-- NPC đuổi theo đường thẳng, chưa có pathfinding.
+| 1 | Save/Publish place từ Studio | Lead |
+| 2 | Playtest tay: cảm giác điều khiển, combo, NPC hoảng loạn, revive 3 mức, Stain Bomb | Lead + QA |
+| 3 | Điền Id Gamepass/Developer Product (`MonetizationConfig`, `PotionConfig`). `[ContentCheck]` liệt kê các Id còn 0 | Lead |
+| 4 | Model pet đặt tên theo Id pet (`[ContentCheck]` liệt kê pet thiếu model) | Builder |
+| 5 | Thu nhỏ map Park/Mall theo DESIGN §0 | Builder |
+| 6 | Asset âm thanh: Combo, Milestone, PetReveal, PetPoop, NpcSqueal, LevelUp | Intern |
+| 7 | Texture splat chính thức thay id tạm `AssetConfig.Textures.Splat` | Art |
+| 8 | Test điện thoại/máy bảng và nhiều người | QA |
 
 ### Lỗi đã biết
 
-- `rbxassetid://203785492` báo sai loại asset khi Play. Không tìm thấy id này trong `src` hay trong các thuộc tính asset phổ biến của map và lobby, nên chưa xác định được nguồn. Không ảnh hưởng lối chơi trong các lần test.
-- `rbxasset://sounds/action_landing.mp3` báo lỗi đọc tạm trong Studio. Cần kiểm tra lại ngoài Studio, đây là âm `RunEnd`.
+- `rbxassetid://203785492` báo sai loại asset khi Play, chưa rõ nguồn (Tasko #28).
+- MeshPart do Rojo sync không có dữ liệu mesh. `CharacterMeshService` nạp lại mesh nhân vật khi server chạy; model khác chứa MeshPart nên để Studio quản lý.
+- Camera bị kéo sát khi poop áp tường (va chạm camera).
 
 ---
 
-## 2. Thay đổi ở đợt này
+## 2. Thay đổi ở đợt này (Phase 7)
 
 | Hạng mục | Kết quả |
 |---|---|
-| Config | Mọi file dùng dạng `return { Field = value }` |
-| Assets | `ReplicatedStorage.Assets` và `ServerStorage.Assets`, Rojo không xóa instance tạo tay |
-| Id dạng text | Animation và texture nằm ở `AssetConfig` |
-| Map | Mọi map trừ Lobby nằm ở `ServerStorage.Assets.Maps`, được clone cho từng phòng |
-| Phòng chơi | Tạo phòng, chọn số người, chỉ bạn bè, danh sách phòng, mời, sẵn sàng, đếm ngược, kick, đổi host |
-| Hitbox | Một capsule theo thân cho bắt, nhặt đồ và tầm nhìn NPC; chặn bắt xuyên tường; `Collider` hình cầu thay cho root 0.19 studs |
-| Scale nhân vật | Model có `GetScale()` = 0.093 ở kích thước thường. Mọi phép tính giờ dùng scale tương đối `Hitbox.Scale`, sửa lỗi Mega giữ nguyên kích thước to, hitbox co lại, tia dò và camera sai |
-| Thuật toán | Khóa ô vết bẩn dạng số, bỏ attribute được gửi qua mạng, NPC tách theo phòng, dọn tham chiếu khi hủy map, giảm cấp phát trong vòng lặp |
-| Giao diện | Scale và layout mới, Lifespan ở giữa trên, Score ở góc phải trên |
-| Nội dung | `ContentCheckService` cảnh báo thiếu asset khi Play trong Studio; `docs/CONTENT_GUIDE.md` cho team không lập trình |
+| Pet | Bỏ egg. Pet rơi mỗi lần bẩn 100% map, 1 ô mặc định (+3 gamepass), Evolve 5 con giống nhau, pet ỉa trong lượt chơi tạo Stinky Stack và gems |
+| Chỉ số hôi | `Stink` nhân toàn bộ coins cuối lượt, hiện ở lobby, HUD và kết quả |
+| Pet Index | Mỗi map một bộ sưu tập; đủ bộ nhận pet độc quyền + 100 gems |
+| Map | Park là map 1, Mall map 2, Kitchen/Hotel "Coming soon"; mở map sau khi map trước đạt 100% |
+| Bỏ | Egg shop, trail cosmetic, cửa sổ Stats |
+| Chơi | Nút PLAY một chạm cho từng map; "Play with friends" mở luồng phòng |
+| Cảm giác | Combo x1–x2, số điểm bay lên, banner 25/50/75/100%, rung camera, squash & stretch, vết splat xoay ngẫu nhiên, nhân vật quay theo hướng di chuyển, camera giãn theo kích thước |
+| NPC | Lăn vào NPC: hoảng loạn, "!", rơi 3 coin; đi tuần bằng pathfinding |
+| Kiếm tiền | Revive 3 mức (4/9/13 R$), potion bán Robux, Stain Bomb theo kích cỡ, Newbie Pack một lần |
+| Người mới | Hướng dẫn 5 bước, có Skip |
+| Lỗi lớn đã sửa | Nhân vật poop vô hình (mesh không load) |
 
 ---
 
