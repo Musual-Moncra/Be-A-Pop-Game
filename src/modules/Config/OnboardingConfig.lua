@@ -36,7 +36,7 @@
 		SkipGap: gap between the hint line and the skip button (design pixels)
 		ArrowText / ArrowTextSize / ArrowBoxSize / ArrowColor: bouncing pointer (text, design
 			pixels, RGB)
-		ArrowStrokeColor / ArrowStrokeThickness: pointer outline (RGB, design pixels)
+		ArrowStrokeColor: pointer outline (RGB)
 		ArrowOffsetY: pointer distance above the target centre (design pixels)
 		BounceHeight / BounceSpeed: pointer bounce (design pixels, cycles/second)
 		RingSize / RingWorldSize: pulse ring diameter for a GUI target / a prop (design pixels)
@@ -88,15 +88,15 @@ return {
 	PanelYInRun = 0.6,
 	PanelYResult = 0.9,
 	PanelWidth = 620,
-	PanelHeight = 78,
+	PanelHeight = 92,
 	PanelMargin = 16,
 	PanelRadius = 22,
-	PanelPadding = 14,
+	PanelPadding = 12,
 	PanelColor = Color3.fromRGB(30, 24, 20),
 	PanelTransparency = 0.08,
 	PanelStrokeColor = Color3.fromRGB(255, 214, 40),
 	PanelStrokeThickness = 3,
-	TextSize = 24,
+	TextSize = 22,
 	TextColor = Color3.fromRGB(255, 255, 255),
 	SkipWidth = 100,
 	SkipHeight = 48,
@@ -105,9 +105,9 @@ return {
 
 	ArrowText = "⬇",
 	ArrowTextSize = 54,
+	ArrowBoxSize = 84,
 	ArrowColor = Color3.fromRGB(255, 214, 40),
 	ArrowStrokeColor = Color3.fromRGB(48, 26, 10),
-	ArrowStrokeThickness = 3,
 	ArrowOffsetY = 70,
 	BounceHeight = 12,
 	BounceSpeed = 1.6,

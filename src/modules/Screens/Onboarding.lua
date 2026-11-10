@@ -191,6 +191,7 @@ return function(props: any)
 				center, size = uiTargetPoint(target, ui)
 			elseif worldPosition ~= nil then
 				center = worldTargetPoint(worldPosition, ui)
+				size = Vector2.new(OnboardingConfig.RingWorldSize, OnboardingConfig.RingWorldSize)
 			end
 
 			if center == nil then
