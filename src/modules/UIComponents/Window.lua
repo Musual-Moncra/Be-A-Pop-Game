@@ -25,11 +25,13 @@ local Components = ReplicatedStorage.Modules.UIComponents
 local ChunkyButton = require(Components.ChunkyButton)
 local Primitives = require(Components.Primitives)
 local Sparkle = require(Components.Sparkle)
+local Twinkle = require(Components.Twinkle)
 
 local e = React.createElement
 local Animation = UIConfig.Animation
 local Palette = UIConfig.Palette
 local Shape = UIConfig.Shape
+local Sparkles = UIConfig.Sparkle
 local Sizes = UIConfig.Sizes.Window
 local TextSizes = UIConfig.TextSizes
 
@@ -159,6 +161,8 @@ local function Window(props: any)
 				icon = props.icon,
 				iconSize = TextSizes.Header,
 				position = UDim2.fromScale(0.5, 0),
+				shine = true,
+				shineInterval = 5,
 				size = UDim2.new(Sizes.HeaderWidth, 0, 0, headerHeight),
 				stacked = false,
 				swatch = props.swatch,
@@ -166,6 +170,22 @@ local function Window(props: any)
 				textSize = TextSizes.Title,
 				zIndex = 4,
 			}),
+			HeaderTwinkle = if props.twinkle ~= false
+				then e("Frame", {
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					BackgroundTransparency = 1,
+					Position = UDim2.fromScale(0.5, 0),
+					Size = UDim2.new(Sizes.HeaderWidth, 0, 0, headerHeight),
+					ZIndex = 5,
+				}, {
+					Twinkle = e(Twinkle, {
+						clip = true,
+						color = Sparkles.TwinkleWhite,
+						rate = Sparkles.HeaderTwinkleRate,
+						zIndex = 6,
+					}),
+				})
+				else nil,
 			Sparkles = e("Folder", nil, sparkles),
 			Close = if props.onClose ~= nil
 				then e(ChunkyButton, {
