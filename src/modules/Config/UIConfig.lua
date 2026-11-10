@@ -97,6 +97,7 @@
 		Hud.PlusSize / PlusGap: green plus button size and its gap from the pill edge
 		Hud.StinkSwatch: Stink pill colour (UIConfig.Swatches key)
 		Hud.Gap: gap between top-bar items
+		Hud.Mobile*: same fields scale for the phone top bar (sizes design pixels)
 		Window.HeaderHeight: height of the ribbon title
 		Window.CloseSize: red close button size
 		Window.Padding: space between the window edge and its content
@@ -238,7 +239,8 @@
 		ResultSoiled: soiled objects badge (format: count)
 		ResultPlus: reward amount (format: amount)
 		ResultStinkFormat: score and Stink line on the result window; the coin row below it is the server total (format: score, multiplier)
-		StinkIcon / StinkPillFormat: Stink pill icon and text (format: multiplier with two decimals)
+		StinkIcon / StinkPillFormat / StinkChipFormat: Stink pill icon and full / short text
+			(format: multiplier with two decimals)
 		PlusIcon: text on the small green plus button beside coins/gems (text)
 		Continue: result window button
 		PowerupPickedFormat: popup when food is eaten (format: food name)
@@ -522,6 +524,17 @@ return {
 			PlusGap = 6,
 			StinkSwatch = "Brown",
 			Gap = 12,
+			MobileBadgeSize = 52,
+			MobileRingSize = 60,
+			MobileRingThickness = 5,
+			MobilePillWidth = 170,
+			MobilePillHeight = 44,
+			MobilePillIconSize = 54,
+			MobileStinkWidth = 120,
+			MobileStinkHeight = 38,
+			MobileStinkIconSize = 44,
+			MobilePlusSize = 32,
+			MobileGap = 8,
 		},
 		Window = {
 			HeaderHeight = 64,
@@ -804,6 +817,7 @@ return {
 		ResultStinkFormat = "Score %s × Stink x%s",
 		StinkIcon = "💩",
 		StinkPillFormat = "x%.2f Stink",
+		StinkChipFormat = "x%.2f",
 		PlusIcon = "+",
 		Continue = "CONTINUE",
 

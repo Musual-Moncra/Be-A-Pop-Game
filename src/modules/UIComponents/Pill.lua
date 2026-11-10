@@ -5,9 +5,9 @@
 	Glossy stat pill: light candy panel with an Ink rim, a big round icon overlapping its left
 	edge, the value on the right and an optional green plus button for opening a shop.
 
-	Props: icon (emoji), value (text), swatch (UIConfig.Swatches key for the icon),
-	       width, height, iconSize, textSize, position, anchorPoint, layoutOrder,
-	       onPlus (optional callback, draws the plus), plusSize (design pixels)
+	Props: icon (emoji), value (text) or valueElement (custom number element), swatch
+	       (UIConfig.Swatches key for the icon), width, height, iconSize, textSize, position,
+	       anchorPoint, layoutOrder, onPlus (optional callback, draws the plus), plusSize (design pixels)
 	Dependencies: React, UIConfig, Primitives, ChunkyButton
 ]]
 
@@ -68,11 +68,17 @@ return function(props: any)
 				PaddingLeft = UDim.new(0, iconInset + Shape.Radius / 2),
 				PaddingRight = UDim.new(0, rightInset),
 			}),
-			Value = Primitives.text({
-				Text = props.value,
-				TextSize = props.textSize or UIConfig.TextSizes.Header,
-				ZIndex = 3,
-			}),
+			Value = if props.valueElement ~= nil
+				then e("Frame", {
+					BackgroundTransparency = 1,
+					Size = UDim2.fromScale(1, 1),
+					ZIndex = 3,
+				}, { Value = props.valueElement })
+				else Primitives.text({
+					Text = props.value,
+					TextSize = props.textSize or UIConfig.TextSizes.Header,
+					ZIndex = 3,
+				}),
 		}),
 		Icon = e(ChunkyButton, {
 			anchorPoint = Vector2.new(0, 0.5),

@@ -2,11 +2,12 @@
 
 --[[
 	Wallet
-	Top-left HUD shown in the lobby and during runs: gold level badge with an XP bar, then
-	full-width coin, gem and Stink pills.
+	Centred lobby top bar: a level badge with a radial XP ring, glossy coin and gem pills with
+	a green plus that opens the shop, and the Stink chip. Hidden during runs by App.
 
 	Props: data (DataController state), ui (useUIScale result)
-	Dependencies: React, UIConfig, GameConfig, ConfigLookup, PetView, Primitives, ChunkyButton, Bar, Pill, Format
+	Dependencies: React, UIConfig, GameConfig, ConfigLookup, LobbyState, PetView, Primitives,
+		ChunkyButton, CountUp, Pill
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -14,111 +15,145 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local React = require(ReplicatedStorage.Packages.React)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
+local LobbyState = require(ReplicatedStorage.Modules.UIs.LobbyState)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
 local Components = ReplicatedStorage.Modules.UIComponents
-local Bar = require(Components.Bar)
 local ChunkyButton = require(Components.ChunkyButton)
-local Format = require(Components.Format)
+local CountUp = require(Components.CountUp)
 local Pill = require(Components.Pill)
 local Primitives = require(Components.Primitives)
 
 local e = React.createElement
-local Sizes = UIConfig.Sizes.Hud
+local Hud = UIConfig.Sizes.Hud
+local Palette = UIConfig.Palette
+local Shape = UIConfig.Shape
 local Text = UIConfig.Text
 local TextSizes = UIConfig.TextSizes
+local Routes = LobbyState.Routes
+
+local TAU = math.pi * 2
+
+local function LevelBadge(props: any)
+	local ratio = math.clamp(props.ratio, 0, 1)
+	local ringSize = props.ringSize
+	local thickness = props.thickness
+	local radius = ringSize / 2 - thickness / 2
+	local segments = Hud.XpRingSegments
+	local fill = Primitives.swatch("Green")
+	local children: { [string]: any } = {}
+	for index = 1, segments do
+		local angle = (index - 1) / segments * TAU
+		local filled = (index - 1) / segments < ratio
+		children["Segment" .. index] = e("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundColor3 = if filled then fill.Mid else Palette.Inset,
+			BorderSizePixel = 0,
+			Position = UDim2.new(0.5, math.cos(angle) * radius, 0.5, math.sin(angle) * radius),
+			Rotation = math.deg(angle) + 90,
+			Size = UDim2.fromOffset(thickness, thickness * 1.5),
+			ZIndex = 1,
+		}, { Corner = Primitives.corner("Round") })
+	end
+	children.Badge = e(ChunkyButton, {
+		anchorPoint = Vector2.new(0.5, 0.5),
+		position = UDim2.fromScale(0.5, 0.5),
+		round = true,
+		size = UDim2.fromOffset(props.badgeSize, props.badgeSize),
+		swatch = "Gold",
+		zIndex = 2,
+	}, {
+		Star = Primitives.text({
+			Stroke = false,
+			Text = Text.XpIcon,
+			TextSize = props.badgeSize * Shape.IconFill,
+			Transparency = Shape.BadgeStarTransparency,
+		}),
+		Number = Primitives.text({
+			Text = tostring(props.level),
+			TextSize = TextSizes.Header,
+			ZIndex = 2,
+		}),
+	})
+	return e("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(ringSize, ringSize),
+	}, children)
+end
 
 return function(props: any)
 	local data = props.data
-	local layout = UIConfig.Layouts[if props.ui.mobile then "Mobile" else "PC"].Wallet
+	local mobile = props.ui.mobile
+	local layout = UIConfig.Layouts[if mobile then "Mobile" else "PC"].Wallet
 
 	local maxed = data.Level >= GameConfig.MaxLevel
 	local needed = ConfigLookup.GetLevelXp(data.Level)
 	local ratio = if maxed then 1 else data.Xp / math.max(needed, 1)
-	local xpText = if maxed
-		then Text.MaxLevel
-		else string.format(Text.XpFormat, Format.compact(data.Xp), Format.compact(needed))
 
-	local badge = Sizes.BadgeSize
-	local stinkText = string.format(Text.StinkPillFormat, PetView.TotalStink(data))
+	local badgeSize = if mobile then Hud.MobileBadgeSize else Hud.BadgeSize
+	local ringSize = if mobile then Hud.MobileRingSize else Hud.XpRingSize
+	local ringThickness = if mobile then Hud.MobileRingThickness else Hud.XpRingThickness
+	local pillWidth = if mobile then Hud.MobilePillWidth else Hud.PillWidth
+	local pillHeight = if mobile then Hud.MobilePillHeight else Hud.PillHeight
+	local pillIcon = if mobile then Hud.MobilePillIconSize else Hud.PillIconSize
+	local stinkWidth = if mobile then Hud.MobileStinkWidth else Hud.StinkWidth
+	local stinkHeight = if mobile then Hud.MobileStinkHeight else Hud.StinkHeight
+	local stinkIcon = if mobile then Hud.MobileStinkIconSize else Hud.StinkIconSize
+	local plusSize = if mobile then Hud.MobilePlusSize else Hud.PlusSize
+	local gap = if mobile then Hud.MobileGap else Hud.Gap
+
+	local function openShop()
+		LobbyState.SetActive(Routes.Shop)
+	end
+
+	local function coinPill(icon: string, swatch: string, value: number)
+		return e(Pill, {
+			height = pillHeight,
+			icon = icon,
+			iconSize = pillIcon,
+			onPlus = openShop,
+			plusSize = plusSize,
+			swatch = swatch,
+			valueElement = e(CountUp, {
+				compact = true,
+				color = Palette.Text,
+				size = UDim2.fromScale(1, 1),
+				textSize = TextSizes.Header,
+				value = value,
+			}),
+			width = pillWidth,
+		})
+	end
+
 	return e("Frame", {
 		AnchorPoint = layout.AnchorPoint,
-		AutomaticSize = Enum.AutomaticSize.Y,
+		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundTransparency = 1,
 		Position = layout.Position,
-		Size = UDim2.fromOffset(Sizes.Width, 0),
 	}, {
-		Layout = Primitives.list(Enum.FillDirection.Vertical, Sizes.Gap),
-		Level = e("Frame", {
-			BackgroundTransparency = 1,
-			LayoutOrder = 1,
-			Size = UDim2.new(1, 0, 0, badge),
-		}, {
-			XpBar = e(Bar, {
-				anchorPoint = Vector2.new(0, 0.5),
-				position = UDim2.new(0, badge * Sizes.XpBarLeftRatio, 0.5, badge / Sizes.XpBarDropDivisor),
-				ratio = ratio,
-				size = UDim2.new(1, -badge * Sizes.XpBarLeftRatio, 0, Sizes.XpBarHeight),
-				swatch = "Green",
-				text = xpText,
-			}),
-			LevelCaption = Primitives.text({
-				Position = UDim2.fromOffset(badge + UIConfig.Shape.Radius * Sizes.CaptionInsetRatio, 0),
-				Size = UDim2.new(
-					1,
-					-badge,
-					0,
-					badge * Sizes.CaptionHeightRatio - Sizes.XpBarHeight / Sizes.CaptionHeightDivisor
-				),
-				Text = string.format(Text.LevelFormat, data.Level),
-				TextSize = TextSizes.Large,
-				XAlign = Enum.TextXAlignment.Left,
-			}),
-			Badge = e(ChunkyButton, {
-				round = true,
-				size = UDim2.fromOffset(badge, badge),
-				swatch = "Gold",
-				zIndex = 2,
-			}, {
-				Star = Primitives.text({
-					Stroke = false,
-					Text = Text.XpIcon,
-					TextSize = badge * UIConfig.Shape.IconFill,
-					Transparency = UIConfig.Shape.BadgeStarTransparency,
-				}),
-				Number = Primitives.text({
-					Text = tostring(data.Level),
-					ZIndex = 2,
-					TextSize = TextSizes.Header,
-				}),
-			}),
+		Layout = Primitives.list(
+			Enum.FillDirection.Horizontal,
+			gap,
+			Enum.HorizontalAlignment.Center,
+			Enum.VerticalAlignment.Center
+		),
+		Level = LevelBadge({
+			badgeSize = badgeSize,
+			level = data.Level,
+			ratio = ratio,
+			ringSize = ringSize,
+			thickness = ringThickness,
 		}),
-		Coins = e(Pill, {
-			height = Sizes.PillHeight,
-			icon = Text.CoinIcon,
-			iconSize = Sizes.PillIconSize,
-			layoutOrder = 2,
-			swatch = "Gold",
-			value = Format.compact(data.Coins),
-			width = Sizes.Width,
-		}),
-		Gems = e(Pill, {
-			height = Sizes.PillHeight,
-			icon = Text.GemIcon,
-			iconSize = Sizes.PillIconSize,
-			layoutOrder = 3,
-			swatch = "Purple",
-			value = Format.compact(data.Gems),
-			width = Sizes.Width,
-		}),
+		Coins = coinPill(Text.CoinIcon, "Gold", data.Coins),
+		Gems = coinPill(Text.GemIcon, "Purple", data.Gems),
 		Stink = e(Pill, {
-			height = Sizes.PillHeight,
+			height = stinkHeight,
 			icon = Text.StinkIcon,
-			iconSize = Sizes.PillIconSize,
-			layoutOrder = 4,
-			swatch = Sizes.StinkSwatch,
-			value = stinkText,
-			width = Sizes.Width,
+			iconSize = stinkIcon,
+			swatch = Hud.StinkSwatch,
+			textSize = TextSizes.Header,
+			value = string.format(Text.StinkChipFormat, PetView.TotalStink(data)),
+			width = stinkWidth,
 		}),
 	})
 end
