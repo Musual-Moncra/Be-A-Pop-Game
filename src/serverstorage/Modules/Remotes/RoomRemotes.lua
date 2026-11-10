@@ -2,8 +2,8 @@
 
 --[[
 	RoomRemotes
-	Inbound room remotes: create, update, join, leave, ready, start, kick, invite and the
-	room-browser watch switch. Every handler goes through RemoteGuard; RoomService does all
+	Inbound room remotes: quick play, create, update, join, leave, ready, start, kick, invite
+	and the room-browser watch switch. Every handler goes through RemoteGuard; RoomService does all
 	validation. Started by runFramework at Priority 5, after every service has loaded.
 
 	Dependencies: RemoteGuard, RoomService, Net
@@ -17,6 +17,10 @@ local RoomService = require(ServerStorage.Modules.Services.RoomService)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 
 return function()
+	RemoteGuard.Bind(Net.QuickPlay, "QuickPlay", { "string" }, function(plr, mapId)
+		RoomService.QuickPlay(plr, mapId)
+	end)
+
 	RemoteGuard.Bind(
 		Net.CreateRoom,
 		"CreateRoom",

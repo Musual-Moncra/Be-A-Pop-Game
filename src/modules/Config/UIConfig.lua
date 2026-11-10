@@ -106,6 +106,9 @@
 		Play.ModeIconSize: emoji size above the mode name on a mode tile
 		Play.ChipHeight: height of info chips (size, rewards, rules)
 		Play.PlayButtonHeight: height of the PLAY and CONTINUE buttons
+		Play.QuickCardHeight / QuickIconSize: quick-play map card height and icon diameter (design pixels)
+		Play.QuickButtonHeight / QuickPlayWidth / QuickFriendsWidth: quick-play card button row height
+			and the widths of PLAY / PLAY WITH FRIENDS (design pixels)
 		Play.ActionButtonWidth / ActionButtonHeight: size of the UNLOCK price button; map card chips match its face height
 		Play.DescriptionLines: wrapped description lines a map or mode block makes room for (count)
 		Play.ModeColumns: mode tiles per row (count)
@@ -187,7 +190,8 @@
 		RewardTarget: target bonus line (format: coins, gems)
 		RewardLines: how two reward lines are joined (format: line, line)
 		PlayButton / PlayLocked: PLAY button text when playable / locked
-		CreateTab / BrowseTab / RoomTab: play window view tabs
+		PlayTab / CreateTab / BrowseTab / RoomTab: play window view tabs
+		QuickPlay / PlayWithFriends: quick-play card buttons (text)
 		PlayersHeader: room-size section title
 		FriendsOnly: friends-only switch label
 		CreateRoom / EditSettings / SaveSettings / BackSettings: room form buttons
@@ -436,6 +440,11 @@ return {
 			ModeIconSize = 42,
 			ChipHeight = 34,
 			PlayButtonHeight = 92,
+			QuickCardHeight = 210,
+			QuickIconSize = 84,
+			QuickButtonHeight = 56,
+			QuickPlayWidth = 170,
+			QuickFriendsWidth = 300,
 			ActionButtonWidth = 130,
 			ActionButtonHeight = 44,
 			DescriptionLines = 2,
@@ -615,8 +624,11 @@ return {
 		PlayButton = "PLAY!",
 		PlayLocked = "LOCKED",
 
+		PlayTab = "PLAY",
 		CreateTab = "CREATE",
 		BrowseTab = "BROWSE",
+		QuickPlay = "PLAY",
+		PlayWithFriends = "PLAY WITH FRIENDS",
 		RoomTab = "ROOM",
 		PlayersHeader = "ROOM SIZE",
 		FriendsOnly = "FRIENDS ONLY",

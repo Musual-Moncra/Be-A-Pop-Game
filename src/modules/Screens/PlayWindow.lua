@@ -2,7 +2,10 @@
 
 --[[
 	PlayWindow
-	The play window, with three views driven by RoomController:
+	The play window, with four views driven by RoomController:
+		Play: one card per map; an owned map has a big PLAY button (Net.QuickPlay, one-tap solo
+			run) and PLAY WITH FRIENDS, which opens the Create view for that map. ComingSoon
+			maps are greyed and locked maps show their unlock state.
 		Create: map cards (ComingSoon greyed, previous map must be 100% when
 			RequirePreviousComplete), mode tiles, room-size selector and friends-only switch;
 			the footer button sends Net.CreateRoom. Map unlock buttons keep firing Net.UnlockMap.
@@ -50,6 +53,7 @@ local Text = UIConfig.Text
 local TextSizes = UIConfig.TextSizes
 
 local Views = {
+	Play = "Play",
 	Create = "Create",
 	Browse = "Browse",
 	Room = "Room",
@@ -164,6 +168,103 @@ local function MapCard(props: any)
 
 	local infoLeft = Sizes.MapIconSize + Gap
 	local descriptionHeight = math.ceil(TextSizes.Small * Sizes.DescriptionLines * Shape.LineHeight)
+
+	if props.quick then
+		local quickInfoLeft = Sizes.QuickIconSize + Gap
+		local quickAction
+		if status == "Owned" then
+			quickAction = e("Frame", {
+				AnchorPoint = Vector2.new(0, 1),
+				BackgroundTransparency = 1,
+				Position = UDim2.new(0, 1, 1, -Shape.Lip),
+				Size = UDim2.new(1, 0, 0, Sizes.QuickButtonHeight),
+			}, {
+				Layout = Primitives.list(
+					Enum.FillDirection.Horizontal,
+					Gap / 2,
+					Enum.HorizontalAlignment.Left,
+					Enum.VerticalAlignment.Center
+				),
+				Play = e(ChunkyButton, {
+					layoutOrder = 1,
+					name = "OnboardingPlayButton",
+					onActivated = function()
+						props.onQuickPlay(map.Id)
+					end,
+					size = UDim2.fromOffset(Sizes.QuickPlayWidth, Sizes.QuickButtonHeight),
+					swatch = "Green",
+					text = Text.QuickPlay,
+					textSize = TextSizes.Title,
+				}),
+				Friends = e(ChunkyButton, {
+					layoutOrder = 2,
+					onActivated = function()
+						props.onFriends(map.Id)
+					end,
+					size = UDim2.fromOffset(Sizes.QuickFriendsWidth, Sizes.QuickButtonHeight),
+					swatch = "Blue",
+					text = Text.PlayWithFriends,
+					textSize = TextSizes.Body,
+				}),
+			})
+		else
+			quickAction = e("Frame", {
+				AnchorPoint = Vector2.new(1, 1),
+				AutomaticSize = Enum.AutomaticSize.X,
+				BackgroundTransparency = 1,
+				Position = UDim2.fromScale(1, 1),
+				Size = UDim2.fromOffset(0, Sizes.ActionButtonHeight),
+			}, {
+				Layout = Primitives.list(
+					Enum.FillDirection.Horizontal,
+					0,
+					Enum.HorizontalAlignment.Right,
+					Enum.VerticalAlignment.Top
+				),
+				Content = action,
+			})
+		end
+
+		return e(ChunkyButton, {
+			layoutOrder = map.Order,
+			size = UDim2.new(1, -Shape.RimStroke * 2, 0, Sizes.QuickCardHeight),
+			swatch = if status == "Soon" then "Grey" else visual.Swatch,
+		}, {
+			Padding = Primitives.paddingXY(Gap, Gap / 2),
+			Icon = e(Inset, {
+				radius = "Round",
+				size = UDim2.fromOffset(Sizes.QuickIconSize, Sizes.QuickIconSize),
+			}, {
+				Emoji = Primitives.text({
+					Stroke = false,
+					Text = if status == "Soon" or (locked and status ~= "Buyable") then Text.LockIcon else visual.Icon,
+					TextSize = Sizes.QuickIconSize * Shape.IconFill,
+				}),
+			}),
+			Name = Primitives.text({
+				Fit = true,
+				Position = UDim2.fromOffset(quickInfoLeft, 0),
+				Size = UDim2.new(1, -quickInfoLeft, 0, TextSizes.Header),
+				Text = map.DisplayName,
+				TextSize = TextSizes.Header,
+				XAlign = Enum.TextXAlignment.Left,
+			}),
+			Description = Primitives.text({
+				Color = if reason ~= nil then Palette.Sparkle else Palette.Text,
+				Fit = true,
+				Font = "Body",
+				Position = UDim2.fromOffset(quickInfoLeft, TextSizes.Header + Shape.Stroke),
+				Size = UDim2.new(1, -quickInfoLeft, 0, descriptionHeight),
+				StrokeSize = Shape.SmallTextStroke,
+				Text = if reason ~= nil then string.format(Text.IconLabel, Text.LockIcon, reason) else map.Description,
+				TextSize = TextSizes.Small,
+				Wrapped = true,
+				XAlign = Enum.TextXAlignment.Left,
+				YAlign = Enum.TextYAlignment.Top,
+			}),
+			Action = quickAction,
+		})
+	end
 
 	return e(ChunkyButton, {
 		layoutOrder = map.Order,
@@ -308,7 +409,14 @@ local function modeChips(mode: any)
 	return elements
 end
 
-local function mapList(data: any, selectedMapId: string, onSelect: (string) -> ())
+local function mapList(
+	data: any,
+	selectedMapId: string,
+	onSelect: (string) -> (),
+	quick: boolean?,
+	onQuickPlay: ((string) -> ())?,
+	onFriends: ((string) -> ())?
+)
 	local children: { [string]: any } = {
 		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap, Enum.HorizontalAlignment.Center),
 		Padding = Primitives.paddingXY(Shape.RimStroke, Shape.RimStroke * 2),
@@ -317,7 +425,10 @@ local function mapList(data: any, selectedMapId: string, onSelect: (string) -> (
 		children[entry.Id] = e(MapCard, {
 			data = data,
 			map = entry,
+			onFriends = onFriends,
+			onQuickPlay = onQuickPlay,
 			onSelect = onSelect,
+			quick = quick,
 			selected = entry.Id == selectedMapId,
 		})
 	end
@@ -350,6 +461,7 @@ local function viewTabs(selected: string, onSelect: (string) -> ())
 		onSelect = onSelect,
 		selected = selected,
 		tabs = {
+			{ Id = Views.Play, Label = Text.PlayTab, Swatch = "Green" },
 			{ Id = Views.Create, Label = Text.CreateTab, Swatch = "Orange" },
 			{ Id = Views.Browse, Label = Text.BrowseTab, Swatch = "Blue" },
 		},
@@ -1158,6 +1270,30 @@ local function RoomView(props: any)
 	}, content)
 end
 
+local function PlayView(props: any)
+	local width, height = WindowSize.fit(props.ui, Sizes.Width, Sizes.Height)
+	local list = mapList(props.data, "", function() end, true, props.onQuickPlay, props.onFriends)
+	local listWidth = math.min(Sizes.MapColumnWidth, width)
+	local top = LobbyUIConfig.Tabs.Height + Gap
+	return e(Window, {
+		height = height,
+		onClose = props.onClose,
+		swatch = "Orange",
+		title = Text.PlayTitle,
+		width = width,
+	}, {
+		Tabs = viewTabs(Views.Play, props.onSelectView),
+		List = e(Inset, {
+			anchorPoint = Vector2.new(0.5, 0),
+			clip = true,
+			position = UDim2.new(0.5, 0, 0, top),
+			size = UDim2.new(0, listWidth, 1, -top),
+		}, {
+			Scroll = Primitives.scroll({}, list),
+		}),
+	})
+end
+
 return function(props: any)
 	local roomState, setRoomState = React.useState(RoomController.Get())
 	React.useEffect(function()
@@ -1168,12 +1304,18 @@ return function(props: any)
 	end, {})
 
 	local room = roomState.Room
-	local view, setView = React.useState(if room ~= nil then Views.Room else Views.Create)
+	local friendsMapId, setFriendsMapId = React.useState(nil :: string?)
+	local view, setView = React.useState(if room ~= nil then Views.Room else Views.Play)
 
 	React.useEffect(function()
 		if room ~= nil then
 			setView(function(current)
-				if current == Views.Create or current == Views.Browse or current == Views.Settings then
+				if
+					current == Views.Play
+					or current == Views.Create
+					or current == Views.Browse
+					or current == Views.Settings
+				then
 					return Views.Room
 				end
 				return current
@@ -1242,8 +1384,25 @@ return function(props: any)
 		})
 	end
 
+	if view == Views.Play then
+		return e(PlayView, {
+			data = props.data,
+			onClose = props.onClose,
+			onFriends = function(mapId: string)
+				setFriendsMapId(mapId)
+				setView(Views.Create)
+			end,
+			onQuickPlay = function(mapId: string)
+				Net.QuickPlay:Fire(mapId)
+			end,
+			onSelectView = setView,
+			ui = props.ui,
+		})
+	end
+
 	return e(CreateView, {
 		data = props.data,
+		initialMapId = friendsMapId,
 		key = "create",
 		onClose = props.onClose,
 		onSelectView = setView,
