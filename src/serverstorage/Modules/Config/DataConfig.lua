@@ -15,6 +15,7 @@
 			Gems: starting gems (gems)
 			Level: starting level (level)
 			Xp: starting experience inside the current level (xp)
+			Tutorial: current first-run tutorial step, 1..6 where 6 = finished (step)
 			Upgrades: starting level of every upgrade (level)
 				Lifespan: lifespan upgrade starting level
 				Speed: speed upgrade starting level
@@ -64,6 +65,7 @@ return {
 		Gems = 0,
 		Level = 1,
 		Xp = 0,
+		Tutorial = 1,
 		Upgrades = {
 			Lifespan = 0,
 			Speed = 0,

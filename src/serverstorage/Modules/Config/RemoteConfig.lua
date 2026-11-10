@@ -27,6 +27,7 @@
 			UnequipPet: unequipping one owned pet
 			DeletePet: deleting one owned pet
 			MergePet: merging five identical pets
+			TutorialStep: advancing or skipping the first-run tutorial
 		DefaultRateLimit: limit used for a remote missing from RateLimits (seconds)
 		MaxStringLength: longest string argument a client may send on any remote (characters)
 ]]
@@ -53,6 +54,7 @@ return {
 		UnequipPet = 0.1,
 		DeletePet = 0.2,
 		MergePet = 0.5,
+		TutorialStep = 0.5,
 	},
 
 	DefaultRateLimit = 0.2,
