@@ -517,6 +517,7 @@ local MapConfig = robloxRequire(RepConfig.MapConfig)
 local MessageConfig = robloxRequire(RepConfig.MessageConfig)
 local ModeConfig = robloxRequire(RepConfig.ModeConfig)
 local MonetizationConfig = robloxRequire(RepConfig.MonetizationConfig)
+local NpcConfig = robloxRequire(RepConfig.NpcConfig)
 local ObjectConfig = robloxRequire(RepConfig.ObjectConfig)
 local PetConfig = robloxRequire(RepConfig.PetConfig)
 local PotionConfig = robloxRequire(RepConfig.PotionConfig)
@@ -526,6 +527,7 @@ local RebirthConfig = robloxRequire(RepConfig.RebirthConfig)
 local RoomConfig = robloxRequire(RepConfig.RoomConfig)
 local RunConfig = robloxRequire(RepConfig.RunConfig)
 local RunUIConfig = robloxRequire(RepConfig.RunUIConfig)
+local SoundConfig = robloxRequire(RepConfig.SoundConfig)
 local LobbyUIConfig = robloxRequire(RepConfig.LobbyUIConfig)
 local UIConfig = robloxRequire(RepConfig.UIConfig)
 local UpgradeConfig = robloxRequire(RepConfig.UpgradeConfig)
@@ -686,6 +688,78 @@ runTest("ConfigLookup_GetPreviousMap_Chain", function()
 	end
 
 	expect(ConfigLookup.GetPreviousMap("UnknownMapId") == nil, "Unknown map id must return nil")
+end)
+
+runTest("ConfigLookup_GetPanicCoinOffset", function()
+	local count = NpcConfig.PanicCoinCount
+	expect(count > 0, "Panic must drop at least one coin")
+	local seen: { [string]: boolean } = {}
+	for index = 1, count do
+		local offset = ConfigLookup.GetPanicCoinOffset(index, count)
+		expectNear(offset.Y, NpcConfig.PanicCoinHeight, 1e-9, "Coin offset must sit at PanicCoinHeight")
+		local radius = math.sqrt(offset.X * offset.X + offset.Z * offset.Z)
+		expectNear(radius, NpcConfig.PanicCoinSpread, 1e-9, "Coin offset must sit at PanicCoinSpread")
+		local key = string.format("%.4f/%.4f", offset.X, offset.Z)
+		expect(seen[key] == nil, "Coin offsets must be distinct: " .. key)
+		seen[key] = true
+	end
+	local first = ConfigLookup.GetPanicCoinOffset(1, count)
+	local clamped = ConfigLookup.GetPanicCoinOffset(0, count)
+	expectNear(clamped.X, first.X, 1e-9, "Index below 1 clamps to the first offset")
+	expectNear(clamped.Z, first.Z, 1e-9, "Index below 1 clamps to the first offset")
+end)
+
+runTest("ConfigLookup_GetNpcSoilContactRadius", function()
+	expect(NpcConfig.SoilContactRadius > 0, "SoilContactRadius must be positive")
+	expectNear(
+		ConfigLookup.GetNpcSoilContactRadius(1),
+		NpcConfig.SoilContactRadius,
+		1e-9,
+		"Normal hitbox uses SoilContactRadius"
+	)
+	expectNear(
+		ConfigLookup.GetNpcSoilContactRadius(2),
+		NpcConfig.SoilContactRadius * 2,
+		1e-9,
+		"Contact reach scales with the hitbox"
+	)
+	expectNear(ConfigLookup.GetNpcSoilContactRadius(0), 0, 1e-9, "Zero hitbox has zero contact reach")
+	expectNear(ConfigLookup.GetNpcSoilContactRadius(-1), 0, 1e-9, "Negative hitbox clamps to zero")
+end)
+
+runTest("ConfigIntegrity_NpcPanic_And_Sound", function()
+	expect(NpcConfig.PanicSpeed > 0, "PanicSpeed must be positive")
+	expect(NpcConfig.PanicSeconds > 0, "PanicSeconds must be positive")
+	expect(NpcConfig.PanicRadius > 0, "PanicRadius must be positive")
+	expect(NpcConfig.SoilContactRadius > 0, "SoilContactRadius must be positive")
+	expect(
+		NpcConfig.SoilCheckRadius >= NpcConfig.SoilContactRadius * PowerupConfig.MaxCharacterScale,
+		"SoilCheckRadius must cover the biggest hitbox"
+	)
+	expect(NpcConfig.PanicSoilBonus > 0, "PanicSoilBonus must be positive")
+	expect(NpcConfig.PanicCoinCount == 3, "A soiled NPC must drop 3 PanicCoins")
+	expect(NpcConfig.PanicCoinPoints > 0, "PanicCoinPoints must be positive")
+	expect(NpcConfig.PanicCoinLifetime > 0, "PanicCoinLifetime must be positive")
+	expect(NpcConfig.PanicCoinPickupRadius > 0, "PanicCoinPickupRadius must be positive")
+	expect(NpcConfig.PanicCoinSize > 0, "PanicCoinSize must be positive")
+	expect(NpcConfig.PanicCoinHeight > 0, "PanicCoinHeight must be positive")
+	expect(NpcConfig.PanicCoinSpread > 0, "PanicCoinSpread must be positive")
+	expect(#NpcConfig.PanicCoinFolderName > 0, "PanicCoinFolderName must not be empty")
+	expect(NpcConfig.PanicBillboardText == "!", "Panic billboard text must be !")
+	expect(NpcConfig.PanicBillboardWidth > 0 and NpcConfig.PanicBillboardHeight > 0, "Billboard size must be positive")
+	expect(NpcConfig.PanicBillboardOffset > 0, "Billboard offset must be positive")
+	expect(
+		NpcConfig.PathsPerSecond >= 1 and math.floor(NpcConfig.PathsPerSecond) == NpcConfig.PathsPerSecond,
+		"PathsPerSecond must be a positive whole number"
+	)
+	expect(NpcConfig.PathAgentRadius > 0, "PathAgentRadius must be positive")
+	expect(NpcConfig.PathAgentHeight > 0, "PathAgentHeight must be positive")
+	expect(NpcConfig.PathWaypointRadius > 0, "PathWaypointRadius must be positive")
+
+	local squeal = SoundConfig.Sfx[NpcConfig.PanicSoundKey]
+	expect(squeal ~= nil, "PanicSoundKey must exist in SoundConfig.Sfx")
+	expect(type(squeal.Asset) == "string", "NpcSqueal Asset must be a string")
+	expect(squeal.Volume > 0 and squeal.PitchMax >= squeal.PitchMin, "NpcSqueal volume and pitch range must be valid")
 end)
 
 runTest("ConfigLookup_RollPet_MapPools", function()

@@ -18,6 +18,7 @@
 		RunEvents.StainBomb(plr)                    soil every prop near the player
 		RunEvents.TargetSoiled(plr, mapId, objectType)   a target's hidden stain meter reached 100%
 		RunEvents.MiniBombDetonated(plr, originPosition, radius)
+		RunEvents.ScoreBonus(plr, points, source)   extra run score from a pickup or an NPC
 
 	Dependencies: Signal
 ]]
@@ -40,5 +41,6 @@ RunEvents.StainBomb = Signal.new()
 RunEvents.TargetSoiled = Signal.new()
 RunEvents.MiniBombDetonated = Signal.new()
 RunEvents.GoldenSoiled = Signal.new()
+RunEvents.ScoreBonus = Signal.new()
 
 return RunEvents
