@@ -15,9 +15,11 @@
 			ComboWidth / ComboHeight: label box size (design pixels)
 			ComboPunchScale: size the meter jumps to on a level up (multiplier)
 			ComboPunchTime: time of the level-up punch (seconds)
-			ComboTiltDegrees: resting rotation of the label (degrees)
-			ComboWobbleDegrees / ComboWobbleSpeed: gentle rotation wobble while active (degrees, cycles/second)
-			ComboShakeDegrees / ComboShakeSpeed: stronger rotation shake at max combo (degrees, cycles/second)
+			ComboTiltDegrees: resting tilt of the whole meter, max 3 degrees (degrees)
+			ComboEntranceScale / ComboEntranceInTime / ComboEntranceOutTime: first-appearance
+				zoom 0 -> ComboEntranceScale -> 1 (multiplier, seconds)
+			ComboWobbleScale / ComboWobbleSpeed: scale wobble 1 +/- ComboWobbleScale, no rotation
+				(multiplier, cycles/second)
 			ComboColors: label colour per combo level, index 1 = level 1 (RGB)
 			ComboMaxGradient: rainbow colour sequence used on the label at max combo (ColorSequence)
 			ComboGradientRotationSeconds: time for one full rainbow rotation (seconds)
@@ -50,7 +52,11 @@
 			MilestoneClearSparkles: star decorations around MAP CLEARED!, each { X, Y, Size } as
 				screen scale and design-pixel text size
 			MilestoneSparkleDelay: extra delay per sparkle (seconds)
-			MilestonePunchScale / MilestonePunchTime: banner pop-in size and time (multiplier, seconds)
+			MilestoneEntranceScale / MilestoneEntranceInTime / MilestoneEntranceOutTime: banner zoom
+				entrance 0 -> scale -> 1 (multiplier, seconds)
+			MilestoneTwinkleRate / MilestoneClearTwinkleRate: stars per second on a normal banner
+				and on the MAP CLEARED banner (stars/second)
+			MilestoneTwinkleSize: star size on milestone banners (design pixels)
 		Camera and body feel:
 			ShakeTargetAmplitude / ShakeTargetDuration: shake when a target is fully soiled (studs, seconds)
 			ShakeMiniBombAmplitude / ShakeMiniBombDuration: shake on Mini Bomb pickup (studs, seconds)
@@ -111,11 +117,12 @@ return {
 	ComboHeight = 56,
 	ComboPunchScale = 1.35,
 	ComboPunchTime = 0.18,
-	ComboTiltDegrees = -6,
-	ComboWobbleDegrees = 1.5,
+	ComboTiltDegrees = -3,
+	ComboEntranceScale = 1.3,
+	ComboEntranceInTime = 0.12,
+	ComboEntranceOutTime = 0.22,
+	ComboWobbleScale = 0.03,
 	ComboWobbleSpeed = 1.6,
-	ComboShakeDegrees = 6,
-	ComboShakeSpeed = 10,
 	ComboColors = {
 		Color3.fromRGB(255, 255, 255),
 		Color3.fromRGB(255, 236, 80),
@@ -176,8 +183,12 @@ return {
 		{ X = 0.76, Y = 0.5, Size = 48 },
 	},
 	MilestoneSparkleDelay = 0.12,
-	MilestonePunchScale = 0.6,
-	MilestonePunchTime = 0.22,
+	MilestoneEntranceScale = 1.3,
+	MilestoneEntranceInTime = 0.14,
+	MilestoneEntranceOutTime = 0.24,
+	MilestoneTwinkleRate = 1.5,
+	MilestoneClearTwinkleRate = 2.5,
+	MilestoneTwinkleSize = 26,
 
 	ShakeTargetAmplitude = 0.18,
 	ShakeTargetDuration = 0.2,

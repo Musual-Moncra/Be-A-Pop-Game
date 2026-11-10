@@ -10,7 +10,8 @@
 
 	Props: drop (one PetDrop from DataController), ui (useUIScale result)
 	Dependencies: React, TweenService, DataController, ConfigLookup, UIConfig, RunUIConfig,
-		PetView, Components (ChunkyButton, Chip, Inset, Primitives, Rays, Sparkle, WindowSize, Format)
+		PetView, Components (Burst, ChunkyButton, Chip, Inset, Primitives, RainbowRim, Rays, Sparkle,
+			Twinkle, WindowSize, Format)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,13 +24,16 @@ local RunUIConfig = require(ReplicatedStorage.Modules.Config.RunUIConfig)
 local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
 local DataController = require(ReplicatedStorage.Modules.Controllers.DataController)
 local Components = ReplicatedStorage.Modules.UIComponents
+local Burst = require(Components.Burst)
 local Chip = require(Components.Chip)
 local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
+local RainbowRim = require(Components.RainbowRim)
 local Rays = require(Components.Rays)
 local Sparkle = require(Components.Sparkle)
+local Twinkle = require(Components.Twinkle)
 local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
@@ -98,8 +102,10 @@ return function(props: any)
 	local drop = props.drop
 	local phase, setPhase = React.useState("shake")
 	local dismissedRef = React.useRef(false)
+	local collectingRef = React.useRef(false)
 	local flipRef = React.useRef(nil)
 	local revealedAt = React.useRef(0)
+	local burstTrigger, setBurstTrigger = React.useState(nil)
 
 	React.useEffect(function()
 		dismissedRef.current = false
@@ -143,6 +149,7 @@ return function(props: any)
 	local cardWidth, cardHeight = WindowSize.fit(props.ui, Reveal.CardWidth, Reveal.CardHeight)
 	local flipped = phase == "flip" or phase == "revealed"
 	local revealed = phase == "revealed"
+	local rainbow = pet ~= nil and Reveal.RainbowRarities[pet.Rarity] == true
 
 	React.useEffect(function()
 		local wrapper = flipRef.current
@@ -194,6 +201,21 @@ return function(props: any)
 		DataController.DismissPetDrop()
 	end
 
+	local function collect()
+		if not revealed or dismissedRef.current or collectingRef.current then
+			return
+		end
+		if os.clock() < revealedAt.current + Reveal.TapAfter then
+			return
+		end
+		collectingRef.current = true
+		setBurstTrigger(os.clock())
+		task.delay(Reveal.CollectDismissDelay, function()
+			dismissedRef.current = true
+			DataController.DismissPetDrop()
+		end)
+	end
+
 	local children: { [string]: any } = {
 		Rays = if flipped
 			then e(Rays, {
@@ -204,6 +226,18 @@ return function(props: any)
 				zIndex = 1,
 			})
 			else nil,
+		Twinkle = e(Twinkle, {
+			active = flipped,
+			rate = Reveal.TwinkleRate,
+			size = Reveal.TwinkleSize,
+			zIndex = 1,
+		}),
+		Burst = e(Burst, {
+			trigger = burstTrigger,
+			origin = Reveal.CollectBurstOrigin,
+			count = Reveal.CollectBurstCount,
+			zIndex = 8,
+		}),
 		Silhouette = if phase == "shake" then e(Silhouette) else nil,
 		Flip = e("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),
@@ -214,110 +248,122 @@ return function(props: any)
 			ref = flipRef,
 			ZIndex = 2,
 		}, {
-			Card = e(ChunkyButton, {
-				anchorPoint = Vector2.new(0.5, 0.5),
-				gloss = true,
-				position = UDim2.fromScale(0.5, 0.5),
-				rarity = rarityId,
-				size = UDim2.fromOffset(cardWidth, cardHeight),
-				swatch = "Purple",
-				zIndex = 2,
+			Card = e("Frame", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				BackgroundTransparency = 1,
+				Position = UDim2.fromScale(0.5, 0.5),
+				Size = UDim2.fromOffset(cardWidth, cardHeight),
+				ZIndex = 2,
 			}, {
-				Ribbon = if drop.IsNew
-					then e("Frame", {
-						AnchorPoint = Vector2.new(0, 0),
-						BackgroundTransparency = 1,
-						Position = UDim2.new(0.05, 0, 0.06, 0),
-						Rotation = Reveal.NewRibbonRotation,
-						Size = UDim2.fromOffset(1, 1),
-						ZIndex = 6,
-					}, {
-						Tag = e(Chip, {
-							height = TextSizes.Large,
-							swatch = "Red",
-							text = Reveal.NewTag,
-							textSize = TextSizes.Body,
-							zIndex = 6,
-						}),
-					})
+				Corner = Primitives.corner(Shape.WindowRadius),
+				Rainbow = if rainbow
+					then e(RainbowRim, { active = revealed, thickness = Reveal.RainbowThickness })
 					else nil,
-				Icon = e(Inset, {
+				Body = e(ChunkyButton, {
 					anchorPoint = Vector2.new(0.5, 0.5),
-					position = UDim2.fromScale(0.5, 0.3),
-					radius = "Round",
-					size = UDim2.fromOffset(Reveal.IconSize, Reveal.IconSize),
-					zIndex = 3,
+					gloss = true,
+					position = UDim2.fromScale(0.5, 0.5),
+					rarity = rarityId,
+					size = UDim2.fromScale(1, 1),
+					swatch = "Purple",
+					zIndex = 2,
 				}, {
-					Face = e("Frame", {
-						BackgroundColor3 = faceColor,
-						BorderSizePixel = 0,
-						Size = UDim2.fromScale(1, 1),
-						ZIndex = 3,
-					}, { Corner = Primitives.corner("Round") }),
-					Emoji = Primitives.text({
-						Stroke = false,
-						Text = if pet ~= nil then petIcon else Reveal.LockedIcon,
-						TextSize = Reveal.IconSize * Shape.IconFill,
-						ZIndex = 4,
+					Ribbon = if drop.IsNew
+						then e("Frame", {
+							AnchorPoint = Vector2.new(0, 0),
+							BackgroundTransparency = 1,
+							Position = UDim2.new(0.05, 0, 0.06, 0),
+							Rotation = Reveal.NewRibbonRotation,
+							Size = UDim2.fromOffset(1, 1),
+							ZIndex = 6,
+						}, {
+							Tag = e(Chip, {
+								height = TextSizes.Large,
+								swatch = "Red",
+								text = Reveal.NewTag,
+								textSize = TextSizes.Body,
+								zIndex = 6,
+							}),
+						})
+						else nil,
+					Icon = e(Inset, {
+						anchorPoint = Vector2.new(0.5, 0.5),
+						position = UDim2.fromScale(0.5, 0.3),
+						radius = "Round",
+						size = UDim2.fromOffset(Reveal.IconSize, Reveal.IconSize),
+						zIndex = 3,
+					}, {
+						Face = e("Frame", {
+							BackgroundColor3 = faceColor,
+							BorderSizePixel = 0,
+							Size = UDim2.fromScale(1, 1),
+							ZIndex = 3,
+						}, { Corner = Primitives.corner("Round") }),
+						Emoji = Primitives.text({
+							Stroke = false,
+							Text = if pet ~= nil then petIcon else Reveal.LockedIcon,
+							TextSize = Reveal.IconSize * Shape.IconFill,
+							ZIndex = 4,
+						}),
 					}),
+					Name = if pet ~= nil
+						then Primitives.text({
+							Color = Palette.Sparkle,
+							Fit = true,
+							Position = UDim2.new(0.08, 0, 0.54, 0),
+							Size = UDim2.new(0.84, 0, 0, TextSizes.Title + Shape.TextStroke * 2),
+							Text = string.format(Reveal.NameFormat, pet.DisplayName),
+							TextSize = TextSizes.Title,
+							ZIndex = 4,
+						})
+						else nil,
+					Rarity = if pet ~= nil
+						then Primitives.text({
+							Position = UDim2.new(0.08, 0, 0.65, 0),
+							Size = UDim2.new(0.84, 0, 0, TextSizes.Header),
+							Text = string.format(Reveal.TraitFormat, rarityName, variantName),
+							TextSize = TextSizes.Header,
+							ZIndex = 4,
+						})
+						else nil,
+					Stink = if pet ~= nil
+						then Primitives.text({
+							Color = Palette.Sparkle,
+							Position = UDim2.new(0.08, 0, 0.73, 0),
+							Size = UDim2.new(0.84, 0, 0, TextSizes.Large),
+							Text = string.format(
+								Reveal.StinkFormat,
+								Format.multiplier(PetView.Stink(drop.PetId, drop.Variant, 0))
+							),
+							TextSize = TextSizes.Large,
+							ZIndex = 4,
+						})
+						else nil,
+					Converted = if drop.Converted > 0
+						then Primitives.text({
+							Color = Palette.Sparkle,
+							Position = UDim2.new(0.08, 0, 0.80, 0),
+							Size = UDim2.new(0.84, 0, 0, TextSizes.Body),
+							Text = string.format(Reveal.ConvertedFormat, drop.Converted),
+							TextSize = TextSizes.Body,
+							ZIndex = 4,
+						})
+						else nil,
+					Collect = if revealed
+						then e(ChunkyButton, {
+							anchorPoint = Vector2.new(0.5, 1),
+							gloss = true,
+							onActivated = collect,
+							position = UDim2.new(0.5, 0, 1, -12),
+							shine = true,
+							size = UDim2.fromOffset(Reveal.CollectWidth, Reveal.CollectHeight),
+							swatch = Reveal.CollectSwatch,
+							text = Reveal.CollectText,
+							textSize = TextSizes.Title,
+							zIndex = 5,
+						})
+						else nil,
 				}),
-				Name = if pet ~= nil
-					then Primitives.text({
-						Color = Palette.Sparkle,
-						Fit = true,
-						Position = UDim2.new(0.08, 0, 0.54, 0),
-						Size = UDim2.new(0.84, 0, 0, TextSizes.Title + Shape.TextStroke * 2),
-						Text = string.format(Reveal.NameFormat, pet.DisplayName),
-						TextSize = TextSizes.Title,
-						ZIndex = 4,
-					})
-					else nil,
-				Rarity = if pet ~= nil
-					then Primitives.text({
-						Position = UDim2.new(0.08, 0, 0.65, 0),
-						Size = UDim2.new(0.84, 0, 0, TextSizes.Header),
-						Text = string.format(Reveal.TraitFormat, rarityName, variantName),
-						TextSize = TextSizes.Header,
-						ZIndex = 4,
-					})
-					else nil,
-				Stink = if pet ~= nil
-					then Primitives.text({
-						Color = Palette.Sparkle,
-						Position = UDim2.new(0.08, 0, 0.73, 0),
-						Size = UDim2.new(0.84, 0, 0, TextSizes.Large),
-						Text = string.format(
-							Reveal.StinkFormat,
-							Format.multiplier(PetView.Stink(drop.PetId, drop.Variant, 0))
-						),
-						TextSize = TextSizes.Large,
-						ZIndex = 4,
-					})
-					else nil,
-				Converted = if drop.Converted > 0
-					then Primitives.text({
-						Color = Palette.Sparkle,
-						Position = UDim2.new(0.08, 0, 0.80, 0),
-						Size = UDim2.new(0.84, 0, 0, TextSizes.Body),
-						Text = string.format(Reveal.ConvertedFormat, drop.Converted),
-						TextSize = TextSizes.Body,
-						ZIndex = 4,
-					})
-					else nil,
-				Collect = if revealed
-					then e(ChunkyButton, {
-						anchorPoint = Vector2.new(0.5, 1),
-						gloss = true,
-						onActivated = tap,
-						position = UDim2.new(0.5, 0, 1, -12),
-						shine = true,
-						size = UDim2.fromOffset(Reveal.CollectWidth, Reveal.CollectHeight),
-						swatch = Reveal.CollectSwatch,
-						text = Reveal.CollectText,
-						textSize = TextSizes.Title,
-						zIndex = 5,
-					})
-					else nil,
 			}),
 		}),
 	}
