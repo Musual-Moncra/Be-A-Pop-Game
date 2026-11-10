@@ -9,12 +9,11 @@
 	Stink. All actions send the existing pet remotes.
 
 	Props: data (DataController state), ui (useUIScale result), onClose
-	Dependencies: React, RunService, Net, UIConfig, LobbyUIConfig, PetConfig, ConfigLookup,
+	Dependencies: React, SparkleClock, Net, UIConfig, LobbyUIConfig, PetConfig, ConfigLookup,
 		PetView, Bar, Chip, ChunkyButton, Format, Inset, Primitives, Tabs, Window, WindowSize
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
@@ -27,6 +26,7 @@ local Components = ReplicatedStorage.Modules.UIComponents
 local Bar = require(Components.Bar)
 local Burst = require(Components.Burst)
 local Chip = require(Components.Chip)
+local SparkleClock = require(Components.SparkleClock)
 local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
 local GlowRing = require(Components.GlowRing)
@@ -156,7 +156,7 @@ local function variantRim(variant: any): any
 		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 		Color = rim.Color or Color3.fromRGB(255, 255, 255),
 		Thickness = Shape.RimStroke,
-	}, if rim.Colors ~= nil then { Gradient = e("UIGradient", { Color = ColorSequence.new(rim.Colors) }) } else nil)
+	}, if rim.Colors ~= nil then { Gradient = e("UIGradient", { Color = Primitives.sequence(rim.Colors) }) } else nil)
 	return e("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
@@ -308,11 +308,11 @@ local function PetDetails(props: any)
 		if label == nil then
 			return
 		end
-		local connection = RunService.Heartbeat:Connect(function()
-			label.Rotation = math.sin(os.clock() * 1.1) * 6
+		local disconnect = SparkleClock.Subscribe(function(_dt: number, now: number)
+			label.Rotation = math.sin(now * Pets.DetailSwaySpeed) * Pets.DetailSwayDegrees
 		end)
 		return function()
-			connection:Disconnect()
+			disconnect()
 		end
 	end, {})
 
@@ -708,7 +708,7 @@ return function(props: any)
 		end
 		local bodyTop = LobbyUIConfig.Tabs.Height + Gap + Index.RewardBoxHeight + Gap
 		body = {
-			MapTabs = e(Tabs, { onSelect = selectMap, selected = selectedMap, tabs = tabs }),
+			MapTabs = e(Tabs, { onSelect = selectMap, selected = selectedMap, shortcuts = false, tabs = tabs }),
 			Progress = e("Frame", {
 				BackgroundTransparency = 1,
 				Position = UDim2.fromOffset(0, LobbyUIConfig.Tabs.Height + Gap),

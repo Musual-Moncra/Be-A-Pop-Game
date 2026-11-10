@@ -40,6 +40,7 @@ local Primitives = require(Components.Primitives)
 local RainbowRim = require(Components.RainbowRim)
 local RarityGradient = require(Components.RarityGradient)
 local ShineSweep = require(Components.ShineSweep)
+local PopIn = require(Components.PopIn)
 local Sparkle = require(Components.Sparkle)
 local UIScaleContext = require(Components.UIScaleContext)
 
@@ -70,43 +71,7 @@ return function(props: any)
 		if scale == nil then
 			return
 		end
-		local delay = props.popDelay or 0
-		scale.Scale = Animation.PopInStart
-		TweenService:Create(
-			scale,
-			TweenInfo.new(Animation.PopInTime * 0.35, Animation.SpringStyle, Animation.SpringDirection, 0, false, delay),
-			{
-				Scale = Animation.PopInOver,
-			}
-		):Play()
-		TweenService:Create(
-			scale,
-			TweenInfo.new(
-				Animation.PopInTime * 0.25,
-				Animation.SmoothStyle,
-				Animation.SmoothDirection,
-				0,
-				false,
-				delay + Animation.PopInTime * 0.35
-			),
-			{
-				Scale = Animation.PopInUnder,
-			}
-		):Play()
-		TweenService:Create(
-			scale,
-			TweenInfo.new(
-				Animation.PopInTime * 0.4,
-				Animation.SpringStyle,
-				Animation.SpringDirection,
-				0,
-				false,
-				delay + Animation.PopInTime * 0.6
-			),
-			{
-				Scale = 1,
-			}
-		):Play()
+		PopIn.play(scale, props.popDelay)
 	end, {})
 
 	local function squash(duration: number, easing: Enum.EasingStyle, direction: Enum.EasingDirection): ()

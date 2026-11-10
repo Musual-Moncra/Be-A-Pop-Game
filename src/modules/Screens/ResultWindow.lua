@@ -7,13 +7,12 @@
 	beat the previous best, result badges and a shiny CONTINUE button.
 
 	Props: data (DataController state with LastRun), ui (useUIScale result)
-	Dependencies: React, RunService, UIConfig, RunUIConfig, DataController, PetView,
+	Dependencies: React, SparkleClock, UIConfig, RunUIConfig, DataController, PetView,
 			Components (Burst, Chip, ChunkyButton, CoinFly, Format, Primitives, Rays, Twinkle, Window,
 			WindowSize)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
@@ -28,6 +27,9 @@ local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
 local Primitives = require(Components.Primitives)
 local Rays = require(Components.Rays)
+local Keybinds = require(Components.Keybinds)
+local KeyHint = require(Components.KeyHint)
+local SparkleClock = require(Components.SparkleClock)
 local Twinkle = require(Components.Twinkle)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
@@ -83,8 +85,7 @@ end
 return function(props: any)
 	local summary = props.data.LastRun
 	local ui = props.ui
-	local displayScore, setDisplayScore = React.useState(0)
-	local displayCoins, setDisplayCoins = React.useState(0)
+	local countProgress, setCountProgress = React.useState(0)
 	local bestBefore = React.useRef(props.data.Stats.BestScore)
 	local newBest = summary ~= nil and summary.Score > bestBefore.current
 	local coinTrigger = if summary ~= nil and summary.Coins > 0 then summary else nil
@@ -92,29 +93,26 @@ return function(props: any)
 	local burstTrigger = if newBest then summary else nil
 
 	React.useEffect(function()
-		setDisplayScore(0)
-		setDisplayCoins(0)
+		setCountProgress(0)
 		if summary == nil then
 			return
 		end
 		local duration = UIConfig.Animation.ResultCountSeconds
 		if duration <= 0 then
-			setDisplayScore(summary.Score)
-			setDisplayCoins(summary.Coins)
+			setCountProgress(1)
 			return
 		end
-		local started = os.clock()
-		local connection = RunService.Heartbeat:Connect(function()
-			local progress = math.clamp((os.clock() - started) / duration, 0, 1)
-			local eased = 1 - (1 - progress) * (1 - progress)
-			setDisplayScore(math.floor(summary.Score * eased))
-			setDisplayCoins(math.floor(summary.Coins * eased))
+		local started = SparkleClock.Now()
+		local disconnect: () -> ()
+		disconnect = SparkleClock.Subscribe(function(_dt: number, now: number)
+			local progress = math.clamp((now - started) / duration, 0, 1)
+			setCountProgress(1 - (1 - progress) * (1 - progress))
 			if progress >= 1 then
-				connection:Disconnect()
+				disconnect()
 			end
 		end)
 		return function()
-			connection:Disconnect()
+			disconnect()
 		end
 	end, { summary } :: { any })
 
@@ -127,6 +125,8 @@ return function(props: any)
 			task.cancel(thread)
 		end
 	end, { summary })
+
+	Keybinds.use("Confirm", DataController.DismissResult, summary ~= nil)
 
 	if summary == nil then
 		return nil
@@ -225,7 +225,7 @@ return function(props: any)
 			Color = Palette.Sparkle,
 			Position = UDim2.fromScale(0.5, 0.3),
 			Size = UDim2.new(1, 0, 0, Config.ScoreTextSize + Shape.TextStroke * 2),
-			Text = Format.commas(displayScore),
+			Text = Format.commas(math.floor(summary.Score * countProgress)),
 			TextSize = Config.ScoreTextSize,
 			ZIndex = 2,
 		}),
@@ -263,7 +263,13 @@ return function(props: any)
 		Size = UDim2.new(1, 0, 0, Config.RowHeight * 3 + Gap),
 	}, {
 		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2),
-		Coins = rewardPill(1, Text.CoinIcon, Text.ResultCoins, Format.commas(displayCoins), "Gold"),
+		Coins = rewardPill(
+			1,
+			Text.CoinIcon,
+			Text.ResultCoins,
+			Format.commas(math.floor(summary.Coins * countProgress)),
+			"Gold"
+		),
 		Gems = rewardPill(2, Text.GemIcon, Text.ResultGems, Format.commas(summary.Gems), "Purple"),
 		Xp = rewardPill(3, Text.XpIcon, Text.ResultXp, Format.commas(summary.Xp), "Green"),
 	})
@@ -293,6 +299,7 @@ return function(props: any)
 		footer = e(ChunkyButton, {
 			gloss = true,
 			onActivated = DataController.DismissResult,
+			overlay = e(KeyHint, { action = "Confirm", zIndex = 8 }),
 			shine = true,
 			size = UDim2.fromScale(1, 1),
 			swatch = "Green",

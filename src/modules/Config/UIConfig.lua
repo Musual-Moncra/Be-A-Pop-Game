@@ -67,8 +67,9 @@
 		HoverRotate: legacy hover tilt, keep 0 (motion is scale only)
 		PressSquashX / PressSquashY / PressSquashTime: squash size and time while held (multiplier, seconds)
 		ReleaseBounceScale / ReleaseBounceTime: size the button bounces to on release and its time
-		PopInStart / PopInOver / PopInUnder: window and card pop-in scales (multiplier)
+		PopInStart: scale a window, card, row or toast pops in from; one Back-Out tween overshoots to 1 (multiplier)
 		PopInTime / CardStagger: pop-in length and per-card delay (seconds)
+		PopInMaxDelay: cards delayed past this appear at once, so long grids open without dozens of tweens (seconds)
 		PopOutOver / PopOutTime: pop-out overshoot scale and time (multiplier, seconds)
 		NumberPunchScale / NumberPunchSeconds: currency punch size and time (multiplier, seconds)
 		HoverGrowMax / PressShrinkMax: most a button may grow on hover / shrink on press, so large
@@ -82,6 +83,7 @@
 		CountUpSeconds: currency count-up time (seconds)
 		NumberPunchScale / NumberPunchSeconds: currency punch size and time (multiplier, seconds)
 		IdleBobHeight / IdleBobSeconds: icon-tile bob height and cycle (design pixels, seconds)
+		BadgeBreatheScale / BadgeBreatheSeconds: zoom and cycle of a tile that has a badge (multiplier, seconds)
 		BarTween: progress bar fill tween time
 		SparkleSpeed: sparkle twinkle cycles per second (cycles/second)
 		HudTick: how often power-up countdowns redraw
@@ -95,6 +97,11 @@
 		SmoothStyle / SmoothDirection: easing of bars and popups (Enum.EasingStyle / Direction)
 		TwinkleStyle / TwinkleDirection: easing of sparkles (Enum.EasingStyle / Direction)
 
+	KeyHint: PC shortcut keycap drawn on buttons while the player uses keyboard and mouse
+		Size / CharWidth / Padding: keycap height and minimum width, width per label character, side padding (design pixels)
+		Offset: how far the keycap pokes out past its button corner (design pixels)
+		Radius / Stroke / TextSize: corner radius, outline thickness, label size (design pixels)
+		Face / Bottom: keycap gradient top and bottom colours (RGB)
 	Sizes (design pixels unless noted):
 		Hud.BadgeSize: level badge diameter in the lobby top bar (design pixels)
 		Hud.XpRingSize / XpRingThickness / XpRingSegments: XP ring diameter, band width and segment count
@@ -114,17 +121,19 @@
 		Window.Sparkles: stars around the ribbon; X = fraction of window width, Y = fraction of header
 			height from the top edge, Size = TextSizes key, Delay = fraction of a twinkle cycle
 		Sparkle: shiny animation tuning
-		TwinkleText / TwinkleLife / TwinkleSpin / TwinkleSize: star glyph, life, spin and size (text, seconds, degrees, design pixels)
+		TwinkleLife / TwinkleSize: star life and size (seconds, design pixels)
+		TwinkleThickness: width of each star bar as a share of the star size (0 to 1)
 		TwinkleGold / TwinkleWhite: star colours (RGB)
 		MaxTwinkle: most stars alive on screen at once (count)
 		BurstCount / BurstLife / BurstGravity / BurstSpeedMin / BurstSpeedMax / BurstSize: confetti burst tuning
 		BurstStarText / BurstColors / MaxBurst: star glyph, candy piece colours and piece cap
 		CoinFlyCount / CoinFlyDuration / CoinFlyArc / CoinFlySize: coin fly pieces, time, arc height
 			and icon size (design pixels)
-		GlowPeriod / GlowScale: claimable glow breathe time and size (seconds, multiplier); the
-			transparency does the breathing, so 1 keeps the 18% limit
-		GlowExtend / GlowLayers: how far the glow reaches beyond its target per side and layer count
-		GlowTransparencyMin / Max / Step: breathing transparency range and per-layer step (0 to 1)
+		GlowPeriod / GlowScale: claimable glow breathe time and largest zoom (seconds, multiplier)
+		GlowExtend: how far the glow reaches beyond its target per side (share of the target)
+		GlowTransparencyMin / Max: glow transparency at its centre / at its top and bottom edges (0 to 1)
+		TickRate: how many times per second every cosmetic animation updates (Hz)
+		BreatheEpsilon: smallest breathing scale change worth writing (multiplier)
 		RainbowSeconds / RainbowColors: rotating rainbow rim speed and colours
 		PillTwinkleRate / PillShineInterval: top-bar pill stars per second and shine wait (seconds)
 		TileShineMin / TileShineMax: lobby tile shine wait range (seconds)
@@ -387,11 +396,22 @@ return {
 		},
 	},
 
+	KeyHint = {
+		Size = 24,
+		CharWidth = 11,
+		Padding = 6,
+		Offset = 6,
+		Radius = 6,
+		Stroke = 2,
+		TextSize = 16,
+		Face = Color3.fromRGB(255, 255, 255),
+		Bottom = Color3.fromRGB(205, 212, 232),
+	},
+
 	Sparkle = {
-		TwinkleText = "✦",
 		TwinkleLife = 0.9,
-		TwinkleSpin = 45,
-		TwinkleSize = 26,
+		TwinkleSize = 22,
+		TwinkleThickness = 0.22,
 		TwinkleGold = Color3.fromRGB(255, 236, 140),
 		TwinkleWhite = Color3.fromRGB(255, 255, 255),
 		MaxTwinkle = 40,
@@ -415,12 +435,12 @@ return {
 		CoinFlyArc = 140,
 		CoinFlySize = 34,
 		GlowPeriod = 1.4,
-		GlowScale = 1,
+		GlowScale = 1.06,
 		GlowExtend = 0.18,
-		GlowLayers = 3,
 		GlowTransparencyMin = 0.55,
 		GlowTransparencyMax = 0.85,
-		GlowTransparencyStep = 0.06,
+		TickRate = 30,
+		BreatheEpsilon = 0.002,
 		RainbowSeconds = 3,
 		RainbowColors = {
 			Color3.fromRGB(255, 130, 170),
@@ -567,15 +587,16 @@ return {
 		PressSquashTime = 0.08,
 		ReleaseBounceScale = 1.1,
 		ReleaseBounceTime = 0.25,
-		PopInStart = 0.5,
-		PopInOver = 1.12,
-		PopInUnder = 0.96,
-		PopInTime = 0.45,
+		PopInStart = 0.82,
+		PopInTime = 0.26,
+		PopInMaxDelay = 0.3,
 		CardStagger = 0.03,
 		PopOutOver = 1.08,
 		PopOutTime = 0.18,
 		IdleBobHeight = 3,
 		IdleBobSeconds = 1.6,
+		BadgeBreatheScale = 1.06,
+		BadgeBreatheSeconds = 1,
 		BarTween = 0.25,
 		SparkleSpeed = 0.7,
 		HudTick = 0.1,

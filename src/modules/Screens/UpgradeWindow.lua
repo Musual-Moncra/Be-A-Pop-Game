@@ -13,7 +13,6 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
@@ -28,6 +27,7 @@ local Format = require(Components.Format)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
 local useBreathe = require(Components.useBreathe)
+local PopIn = require(Components.PopIn)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
 
@@ -67,38 +67,7 @@ local function PopInRow(props: any)
 		if scale == nil then
 			return
 		end
-		local animation = UIConfig.Animation
-		local delay = (props.order or 1) * animation.CardStagger
-		scale.Scale = animation.PopInStart
-		TweenService:Create(
-			scale,
-			TweenInfo.new(animation.PopInTime * 0.35, animation.SpringStyle, animation.SpringDirection, 0, false, delay),
-			{ Scale = animation.PopInOver }
-		):Play()
-		TweenService:Create(
-			scale,
-			TweenInfo.new(
-				animation.PopInTime * 0.25,
-				animation.SmoothStyle,
-				animation.SmoothDirection,
-				0,
-				false,
-				delay + animation.PopInTime * 0.35
-			),
-			{ Scale = animation.PopInUnder }
-		):Play()
-		TweenService:Create(
-			scale,
-			TweenInfo.new(
-				animation.PopInTime * 0.4,
-				animation.SpringStyle,
-				animation.SpringDirection,
-				0,
-				false,
-				delay + animation.PopInTime * 0.6
-			),
-			{ Scale = 1 }
-		):Play()
+		PopIn.play(scale, (props.order or 1) * UIConfig.Animation.CardStagger)
 	end, {})
 
 	return e("Frame", {

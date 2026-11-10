@@ -11,11 +11,11 @@
 		badge: true draws the default badge, a string sets its text (nil = none)
 		name: optional instance name (onboarding targets)
 		onActivated, layoutOrder, position, anchorPoint, zIndex, phase (bob offset 0..1)
-	Dependencies: React, RunService, UIConfig, LobbyUIConfig, Primitives, ChunkyButton, Badge
+		hint: KeybindConfig action id whose PC key hint sits on the tile corner (nil = none)
+	Dependencies: React, SparkleClock, UIConfig, LobbyUIConfig, Primitives, ChunkyButton, Badge, KeyHint
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
@@ -24,7 +24,9 @@ local Components = ReplicatedStorage.Modules.UIComponents
 local Badge = require(Components.Badge)
 local ChunkyButton = require(Components.ChunkyButton)
 local GlowRing = require(Components.GlowRing)
+local KeyHint = require(Components.KeyHint)
 local Primitives = require(Components.Primitives)
+local SparkleClock = require(Components.SparkleClock)
 local useBreathe = require(Components.useBreathe)
 
 local e = React.createElement
@@ -39,7 +41,7 @@ return function(props: any)
 	local emojiRef = React.useRef(nil)
 	local breatheRef = React.useRef(nil)
 	local hasBadge = props.badge ~= nil and props.badge ~= false
-	useBreathe(breatheRef, 1.06, 1, props.phase, hasBadge)
+	useBreathe(breatheRef, Animation.BadgeBreatheScale, Animation.BadgeBreatheSeconds, props.phase, hasBadge)
 
 	React.useEffect(function()
 		local emoji = emojiRef.current
@@ -47,12 +49,14 @@ return function(props: any)
 			return
 		end
 		local phase = (props.phase or 0) * math.pi * 2
-		local connection = RunService.Heartbeat:Connect(function()
-			local offset = math.sin(os.clock() * math.pi * 2 / Animation.IdleBobSeconds + phase)
-			emoji.Position = UDim2.new(0, 0, 0, offset * Animation.IdleBobHeight)
+		local disconnect = SparkleClock.Subscribe(function(_dt: number, now: number)
+			if SparkleClock.OnScreen(emoji) then
+				local offset = math.sin(now * math.pi * 2 / Animation.IdleBobSeconds + phase)
+				emoji.Position = UDim2.new(0, 0, 0, math.floor(offset * Animation.IdleBobHeight + 0.5))
+			end
 		end)
 		return function()
-			connection:Disconnect()
+			disconnect()
 		end
 	end, { props.phase })
 
@@ -87,6 +91,9 @@ return function(props: any)
 				})
 				else nil,
 			Scale = e("UIScale", { ref = breatheRef }),
+			Hint = if props.hint ~= nil
+				then e(KeyHint, { action = props.hint, zIndex = (props.zIndex or 1) + 4 })
+				else nil,
 			Button = e(ChunkyButton, {
 				gloss = true,
 				name = props.name,

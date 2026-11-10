@@ -8,12 +8,11 @@
 	JuiceController signals, so it owns nothing the RunHud already shows.
 
 	Props: ui (useUIScale result)
-	Dependencies: React, RunService, TweenService, UIConfig, RunUIConfig, JuiceConfig,
+	Dependencies: React, TweenService, UIConfig, RunUIConfig, JuiceConfig,
 		JuiceController, Primitives, Rays, Sparkle, Twinkle
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
@@ -26,11 +25,11 @@ local Primitives = require(Components.Primitives)
 local Rays = require(Components.Rays)
 local Sparkle = require(Components.Sparkle)
 local Twinkle = require(Components.Twinkle)
+local useBreathe = require(Components.useBreathe)
 
 local e = React.createElement
 local Palette = UIConfig.Palette
 local Shape = UIConfig.Shape
-local TAU = math.pi * 2
 
 local COMBO_PUNCH_INFO = TweenInfo.new(JuiceConfig.ComboPunchTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
@@ -113,19 +112,7 @@ local function ComboMeter(props: any)
 		end
 	end, { level } :: { any })
 
-	React.useEffect(function()
-		local scale = wobbleRef.current
-		if scale == nil or not visible then
-			return
-		end
-		local connection = RunService.Heartbeat:Connect(function()
-			scale.Scale = 1 + math.sin(os.clock() * JuiceConfig.ComboWobbleSpeed * TAU) * JuiceConfig.ComboWobbleScale
-		end)
-		return function()
-			connection:Disconnect()
-			scale.Scale = 1
-		end
-	end, { visible } :: { any })
+	useBreathe(wobbleRef, 1 + JuiceConfig.ComboWobbleScale, 1 / JuiceConfig.ComboWobbleSpeed, 0, visible)
 
 	React.useEffect(function()
 		local gradient = gradientRef.current

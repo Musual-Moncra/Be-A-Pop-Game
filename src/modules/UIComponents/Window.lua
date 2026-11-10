@@ -13,7 +13,7 @@
 	       footerHeight (design pixels)
 
 	Sizing helpers live in WindowSize.
-	Dependencies: React, TweenService, UIConfig, Primitives, ChunkyButton, Sparkle
+	Dependencies: React, TweenService, UIConfig, Primitives, ChunkyButton, Sparkle, PopIn, Keybinds, KeyHint
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,6 +23,9 @@ local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
 local ChunkyButton = require(Components.ChunkyButton)
+local PopIn = require(ReplicatedStorage.Modules.UIComponents.PopIn)
+local Keybinds = require(ReplicatedStorage.Modules.UIComponents.Keybinds)
+local KeyHint = require(ReplicatedStorage.Modules.UIComponents.KeyHint)
 local Primitives = require(Components.Primitives)
 local Sparkle = require(Components.Sparkle)
 local Twinkle = require(Components.Twinkle)
@@ -60,25 +63,7 @@ local function Window(props: any)
 		if scale == nil then
 			return
 		end
-		local step = Animation.PopInTime
-		scale.Scale = Animation.PopInStart
-		TweenService:Create(scale, TweenInfo.new(step * 0.35, Animation.SpringStyle, Animation.SpringDirection), {
-			Scale = Animation.PopInOver,
-		}):Play()
-		TweenService:Create(
-			scale,
-			TweenInfo.new(step * 0.25, Animation.SmoothStyle, Animation.SmoothDirection, 0, false, step * 0.35),
-			{
-				Scale = Animation.PopInUnder,
-			}
-		):Play()
-		TweenService:Create(
-			scale,
-			TweenInfo.new(step * 0.4, Animation.SpringStyle, Animation.SpringDirection, 0, false, step * 0.6),
-			{
-				Scale = 1,
-			}
-		):Play()
+		PopIn.play(scale)
 	end, {})
 
 	local function close()
@@ -100,6 +85,8 @@ local function Window(props: any)
 			end
 		end)
 	end
+
+	Keybinds.use("Close", close, props.onClose ~= nil)
 
 	return e("Frame", {
 		BackgroundTransparency = 1,
@@ -191,6 +178,7 @@ local function Window(props: any)
 				then e(ChunkyButton, {
 					anchorPoint = Vector2.new(0.5, 0.5),
 					onActivated = close,
+					overlay = e(KeyHint, { action = "Close", zIndex = 8 }),
 					position = UDim2.new(1, -closeSize * Sizes.CloseInset, 0, closeSize * Sizes.CloseInset),
 					radius = Shape.Radius,
 					size = UDim2.fromOffset(closeSize, closeSize),

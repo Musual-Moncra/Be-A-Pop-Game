@@ -9,16 +9,16 @@
 		anchorPoint, layoutOrder, zIndex, format (string.format with the displayed number),
 		compact (true uses K/M suffixes), stroke (false hides the outline),
 		flashColor (optional colour flashed on a value change; defaults to the label colour)
-	Dependencies: React, RunService, TweenService, UIConfig, Primitives, Format
+	Dependencies: React, SparkleClock, TweenService, UIConfig, Primitives, Format
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
+local SparkleClock = require(ReplicatedStorage.Modules.UIComponents.SparkleClock)
 local Format = require(Components.Format)
 local Primitives = require(Components.Primitives)
 
@@ -61,18 +61,18 @@ return function(props: any)
 			setShown(target)
 			return
 		end
-		local started = os.clock()
-		local connection: RBXScriptConnection
-		connection = RunService.Heartbeat:Connect(function()
-			local progress = math.clamp((os.clock() - started) / duration, 0, 1)
+		local started = SparkleClock.Now()
+		local disconnect: () -> ()
+		disconnect = SparkleClock.Subscribe(function(_dt: number, now: number)
+			local progress = math.clamp((now - started) / duration, 0, 1)
 			local eased = 1 - (1 - progress) * (1 - progress)
 			setShown(from + (target - from) * eased)
 			if progress >= 1 then
-				connection:Disconnect()
+				disconnect()
 			end
 		end)
 		return function()
-			connection:Disconnect()
+			disconnect()
 		end
 	end, { target })
 

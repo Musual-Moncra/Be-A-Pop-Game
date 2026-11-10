@@ -5,10 +5,10 @@
 	Always-visible lobby layout: the 2-column icon grid at the left edge, the big pulsing PLAY
 	button at the right with its shine sweep, and the active potion / boost timers under PLAY.
 	There is no MENU fold-out any more; the PLAY button carries both onboarding names and every
-	tile opens its LobbyState route.
+	tile opens its LobbyState route and shows its PC key hint (the App owns the shortcuts).
 
 	Props: data (DataController state), ui (useUIScale result)
-	Dependencies: React, RunService, TweenService, UIConfig, LobbyUIConfig, LobbyState, ConfigLookup,
+	Dependencies: React, RunService, TweenService, UIConfig, LobbyUIConfig, LobbyState, KeybindConfig, ConfigLookup,
 		PotionConfig, UpgradeConfig, MonetizationConfig, Components (IconTile, ChunkyButton, Pill,
 		Primitives, Format)
 ]]
@@ -19,6 +19,7 @@ local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local LobbyState = require(ReplicatedStorage.Modules.UIs.LobbyState)
+local KeybindConfig = require(ReplicatedStorage.Modules.Config.KeybindConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local PotionConfig = require(ReplicatedStorage.Modules.Config.PotionConfig)
 local UpgradeConfig = require(ReplicatedStorage.Modules.Config.UpgradeConfig)
@@ -27,6 +28,7 @@ local Components = ReplicatedStorage.Modules.UIComponents
 local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
 local IconTile = require(Components.IconTile)
+local KeyHint = require(Components.KeyHint)
 local Pill = require(Components.Pill)
 local Primitives = require(Components.Primitives)
 local Twinkle = require(Components.Twinkle)
@@ -212,6 +214,7 @@ return function(props: any)
 			labelHeight = dock.TileLabelHeight,
 			labelTextSize = dock.TileLabelSize,
 			layoutOrder = index,
+			hint = if KeybindConfig.Actions[item.Id] ~= nil then item.Id else nil,
 			name = item.Name,
 			onActivated = function()
 				LobbyState.SetActive(item.Route, item.Tab)
@@ -270,6 +273,7 @@ return function(props: any)
 				textSize = dock.PlayTextSize,
 				zIndex = UIConfig.Layers.LobbyMenu,
 			}),
+			Hint = e(KeyHint, { action = "Play", zIndex = UIConfig.Layers.LobbyMenu + 3 }),
 			Twinkle = e(Twinkle, {
 				color = Sparkle.TwinkleGold,
 				rate = Sparkle.PlayTwinkleRate,

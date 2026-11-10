@@ -16,6 +16,7 @@ local TweenService = game:GetService("TweenService")
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local ChunkyButton = require(ReplicatedStorage.Modules.UIComponents.ChunkyButton)
+local PopIn = require(ReplicatedStorage.Modules.UIComponents.PopIn)
 local Primitives = require(ReplicatedStorage.Modules.UIComponents.Primitives)
 
 local e = React.createElement
@@ -32,37 +33,17 @@ local function Toast(props: any)
 		if pop == nil or body == nil then
 			return
 		end
-		pop.Scale = Animation.PopInStart
 		body.Size = UDim2.fromScale(Animation.PressSquashX, Animation.PressSquashY)
 		TweenService:Create(
 			body,
 			TweenInfo.new(Animation.PressSquashTime, Animation.SmoothStyle, Animation.SmoothDirection),
 			{ Size = UDim2.fromScale(1, 1) }
 		):Play()
-		local grow = TweenService:Create(
-			pop,
-			TweenInfo.new(Animation.PopInTime * 0.35, Animation.SpringStyle, Animation.SpringDirection),
-			{ Scale = Animation.PopInOver }
-		)
-		grow:Play()
-		local settle = task.delay(Animation.PopInTime * 0.35, function()
-			TweenService:Create(
-				pop,
-				TweenInfo.new(Animation.PopInTime * 0.3, Animation.SmoothStyle, Animation.SmoothDirection),
-				{ Scale = Animation.PopInUnder }
-			):Play()
-		end)
-		local finish = task.delay(Animation.PopInTime * 0.65, function()
-			TweenService:Create(
-				pop,
-				TweenInfo.new(Animation.PopInTime * 0.35, Animation.SpringStyle, Animation.SpringDirection),
-				{ Scale = 1 }
-			):Play()
-		end)
+		local grow = PopIn.play(pop)
 		return function()
-			grow:Cancel()
-			task.cancel(settle)
-			task.cancel(finish)
+			if grow ~= nil then
+				grow:Cancel()
+			end
 		end
 	end, {})
 

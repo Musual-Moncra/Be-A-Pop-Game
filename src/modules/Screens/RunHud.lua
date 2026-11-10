@@ -30,6 +30,7 @@ local CountUp = require(Components.CountUp)
 local Format = require(Components.Format)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
+local SparkleClock = require(Components.SparkleClock)
 local Twinkle = require(Components.Twinkle)
 
 local e = React.createElement
@@ -92,13 +93,13 @@ local function LifespanPill(props: any)
 		if not low or frame == nil or scale == nil then
 			return
 		end
-		local connection = RunService.Heartbeat:Connect(function()
-			local wave = math.sin(os.clock() * config.ShakeSpeed)
+		local disconnect = SparkleClock.Subscribe(function(_dt: number, now: number)
+			local wave = math.sin(now * config.ShakeSpeed)
 			frame.Rotation = wave * config.ShakeDegrees
 			scale.Scale = 1 + math.abs(wave) * (config.ShakeScale - 1)
 		end)
 		return function()
-			connection:Disconnect()
+			disconnect()
 			frame.Rotation = 0
 			scale.Scale = 1
 		end

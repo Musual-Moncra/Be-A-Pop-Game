@@ -32,6 +32,8 @@ local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
 local RainbowRim = require(Components.RainbowRim)
 local Rays = require(Components.Rays)
+local Keybinds = require(Components.Keybinds)
+local KeyHint = require(Components.KeyHint)
 local Sparkle = require(Components.Sparkle)
 local Twinkle = require(Components.Twinkle)
 local WindowSize = require(Components.WindowSize)
@@ -219,6 +221,8 @@ return function(props: any)
 		end)
 	end
 
+	Keybinds.use("Confirm", collect)
+
 	local children: { [string]: any } = {
 		Rays = if flipped
 			then e(Rays, {
@@ -361,6 +365,7 @@ return function(props: any)
 							anchorPoint = Vector2.new(0.5, 1),
 							gloss = true,
 							onActivated = collect,
+							overlay = e(KeyHint, { action = "Confirm", zIndex = 12 }),
 							position = UDim2.new(0.5, 0, 1, -12),
 							shine = true,
 							size = UDim2.fromOffset(Reveal.CollectWidth, Reveal.CollectHeight),

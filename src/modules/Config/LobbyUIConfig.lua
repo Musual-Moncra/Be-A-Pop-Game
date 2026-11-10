@@ -107,6 +107,7 @@
 			StainBombInfoFormat: Stain Bomb card line (format: blast radius at starting stain size, studs)
 			NewbiePackInfoFormat: Newbie Pack card line (format: pet name, gems, coins, coin boost)
 		Pets: pets window
+			DetailSwaySpeed / DetailSwayDegrees: big pet icon sway in the details panel (radians/s, degrees)
 			Width / Height / Swatch / Title / Icon: window size, header colour, title, emoji
 			CardWidth / CardHeight / CardGap / Columns / PhoneColumns: pet card size, gap and columns (design pixels / count)
 			CardIconSize: emoji size on a pet card (design pixels)
@@ -454,6 +455,8 @@ return {
 	},
 
 	Pets = {
+		DetailSwaySpeed = 1.1,
+		DetailSwayDegrees = 6,
 		Width = 980,
 		Height = 620,
 		Swatch = "Pink",

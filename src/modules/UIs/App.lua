@@ -24,6 +24,9 @@ local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local LobbyState = require(ReplicatedStorage.Modules.UIs.LobbyState)
 local useUIScale = require(ReplicatedStorage.Modules.UIComponents.useUIScale)
+local ErrorBoundary = require(ReplicatedStorage.Modules.UIComponents.ErrorBoundary)
+local Keybinds = require(ReplicatedStorage.Modules.UIComponents.Keybinds)
+local KeybindConfig = require(ReplicatedStorage.Modules.Config.KeybindConfig)
 local UIScaleContext = require(ReplicatedStorage.Modules.UIComponents.UIScaleContext)
 
 local Screens = ReplicatedStorage.Modules.Screens
@@ -48,6 +51,31 @@ local Wallet = require(Screens.Wallet)
 local e = React.createElement
 local Routes = LobbyState.Routes
 
+local function closeWindow()
+	LobbyState.SetActive(LobbyState.Routes.None)
+end
+
+local function toggleRoute(action: string)
+	local target = KeybindConfig.Routes[action]
+	if target == nil then
+		return
+	end
+	local tab = if target.Tab ~= "" then target.Tab else nil
+	if LobbyState.Get() == target.Route and LobbyState.GetTab() == tab then
+		LobbyState.SetActive(LobbyState.Routes.None)
+	else
+		LobbyState.SetActive(target.Route, tab)
+	end
+end
+
+local function useLobbyShortcuts(active: boolean)
+	for action in KeybindConfig.Routes do
+		Keybinds.use(action, function()
+			toggleRoute(action)
+		end, active)
+	end
+end
+
 local function layer(ui: any, name: string, child: any)
 	if child == nil then
 		return nil
@@ -58,7 +86,11 @@ local function layer(ui: any, name: string, child: any)
 		Size = UDim2.fromOffset(ui.safeWidth, ui.safeHeight),
 		ZIndex = UIConfig.Layers[name],
 	}, {
-		[name] = child,
+		[name] = e(ErrorBoundary, {
+			name = name,
+			onError = if name == "Window" then closeWindow else nil,
+			resetKey = if name == "Window" then LobbyState.Get() else nil,
+		}, { [name] = child }),
 	})
 end
 
@@ -96,6 +128,8 @@ local function App(props: any)
 	local inRun = data.RunState == GameConfig.RunStates.Running
 	local revealOpen = not inRun and #data.PetDropQueue > 0
 	local showResult = not inRun and data.LastRun ~= nil and not revealOpen
+
+	useLobbyShortcuts(not inRun and not showResult and not revealOpen)
 
 	React.useEffect(function()
 		if inRun or showResult or revealOpen then

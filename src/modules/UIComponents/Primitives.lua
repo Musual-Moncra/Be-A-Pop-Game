@@ -10,6 +10,7 @@
 		Primitives.stroke(color, thickness, transparency?) -> UIStroke element (border)
 		Primitives.gradient(top, bottom) -> vertical UIGradient element
 		Primitives.gradient3(top, mid, bottom) -> vertical three-stop UIGradient element
+		Primitives.sequence(colors) -> ColorSequence spreading a list of Color3 evenly from 0 to 1
 		Primitives.padding(all) / Primitives.paddingXY(x, y) -> UIPadding element
 		Primitives.list(direction, gap, hAlign?, vAlign?) -> UIListLayout element
 		Primitives.displayFont() / Primitives.bodyFont() -> Font
@@ -87,6 +88,18 @@ function Primitives.gradient3(top: Color3, mid: Color3, bottom: Color3)
 		}),
 		Rotation = Shape.GradientRotation,
 	})
+end
+
+function Primitives.sequence(colors: { Color3 }): ColorSequence
+	local count = #colors
+	if count == 1 then
+		return ColorSequence.new(colors[1])
+	end
+	local keypoints = {}
+	for index, color in colors do
+		table.insert(keypoints, ColorSequenceKeypoint.new((index - 1) / (count - 1), color))
+	end
+	return ColorSequence.new(keypoints)
 end
 
 function Primitives.padding(all: number)

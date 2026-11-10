@@ -13,7 +13,6 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
@@ -31,6 +30,7 @@ local Primitives = require(Components.Primitives)
 local RainbowRim = require(Components.RainbowRim)
 local Tabs = require(Components.Tabs)
 local Twinkle = require(Components.Twinkle)
+local PopInAnim = require(Components.PopIn)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
 
@@ -49,38 +49,7 @@ local function PopIn(props: any)
 		if scale == nil then
 			return
 		end
-		local animation = UIConfig.Animation
-		local delay = props.delay or 0
-		scale.Scale = animation.PopInStart
-		TweenService:Create(
-			scale,
-			TweenInfo.new(animation.PopInTime * 0.35, animation.SpringStyle, animation.SpringDirection, 0, false, delay),
-			{ Scale = animation.PopInOver }
-		):Play()
-		TweenService:Create(
-			scale,
-			TweenInfo.new(
-				animation.PopInTime * 0.25,
-				animation.SmoothStyle,
-				animation.SmoothDirection,
-				0,
-				false,
-				delay + animation.PopInTime * 0.35
-			),
-			{ Scale = animation.PopInUnder }
-		):Play()
-		TweenService:Create(
-			scale,
-			TweenInfo.new(
-				animation.PopInTime * 0.4,
-				animation.SpringStyle,
-				animation.SpringDirection,
-				0,
-				false,
-				delay + animation.PopInTime * 0.6
-			),
-			{ Scale = 1 }
-		):Play()
+		PopInAnim.play(scale, props.delay)
 	end, {})
 
 	return e("Frame", {
