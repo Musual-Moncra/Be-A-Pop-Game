@@ -3,8 +3,9 @@
 --[[
 	RunHud
 	Everything shown during a run: the score panel (big score, Stink pill, timer bar that turns
-	red when low, Challenge target bar), the quest list, active food power-ups with countdowns,
-	floating popups (food eaten, object soiled, caught by a chef) and the LEAVE button.
+	red when low, Challenge target bar), the quest list, a column of active food power-ups with
+	countdowns at the left edge, stacked popups (food eaten, object soiled, caught by a chef)
+	and the LEAVE button. The lobby Wallet is hidden while a run is active.
 
 	Props: data (DataController state), ui (useUIScale result)
 	Dependencies: React, UIConfig, RunUIConfig, ConfigLookup, PetView, Net, Primitives, ChunkyButton, Bar, Pill, Inset, Format
@@ -192,6 +193,7 @@ end
 
 local function PowerupSlots(props: any)
 	local powerups = props.powerups
+	local config = RunUIConfig.Powerups
 	local _, setTick = React.useState(0)
 
 	React.useEffect(function()
@@ -216,7 +218,7 @@ local function PowerupSlots(props: any)
 	end
 
 	local slots: { [string]: any } = {
-		Layout = Primitives.list(Enum.FillDirection.Horizontal, Gap),
+		Layout = Primitives.list(Enum.FillDirection.Vertical, config.Gap),
 	}
 	local now = os.clock()
 	for index, active in powerups do
@@ -225,21 +227,21 @@ local function PowerupSlots(props: any)
 		slots[active.Id] = e("Frame", {
 			BackgroundTransparency = 1,
 			LayoutOrder = index,
-			Size = UDim2.fromOffset(Sizes.PowerupSize, Sizes.PowerupSize + Sizes.TargetBarHeight + Gap / 2),
+			Size = UDim2.fromOffset(config.Size, config.Size + config.TimerHeight + config.Gap / 2),
 		}, {
 			Icon = e(ChunkyButton, {
 				icon = if definition ~= nil then definition.Icon else "",
-				iconSize = Sizes.PowerupSize * Shape.IconFill,
+				iconSize = config.Size * Shape.IconFill,
 				round = true,
-				size = UDim2.fromOffset(Sizes.PowerupSize, Sizes.PowerupSize),
-				swatch = UIConfig.PowerupSwatch,
+				size = UDim2.fromOffset(config.Size, config.Size),
+				swatch = config.Swatch,
 			}),
 			Timer = e(Bar, {
 				anchorPoint = Vector2.new(0, 1),
 				position = UDim2.fromScale(0, 1),
 				ratio = if active.Duration > 0 then left / active.Duration else 0,
-				size = UDim2.new(1, 0, 0, Sizes.TargetBarHeight),
-				swatch = "Gold",
+				size = UDim2.new(1, 0, 0, config.TimerHeight),
+				swatch = config.TimerSwatch,
 				text = string.format(Text.PowerupTimer, math.ceil(left)),
 				textSize = TextSizes.Tiny,
 			}),
@@ -248,40 +250,40 @@ local function PowerupSlots(props: any)
 
 	return e("Frame", {
 		AnchorPoint = props.layout.AnchorPoint,
-		AutomaticSize = Enum.AutomaticSize.XY,
+		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
 		Position = props.layout.Position,
-		Size = UDim2.new(),
+		Size = UDim2.fromOffset(config.Size, 0),
 	}, slots)
 end
 
 local function Popup(props: any)
-	local labelRef = React.useRef(nil)
+	local scaleRef = React.useRef(nil)
 	local swatch = Primitives.swatch(UIConfig.ToastSwatches[props.popup.Kind])
+	local step = UIConfig.Sizes.Popup.Height + UIConfig.Sizes.Popup.Gap
 
 	React.useEffect(function()
-		local label = labelRef.current
-		if label == nil then
+		local scale = scaleRef.current
+		if scale == nil then
 			return
 		end
-		local start = label.Position
-		local info = TweenInfo.new(Animation.PopupSeconds, Animation.SmoothStyle, Animation.SmoothDirection)
-		TweenService:Create(label, info, {
-			Position = start - UDim2.fromOffset(0, Animation.PopupRise),
-			TextTransparency = 1,
+		scale.Scale = Animation.OpenFromScale
+		TweenService:Create(scale, TweenInfo.new(Animation.Open, Animation.SpringStyle, Animation.SpringDirection), {
+			Scale = 1,
 		}):Play()
 	end, {})
 
 	return e("TextLabel", {
+		AnchorPoint = props.base.AnchorPoint,
 		BackgroundTransparency = 1,
 		FontFace = Primitives.displayFont(),
-		LayoutOrder = props.popup.Id,
+		Position = props.base.Position - UDim2.fromOffset(0, props.slot * step),
 		Size = UDim2.fromOffset(UIConfig.Sizes.Popup.Width, UIConfig.Sizes.Popup.Height),
 		Text = props.popup.Text,
 		TextColor3 = swatch.Top,
 		TextSize = TextSizes.Header,
-		ref = labelRef,
 	}, {
+		Scale = e("UIScale", { ref = scaleRef }),
 		Stroke = e("UIStroke", {
 			Color = Palette.Ink,
 			LineJoinMode = Enum.LineJoinMode.Round,
@@ -302,28 +304,13 @@ return function(props: any)
 		then { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -margin, 0, Sizes.NarrowQuestTop) }
 		else layouts.RunQuests
 
-	local popups: { [string]: any } = {
-		Layout = Primitives.list(Enum.FillDirection.Vertical, 0, Enum.HorizontalAlignment.Center),
-	}
-	for _, popup in data.Popups do
-		popups["Popup" .. popup.Id] = e(Popup, { popup = popup })
-	end
+	local powerupLayout = RunUIConfig.Layouts[if props.ui.mobile then "Mobile" else "PC"].Powerups
 
-	return e("Frame", {
-		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 1),
-	}, {
+	local children: { [string]: any } = {
 		Timer = e(TimerPanel, { data = data, layout = layouts.RunTimer }),
 		Score = e(ScorePanel, { data = data, layout = scoreLayout }),
 		Quests = e(QuestPanel, { layout = questLayout, quests = data.Quests }),
-		Powerups = e(PowerupSlots, { layout = layouts.RunPowerups, powerups = data.Powerups }),
-		Popups = e("Frame", {
-			AnchorPoint = layouts.Popups.AnchorPoint,
-			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundTransparency = 1,
-			Position = layouts.Popups.Position,
-			Size = UDim2.fromOffset(UIConfig.Sizes.Popup.Width, 0),
-		}, popups),
+		Powerups = e(PowerupSlots, { layout = powerupLayout, powerups = data.Powerups }),
 		Leave = e(ChunkyButton, {
 			anchorPoint = layouts.RunLeave.AnchorPoint,
 			onActivated = function()
@@ -335,5 +322,19 @@ return function(props: any)
 			text = Text.Leave,
 			textSize = TextSizes.Large,
 		}),
-	})
+	}
+	local firstVisible = math.max(1, #data.Popups - Animation.PopupMaxVisible + 1)
+	for index = firstVisible, #data.Popups do
+		local popup = data.Popups[index]
+		children["Popup" .. popup.Id] = e(Popup, {
+			base = layouts.Popups,
+			popup = popup,
+			slot = #data.Popups - index,
+		})
+	end
+
+	return e("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1),
+	}, children)
 end

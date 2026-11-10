@@ -67,10 +67,10 @@
 		Open: window, toast and dock button pop-in time
 		OpenFromScale: size a window or toast starts at when it opens (multiplier)
 		BarTween: progress bar fill tween time
-		PopupRise: how far in-run popups float up (design pixels)
 		SparkleSpeed: sparkle twinkle cycles per second (cycles/second)
 		HudTick: how often power-up countdowns redraw
 		ToastSeconds / PopupSeconds: how long a toast / in-run popup stays on screen
+		PopupMaxVisible: most in-run popups stacked on screen at once (count)
 		ResultAutoCloseSeconds: result window closes by itself after this, 0 = never
 		ResultCountSeconds: score and coin numbers count up over this time (seconds)
 		ToastMaxVisible: most toasts shown at once (count)
@@ -139,7 +139,6 @@
 		Run.TargetBarHeight: height of target, quest and power-up bars
 		Run.QuestWidth: width of the quest panel
 		Run.QuestRowHeight: height of a quest row
-		Run.PowerupSize: power-up icon diameter
 		Run.LeaveWidth / Run.LeaveHeight: LEAVE button size
 		Run.NarrowWidth: below this safe width the score moves to the top-right and the quest panel drops under it (design pixels)
 		Run.NarrowScoreTop: top of the score panel in the narrow run layout (design pixels)
@@ -150,18 +149,18 @@
 		Result.BadgeHeight: height of the level-up / target / quest badges
 		Result.BaseRows: rows above the badges (caption, score, stink line, three rewards, badge block) (count)
 		Toast.Width / Toast.Height / Toast.Gap: toast size and the gap between stacked toasts
-		Popup.Width / Popup.Height: size of a floating in-run popup
+		Popup.Width / Popup.Height / Popup.Gap: size of a floating in-run popup and the gap
+			between two stacked popups (design pixels)
 
 	Layouts.PC / Layouts.Mobile: where the big pieces sit. Each entry has AnchorPoint (fraction of its
 		own size) and Position (scale of the screen + design-pixel offset):
-		Wallet (level and currency), Toasts, RunTimer, RunScore, RunQuests, RunPowerups, RunLeave, Popups,
+		Wallet (level and currency), Toasts, RunTimer, RunScore, RunQuests, RunLeave, Popups,
 		RoomPills (room and invite prompts).
 		WindowMargin: gap kept between a window and the screen edge (design pixels)
 
 	MapVisuals: per map id, Icon (emoji) and Swatch (colour) of its map card
 	ModeVisuals: per mode id, Icon (emoji) and Swatch (colour) of its mode tile
 	UpgradeSwatches: card colours cycled through the upgrade cards, in order (Swatches keys)
-	PowerupSwatch: colour of power-up icons in the run HUD (Swatches key)
 	ToastSwatches: per toast kind (Info, Success, Error), the Swatches key used
 
 	Layers: drawing order, higher = on top (number): Wallet, RunHud, Juice (combo meter, milestone banners), Extras (map meter, Special Time, revive), LobbyMenu, Backdrop (full-screen
@@ -385,11 +384,11 @@ return {
 		Open = 0.22,
 		OpenFromScale = 0.82,
 		BarTween = 0.25,
-		PopupRise = 60,
 		SparkleSpeed = 0.7,
 		HudTick = 0.1,
 		ToastSeconds = 3,
 		PopupSeconds = 1.8,
+		PopupMaxVisible = 2,
 		ResultAutoCloseSeconds = 0,
 		ResultCountSeconds = 0.9,
 		ToastMaxVisible = 3,
@@ -493,7 +492,6 @@ return {
 			TargetBarHeight = 20,
 			QuestWidth = 360,
 			QuestRowHeight = 62,
-			PowerupSize = 84,
 			LeaveWidth = 170,
 			LeaveHeight = 64,
 			NarrowWidth = 1150,
@@ -515,6 +513,7 @@ return {
 		Popup = {
 			Width = 520,
 			Height = 56,
+			Gap = 8,
 		},
 	},
 
@@ -525,7 +524,6 @@ return {
 			RunTimer = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 20) },
 			RunScore = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 20) },
 			RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 200) },
-			RunPowerups = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 330) },
 			RunLeave = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -28, 1, -28) },
 			Popups = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 200) },
 			RoomPills = { AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 28, 1, -28) },
@@ -537,7 +535,6 @@ return {
 			RunTimer = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10) },
 			RunScore = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 10) },
 			RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 190) },
-			RunPowerups = { AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 16, 1, -16) },
 			RunLeave = { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -16, 1, -16) },
 			Popups = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 180) },
 			RoomPills = { AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 16, 1, -12) },
@@ -560,7 +557,6 @@ return {
 	},
 
 	UpgradeSwatches = { "Orange", "Blue", "Purple", "Teal", "Pink", "Green" },
-	PowerupSwatch = "Purple",
 
 	ToastSwatches = {
 		Info = "Blue",
