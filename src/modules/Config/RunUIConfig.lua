@@ -15,6 +15,9 @@
 		Stink: Stink pill under the run score
 			Height / IconSize: pill height and icon diameter (design pixels)
 			Swatch: pill colour (UIConfig.Swatches key)
+		Powerups: active food power-up column at the left edge
+			Size / Gap / TimerHeight: icon diameter, gap between slots and timer bar height (design pixels)
+			Swatch / TimerSwatch: icon circle and timer bar colours (UIConfig.Swatches key)
 		Event: Special Time banner, shown in the lobby and in runs
 			Width / Height: banner size (design pixels)
 			Swatch: banner colour (UIConfig.Swatches key)
@@ -26,7 +29,8 @@
 			Title: popup title (text)
 			ButtonFormat: buy button text (format: seconds added, robux price)
 			CountdownFormat: seconds left line (format: seconds)
-		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of Meter, Event and Revive
+		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of Meter, Event, Powerups
+			and Revive
 		NarrowWidth: safe widths below this move Meter and Event to the bottom centre (design pixels)
 		Narrow: Meter / Event AnchorPoint + Position used below NarrowWidth
 		Glow: highlight drawn on golden targets during a run
@@ -51,6 +55,14 @@ return {
 		Swatch = "Brown",
 	},
 
+	Powerups = {
+		Size = 64,
+		Gap = 8,
+		TimerHeight = 18,
+		Swatch = "Purple",
+		TimerSwatch = "Gold",
+	},
+
 	Event = {
 		Width = 520,
 		Height = 54,
@@ -72,11 +84,13 @@ return {
 		PC = {
 			Meter = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 104) },
 			Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 158) },
+			Powerups = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 24) },
 			Revive = { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) },
 		},
 		Mobile = {
 			Meter = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 92) },
 			Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 146) },
+			Powerups = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 12) },
 			Revive = { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) },
 		},
 	},

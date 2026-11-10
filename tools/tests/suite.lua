@@ -1344,7 +1344,8 @@ runTest("ConfigIntegrity_UI_Swatches_Visuals_And_Rarities", function()
 	for _, swatchName in UIConfig.UpgradeSwatches do
 		expect(swatches[swatchName] ~= nil, "UIConfig.UpgradeSwatches invalid swatch " .. tostring(swatchName))
 	end
-	expect(swatches[UIConfig.PowerupSwatch] ~= nil, "UIConfig.PowerupSwatch invalid swatch")
+	expect(swatches[RunUIConfig.Powerups.Swatch] ~= nil, "RunUIConfig.Powerups.Swatch invalid")
+	expect(swatches[RunUIConfig.Powerups.TimerSwatch] ~= nil, "RunUIConfig.Powerups.TimerSwatch invalid")
 	for _, swatchName in UIConfig.ToastSwatches do
 		expect(swatches[swatchName] ~= nil, "UIConfig.ToastSwatches invalid swatch " .. tostring(swatchName))
 	end
