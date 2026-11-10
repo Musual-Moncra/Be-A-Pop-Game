@@ -66,15 +66,15 @@ local function validTab(requested: any): string?
 	return nil
 end
 
-local function ribbon(): any
+local function ribbon(xScale: number, yScale: number): any
 	local swatch = Primitives.swatch("Red")
 	return e("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = swatch.Bottom,
 		BorderSizePixel = 0,
-		Position = UDim2.fromScale(0.81, 0.09),
-		Rotation = -32,
-		Size = UDim2.fromOffset(126, 24),
+		Position = UDim2.fromScale(xScale, yScale),
+		Rotation = Shop.RibbonRotation,
+		Size = UDim2.fromOffset(Shop.RibbonWidth, Shop.RibbonHeight),
 		ZIndex = 7,
 	}, {
 		Corner = Primitives.corner(6),
@@ -90,6 +90,27 @@ end
 
 local function ProductCard(props: any)
 	local hasSecond = props.secondText ~= nil
+	local tier = math.clamp(tonumber(props.tier) or 1, 1, 5)
+	local iconSize = math.max(28, Shop.TierIconBase - (tier - 1) * Shop.TierIconStep)
+	local icons: { [string]: any } = {
+		Layout = Primitives.list(
+			Enum.FillDirection.Horizontal,
+			0,
+			Enum.HorizontalAlignment.Center,
+			Enum.VerticalAlignment.Center
+		),
+	}
+	for index = 1, tier do
+		icons["Icon" .. index] = Primitives.text({
+			AutomaticSize = Enum.AutomaticSize.XY,
+			LayoutOrder = index,
+			Size = UDim2.new(),
+			Stroke = false,
+			Text = props.icon,
+			TextSize = iconSize,
+			ZIndex = 3,
+		})
+	end
 	local buttonSwatch = if props.buttonEnabled == false then "Grey" else props.buttonSwatch
 	local buttonWidth = if hasSecond then 0.47 else 0.86
 	local buttonAnchor = if hasSecond then Vector2.new(0, 1) else Vector2.new(0.5, 1)
@@ -98,14 +119,12 @@ local function ProductCard(props: any)
 		else UDim2.new(0.5, 0, 1, -Shape.ContentPadding)
 
 	local children: { [string]: any } = {
-		Icon = Primitives.text({
+		Icons = e("Frame", {
+			BackgroundTransparency = 1,
 			Position = UDim2.fromScale(0, 0.03),
 			Size = UDim2.new(1, 0, 0.30, 0),
-			Stroke = false,
-			Text = props.icon,
-			TextSize = TextSizes.BigIcon * 1.15,
 			ZIndex = 3,
-		}),
+		}, icons),
 		Title = Primitives.text({
 			Fit = true,
 			Position = UDim2.new(0, 0, 0.35, 0),
@@ -124,9 +143,8 @@ local function ProductCard(props: any)
 			ZIndex = 3,
 		}),
 		Info = Primitives.text({
-			Color = Palette.TextSoft,
+			Color = Palette.Text,
 			Fit = true,
-			Font = "Body",
 			Position = UDim2.new(0, 0, 0.57, 0),
 			Size = UDim2.new(1, 0, 0, TextSizes.Small * 1.8),
 			StrokeSize = Shape.SmallTextStroke,
@@ -173,7 +191,7 @@ local function ProductCard(props: any)
 			swatch = props.swatch,
 			zIndex = 2,
 		}, children),
-		Ribbon = if props.best then ribbon() else nil,
+		Ribbon = if props.best then ribbon(Shop.RibbonX, Shop.RibbonY) else nil,
 	})
 end
 
@@ -248,13 +266,13 @@ local function PassCard(props: any)
 					position = UDim2.new(1, -Shape.ContentPadding, 0.5, 0),
 					shine = available,
 					size = UDim2.fromOffset(150, 48),
-					swatch = if available then "Green" else "Grey",
-					text = if available then robux(pass.PriceRobux) else Shop.SoonText,
+					swatch = "Green",
+					text = robux(pass.PriceRobux),
 					textSize = TextSizes.Body,
 					zIndex = 3,
 				}),
 		}),
-		Ribbon = if props.best then ribbon() else nil,
+		Ribbon = if props.best then ribbon(Shop.RibbonPassX, Shop.RibbonPassY) else nil,
 	})
 end
 
@@ -291,19 +309,21 @@ local function packCard(
 	tab: string
 ): any
 	local available = pack.Id ~= 0
+	local tierSwatch = Shop.TierSwatches[math.min(index, #Shop.TierSwatches)] or swatch
 	return e(ProductCard, {
 		best = bestValue(tab, index),
 		bonus = bonus,
 		buttonEnabled = available,
 		buttonSwatch = "Green",
-		buttonText = if available then robux(pack.PriceRobux) else Shop.SoonText,
+		buttonText = robux(pack.PriceRobux),
 		icon = icon,
 		info = pack.DisplayName,
 		onButton = function()
 			promptProduct(pack.Id)
 		end,
 		order = index,
-		swatch = swatch,
+		swatch = tierSwatch,
+		tier = index,
 		title = amountText,
 	})
 end
@@ -318,7 +338,7 @@ local function potionCard(potion: any, index: number, data: any, tab: string): a
 		bonus = string.format(Shop.PotionStatFormat, potion.Multiplier, potion.Stat),
 		buttonEnabled = available,
 		buttonSwatch = "Green",
-		buttonText = if available then robux(potion.PriceRobux) else Shop.SoonText,
+		buttonText = robux(potion.PriceRobux),
 		icon = potion.Icon,
 		info = potion.Description,
 		onButton = function()
@@ -394,7 +414,7 @@ return function(props: any)
 				bonus = petName,
 				buttonEnabled = available,
 				buttonSwatch = "Green",
-				buttonText = if available then robux(pack.PriceRobux) else Shop.SoonText,
+				buttonText = robux(pack.PriceRobux),
 				icon = Shop.NewbiePackIcon,
 				info = string.format(
 					Shop.NewbiePackInfoFormat,
@@ -419,7 +439,7 @@ return function(props: any)
 			bonus = Shop.OneShotText,
 			buttonEnabled = available,
 			buttonSwatch = "Green",
-			buttonText = if available then robux(bomb.PriceRobux) else Shop.SoonText,
+			buttonText = robux(bomb.PriceRobux),
 			icon = Shop.StainBombIcon,
 			info = string.format(Shop.StainBombInfoFormat, Format.multiplier(MonetizationConfig.StainBombAreaScale)),
 			onButton = function()

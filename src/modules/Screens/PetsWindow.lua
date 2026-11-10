@@ -111,6 +111,28 @@ local function variantSwatch(variant: any): string
 	return Pets.VariantSwatches[variant.Id] or "Purple"
 end
 
+local function variantRim(variant: any): any
+	if variant == nil or variant.Id == "Default" then
+		return nil
+	end
+	local rim = Pets.VariantRims[variant.Id]
+	if rim == nil then
+		return nil
+	end
+	local stroke = e("UIStroke", {
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Color = rim.Color or Color3.fromRGB(255, 255, 255),
+		Thickness = Shape.RimStroke,
+	}, if rim.Colors ~= nil then { Gradient = e("UIGradient", { Color = ColorSequence.new(rim.Colors) }) } else nil)
+	return e("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1),
+	}, {
+		Corner = Primitives.corner(Shape.Radius),
+		Stroke = stroke,
+	})
+end
+
 local function stinkText(entry: any): string
 	return string.format(
 		Pets.PetStinkFormat,
@@ -142,7 +164,7 @@ local function PetGridCard(props: any)
 					Color = Palette.Sparkle,
 					Thickness = Shape.RimStroke,
 				})
-				else nil,
+				else variantRim(props.variant),
 			rarity = if pet ~= nil then pet.Rarity else nil,
 			size = UDim2.fromScale(1, 1),
 			swatch = raritySwatch(pet),
@@ -152,7 +174,7 @@ local function PetGridCard(props: any)
 				Position = UDim2.new(0, 0, 0.08, 0),
 				Size = UDim2.new(1, 0, 0.48, 0),
 				Stroke = false,
-				Text = Pets.PetIcon,
+				Text = if pet ~= nil then (pet.Icon or Pets.PetIcon) else Pets.PetIcon,
 				TextSize = Pets.CardIconSize,
 				ZIndex = 3,
 			}),
@@ -267,7 +289,7 @@ local function PetDetails(props: any)
 			Position = UDim2.new(0, 0, 0, 12),
 			Size = UDim2.new(1, 0, 0, Pets.DetailsIconSize),
 			Stroke = false,
-			Text = Pets.PetIcon,
+			Text = if pet ~= nil then (pet.Icon or Pets.PetIcon) else Pets.PetIcon,
 			TextSize = Pets.DetailsIconSize,
 			ZIndex = 3,
 			ref = iconRef,
@@ -367,54 +389,61 @@ local function indexTile(pet: any, discovered: boolean, order: number): any
 	local rarity = ConfigLookup.GetRarity(pet.Rarity)
 	local odds = PetView.DropOdds(pet)
 	local name = if discovered then pet.DisplayName else Index.UnknownName
-	local icon = if discovered then Pets.PetIcon else Index.LockedIcon
+	local icon = if discovered then (pet.Icon or Pets.PetIcon) else Index.LockedIcon
 	local rarityName = if rarity ~= nil then rarity.DisplayName else pet.Rarity
 	local oddsText = if odds > 0 then string.format(Index.OddsFormat, Format.multiplier(odds)) else ""
+	local swatchName = if discovered then raritySwatch(pet) else "Grey"
+	local swatch = Primitives.swatch(swatchName)
+	local wellColor = if discovered
+		then (rarity.Color or LobbyUIConfig.RarityColors[pet.Rarity] or Palette.Inset)
+		else Palette.Ink
 
 	return e(ChunkyButton, {
 		layoutOrder = order,
 		rarity = if discovered then pet.Rarity else nil,
-		swatch = if discovered then raritySwatch(pet) else "Grey",
+		swatch = swatchName,
 	}, {
-		Icon = e(Inset, {
-			Position = UDim2.new(0.1, 0, 0.06, 0),
-			radius = Shape.Radius,
-			size = UDim2.new(0.8, 0, 0.5, 0),
+		Well = e("Frame", {
+			BackgroundColor3 = wellColor,
+			BorderSizePixel = 0,
+			Position = UDim2.fromOffset(Index.TilePadding, Index.TilePadding),
+			Size = UDim2.new(1, -Index.TilePadding * 2, 0, Index.IconWellHeight),
+			ZIndex = 3,
 		}, {
-			Background = e("Frame", {
-				BackgroundColor3 = if discovered then pet.Color else Palette.Ink,
-				BorderSizePixel = 0,
-				Size = UDim2.fromScale(1, 1),
-			}, { Corner = Primitives.corner(Shape.Radius) }),
+			Corner = Primitives.corner(Shape.Radius),
+			Gradient = if discovered then Primitives.gradient(swatch.Top, swatch.Bottom) else nil,
+			Stroke = Primitives.stroke(Palette.InsetStroke, Shape.Stroke),
 			Icon = Primitives.text({
 				Stroke = false,
 				Text = icon,
 				TextSize = Index.TileIconSize,
-				ZIndex = 3,
+				ZIndex = 4,
 			}),
 		}),
 		Name = Primitives.text({
 			Fit = true,
-			Position = UDim2.new(0.04, 0, 0.6, 0),
+			Position = UDim2.new(0.04, 0, 0, Index.TilePadding + Index.IconWellHeight + 4),
 			Size = UDim2.new(0.92, 0, 0, TextSizes.Body),
 			Text = name,
 			TextSize = TextSizes.Body,
 			ZIndex = 3,
 		}),
-		Rarity = Primitives.text({
-			Color = if rarity ~= nil then rarity.Color else Palette.TextSoft,
-			Position = UDim2.new(0.04, 0, 0.72, 0),
-			Size = UDim2.new(0.92, 0, 0, TextSizes.Small),
-			Text = rarityName,
-			TextSize = TextSizes.Small,
-			ZIndex = 3,
+		Rarity = e(Chip, {
+			anchorPoint = Vector2.new(0.5, 0),
+			height = 20,
+			position = UDim2.new(0.5, 0, 0, Index.TilePadding + Index.IconWellHeight + 28),
+			swatch = swatchName,
+			text = rarityName,
+			textSize = TextSizes.Tiny,
+			zIndex = 4,
 		}),
 		Odds = Primitives.text({
 			Color = Palette.TextSoft,
-			Position = UDim2.new(0.04, 0, 0.83, 0),
+			Position = UDim2.new(0.04, 0, 0, Index.TilePadding + Index.IconWellHeight + 52),
 			Size = UDim2.new(0.92, 0, 0, TextSizes.Small),
 			Text = oddsText,
 			TextSize = TextSizes.Small,
+			XAlign = Enum.TextXAlignment.Center,
 			ZIndex = 3,
 		}),
 	})
@@ -424,11 +453,12 @@ local function mapTabs(): { any }
 	local tabs = {}
 	for _, map in ConfigLookup.GetSortedMaps() do
 		local visual = UIConfig.MapVisuals[map.Id] or {}
+		local soon = isComingSoon(map)
 		table.insert(tabs, {
-			Icon = visual.Icon or "🗺️",
+			Icon = if soon then Index.MapComingSoonIcon else (visual.Icon or "🗺️"),
 			Id = map.Id,
 			Label = map.DisplayName,
-			Swatch = visual.Swatch or "Grey",
+			Swatch = if soon then "Grey" else (visual.Swatch or "Grey"),
 		})
 	end
 	return tabs
@@ -446,16 +476,25 @@ local function RewardBox(map: any, data: any): any
 	end
 	local complete = #normal > 0 and discovered >= #normal
 	local earned = claimed or complete
-	local text = if earned
-		then Index.ClaimedText
+	local claimable = complete
+	local text = if exclusive ~= nil
+		then string.format(Index.RewardGemsFormat, PetView.IndexGems())
 		elseif isComingSoon(map) then Index.ComingSoonText
-		elseif exclusive ~= nil then string.format(Index.RewardGemsFormat, PetView.IndexGems())
 		else Index.NoPetsText
 
 	return e(ChunkyButton, {
 		anchorPoint = Vector2.new(1, 0.5),
+		overlay = if claimable
+			then e("Frame", {
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(1, 1),
+			}, {
+				Corner = Primitives.corner(Shape.Radius),
+				Stroke = Primitives.stroke(UIConfig.Swatches.Gold.Top, Shape.RimStroke),
+			})
+			else nil,
 		position = UDim2.new(1, 0, 0.5, 0),
-		shine = earned,
+		shine = claimable,
 		size = UDim2.fromOffset(Index.RewardBoxWidth, Index.RewardBoxHeight),
 		swatch = "Gold",
 		zIndex = 3,
@@ -464,7 +503,7 @@ local function RewardBox(map: any, data: any): any
 			Position = UDim2.fromScale(0, 0.1),
 			Size = UDim2.fromScale(0.5, 0.8),
 			Stroke = false,
-			Text = if exclusive ~= nil then Pets.PetIcon else Index.LockedIcon,
+			Text = if exclusive ~= nil then (exclusive.Icon or Pets.PetIcon) else Index.LockedIcon,
 			TextSize = TextSizes.Icon,
 			ZIndex = 4,
 		}),
@@ -502,6 +541,14 @@ return function(props: any)
 	local narrow = ui.mobile or ui.safeWidth < 900
 	local isIndex = tab == Pets.Tabs[2].Id
 
+	local function selectMap(id: string)
+		local map = ConfigLookup.GetMap(id)
+		if map == nil or isComingSoon(map) then
+			return
+		end
+		setSelectedMap(id)
+	end
+
 	React.useEffect(function()
 		setConfirmUid(nil)
 		setSelectedUid(nil)
@@ -534,7 +581,7 @@ return function(props: any)
 		Pets.HeaderFormat,
 		#(data.Pets.Equipped or {}),
 		data.Pets.Slots or 0,
-		Format.multiplier(PetView.TotalStink(data))
+		string.format(Pets.StinkHeaderFormat, PetView.TotalStink(data))
 	)
 
 	local body
@@ -581,7 +628,7 @@ return function(props: any)
 		end
 		local bodyTop = LobbyUIConfig.Tabs.Height + Gap + Index.RewardBoxHeight + Gap
 		body = {
-			MapTabs = e(Tabs, { onSelect = setSelectedMap, selected = selectedMap, tabs = tabs }),
+			MapTabs = e(Tabs, { onSelect = selectMap, selected = selectedMap, tabs = tabs }),
 			Progress = e("Frame", {
 				BackgroundTransparency = 1,
 				Position = UDim2.fromOffset(0, LobbyUIConfig.Tabs.Height + Gap),

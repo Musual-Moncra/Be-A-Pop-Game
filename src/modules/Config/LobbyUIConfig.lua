@@ -85,6 +85,11 @@
 			Width / Height / Swatch / Title / Icon: window size (design pixels), header colour, title, emoji
 			CardWidth / CardHeight / GridGap: product card size and gap between cards (design pixels)
 			PassRowHeight: height of one wide pass card (design pixels)
+			TierSwatches: card gradient per pack tier, low to high value (UIConfig.Swatches keys)
+			TierIconBase / TierIconStep: icon size at tier 1 and the shrink per higher tier (design pixels)
+			RibbonWidth / RibbonHeight / RibbonRotation: BEST VALUE ribbon size and tilt (design pixels, degrees)
+			RibbonX / RibbonY: ribbon centre on a product card (scale 0..1)
+			RibbonPassX / RibbonPassY: ribbon centre on a pass card (scale 0..1)
 			BestValue: product that gets the BEST VALUE ribbon per tab (pack index or product key)
 			BestValueText: ribbon text (text)
 			BonusFormat: gem pack bonus line (format: bonus percent)
@@ -111,10 +116,12 @@
 			StackBarHeight: stacks bar height (design pixels)
 			SheetHeight / SheetCloseSize: phone bottom sheet height and close button size (design pixels)
 			HeaderFormat: equipped / Stink line (format: used, total, stink)
+			StinkHeaderFormat: Stink number in the header with two decimals (format: stink)
 			DetailsEmptyText: details panel placeholder (text)
 			DetailsNameSize / DetailsIconSize: pet name and big icon sizes (design pixels)
 			EquippedIcon: check mark on an equipped pet card (text)
 			VariantSwatches: variant id -> UIConfig.Swatches key for the variant chip
+			VariantRims: variant id -> rim Colour3 or rainbow Colour list for the card rim
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "MyPets" or "Index"
 			PetIcon: emoji shown on every pet card (text)
 			EquipText / UnequipText / EvolveText / DeleteText / DeleteConfirmText: pet card buttons (text)
@@ -131,6 +138,8 @@
 			Index: Pet Index section look and text
 				Columns / TileWidth / TileHeight / TileIconSize: tile grid (count, design pixels)
 				ProgressHeight: progress bar height (design pixels)
+				TilePadding / IconWellHeight: icon well inset and height (design pixels)
+				MapComingSoonIcon: lock icon on a coming-soon map tab (text)
 				RewardBoxHeight / RewardBoxWidth: exclusive reward box size (design pixels)
 				HeaderHeight / SectionGap / RewardHeight: section header, section gap, reward line (design pixels)
 				ProgressFormat: discovered / total line (format: found, total)
@@ -381,6 +390,16 @@ return {
 		CardHeight = 230,
 		GridGap = 12,
 		PassRowHeight = 104,
+		TierSwatches = { "Blue", "Purple", "Pink", "Gold", "Gold" },
+		TierIconBase = 64,
+		TierIconStep = 8,
+		RibbonWidth = 104,
+		RibbonHeight = 22,
+		RibbonRotation = -28,
+		RibbonX = 0.70,
+		RibbonY = 0.16,
+		RibbonPassX = 0.80,
+		RibbonPassY = 0.35,
 		BestValue = {
 			Gems = 4,
 			Coins = 4,
@@ -442,6 +461,7 @@ return {
 		SheetHeight = 300,
 		SheetCloseSize = 44,
 		HeaderFormat = "Equipped %d/%d  ·  Stink x%s total",
+		StinkHeaderFormat = "%.2f",
 		DetailsEmptyText = "Tap a pet to see it here.",
 		DetailsNameSize = 34,
 		DetailsIconSize = 130,
@@ -450,6 +470,20 @@ return {
 			Golden = "Gold",
 			Rainbow = "Purple",
 			Stinky = "Brown",
+		},
+		VariantRims = {
+			Golden = { Color = Color3.fromRGB(255, 210, 60) },
+			Rainbow = {
+				Colors = {
+					Color3.fromRGB(255, 90, 120),
+					Color3.fromRGB(255, 210, 60),
+					Color3.fromRGB(90, 230, 140),
+					Color3.fromRGB(90, 190, 255),
+					Color3.fromRGB(200, 120, 255),
+					Color3.fromRGB(255, 90, 120),
+				},
+			},
+			Stinky = { Color = Color3.fromRGB(120, 220, 70) },
 		},
 		Tabs = {
 			{ Id = "MyPets", Label = "MY PETS", Icon = "🐶", Swatch = "Pink" },
@@ -491,6 +525,9 @@ return {
 			SectionGap = 16,
 			RewardHeight = 56,
 			ProgressHeight = 22,
+			TilePadding = 8,
+			IconWellHeight = 76,
+			MapComingSoonIcon = "🔒",
 			RewardBoxHeight = 76,
 			RewardBoxWidth = 220,
 			ProgressFormat = "%d/%d",
