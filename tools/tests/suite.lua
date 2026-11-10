@@ -1109,6 +1109,7 @@ runTest("ConfigIntegrity_Pets_Rarities_Variants", function()
 			string.format("Pet %s references invalid rarity %s", pet.Id, pet.Rarity)
 		)
 		expect(pet.Stink > 0, "Pet Stink must be positive: " .. pet.Id)
+		expect(type(pet.Icon) == "string" and pet.Icon ~= "", "Pet must have an Icon: " .. pet.Id)
 		expect(pet.ModelName == pet.Id, "Pet ModelName must be its Id: " .. pet.Id)
 		if pet.MapId ~= "" then
 			expect(

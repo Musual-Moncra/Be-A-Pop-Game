@@ -67,6 +67,7 @@
 			Rarity: rarity id from Rarities (rarity id)
 			Stink: base Stink multiplier of the pet (multiplier)
 			Exclusive: true = Pet Index reward, never rolled (true/false)
+			Icon: emoji shown on pet cards, the details panel and the Pet Index (text)
 			DropOdds: 1/N weight inside the map pool, 0 = not rolled (number)
 			Size: target follower size (studs): placeholder ball diameter, or the longest model axis after ScaleTo
 			Color: placeholder follower body colour (RGB)
@@ -229,6 +230,7 @@ return {
 		{
 			Id = "Snail",
 			DisplayName = "Snail",
+			Icon = "🐌",
 			MapId = "Zone3",
 			Rarity = "Common",
 			Stink = 1.1,
@@ -241,6 +243,7 @@ return {
 		{
 			Id = "Parrot",
 			DisplayName = "Parrot",
+			Icon = "🦜",
 			MapId = "Zone3",
 			Rarity = "Uncommon",
 			Stink = 1.2,
@@ -253,6 +256,7 @@ return {
 		{
 			Id = "Bulldog",
 			DisplayName = "Bulldog",
+			Icon = "🐶",
 			MapId = "Zone3",
 			Rarity = "Uncommon",
 			Stink = 1.2,
@@ -265,6 +269,7 @@ return {
 		{
 			Id = "Raccoon",
 			DisplayName = "Raccoon",
+			Icon = "🦝",
 			MapId = "Zone3",
 			Rarity = "Uncommon",
 			Stink = 1.2,
@@ -277,6 +282,7 @@ return {
 		{
 			Id = "Pelican",
 			DisplayName = "Pelican",
+			Icon = "🦤",
 			MapId = "Zone3",
 			Rarity = "Rare",
 			Stink = 1.35,
@@ -289,6 +295,7 @@ return {
 		{
 			Id = "HomelessGuy",
 			DisplayName = "Homeless Guy",
+			Icon = "🧔",
 			MapId = "Zone3",
 			Rarity = "Epic",
 			Stink = 1.6,
@@ -301,6 +308,7 @@ return {
 		{
 			Id = "ParkKing",
 			DisplayName = "Park King",
+			Icon = "👑",
 			MapId = "Zone3",
 			Rarity = "Legendary",
 			Stink = 2.2,
@@ -313,6 +321,7 @@ return {
 		{
 			Id = "PersianCat",
 			DisplayName = "Persian Cat",
+			Icon = "🐱",
 			MapId = "Zone2",
 			Rarity = "Common",
 			Stink = 1.25,
@@ -325,6 +334,7 @@ return {
 		{
 			Id = "CyberDog",
 			DisplayName = "Cyber Dog",
+			Icon = "🤖",
 			MapId = "Zone2",
 			Rarity = "Uncommon",
 			Stink = 1.4,
@@ -337,6 +347,7 @@ return {
 		{
 			Id = "LivingTeddyBear",
 			DisplayName = "Living Teddy Bear",
+			Icon = "🧸",
 			MapId = "Zone2",
 			Rarity = "Uncommon",
 			Stink = 1.4,
@@ -349,6 +360,7 @@ return {
 		{
 			Id = "PuppyHotdog",
 			DisplayName = "Puppy Hotdog",
+			Icon = "🌭",
 			MapId = "Zone2",
 			Rarity = "Rare",
 			Stink = 1.6,
@@ -361,6 +373,7 @@ return {
 		{
 			Id = "GummyBear",
 			DisplayName = "Gummy Bear",
+			Icon = "🍬",
 			MapId = "Zone2",
 			Rarity = "Epic",
 			Stink = 1.9,
@@ -373,6 +386,7 @@ return {
 		{
 			Id = "MallCop",
 			DisplayName = "Mall Cop",
+			Icon = "👮",
 			MapId = "Zone2",
 			Rarity = "Epic",
 			Stink = 1.9,
@@ -385,6 +399,7 @@ return {
 		{
 			Id = "MallMonarch",
 			DisplayName = "Mall Monarch",
+			Icon = "🦚",
 			MapId = "Zone2",
 			Rarity = "Legendary",
 			Stink = 2.8,
@@ -397,6 +412,7 @@ return {
 		{
 			Id = "GoldenPoopDoge",
 			DisplayName = "Golden Poop Doge",
+			Icon = "🐕",
 			MapId = "",
 			Rarity = "Legendary",
 			Stink = 1.5,
