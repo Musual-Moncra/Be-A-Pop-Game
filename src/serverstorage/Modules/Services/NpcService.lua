@@ -6,7 +6,8 @@
 	the state attribute the client vision zones read, panic on soiling, panic-coin drops and the
 	catch penalty. RoomService calls SetupInstance when a room acquires a map copy, Step from the
 	shared run heartbeat, CheckCatch for every active run and Panic when an object is soiled.
-	RunService calls SoilFromStain when a stain ray hits an NPC model.
+	RunService calls SoilContact every run tick (players splat an NPC by rolling into it) and
+	SoilFromStain when a stain ray hits an NPC model.
 
 	Patrol legs use PathfindingService: each leg is computed once per NPC and followed waypoint by
 	waypoint, and the whole server may start at most NpcConfig.PathsPerSecond path computations
@@ -23,6 +24,7 @@
 		NpcService.RemoveInstance(mapModel: Model)
 		NpcService.Step(now: number)
 		NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
+		NpcService.SoilContact(mapModel: Model, hrp: BasePart) -> number
 		NpcService.SoilFromStain(mapModel: Model, hitPart: BasePart, plr: Player) -> number
 		NpcService.Panic(mapModel: Model, plr: Player, position: Vector3)
 
@@ -741,19 +743,58 @@ function NpcService.CheckCatch(run: CatchRun, hrp: BasePart)
 	end
 end
 
-function NpcService.SoilFromStain(mapModel: Model, hitPart: BasePart, plr: Player): number
-	local npc = findNpcByHit(mapModel, hitPart)
-	if npc == nil or npc.soiled then
+local function soilNpc(npc: Npc, fromPosition: Vector3): number
+	if npc.soiled then
 		return 0
 	end
 	npc.soiled = true
-
-	local character = plr.Character
-	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
-	local fromPosition = if hrp ~= nil then hrp.Position else npc.model:GetPivot().Position
 	startPanic(npc, fromPosition, os.clock(), true)
 	spawnPanicCoins(npc)
 	return NpcConfig.PanicSoilBonus
+end
+
+function NpcService.SoilContact(mapModel: Model, hrp: BasePart): number
+	local list = npcs[mapModel]
+	if list == nil then
+		return 0
+	end
+
+	local root = hrp.CFrame
+	local scale = Hitbox.Scale(hrp)
+	local checkSq = NpcConfig.SoilCheckRadius * NpcConfig.SoilCheckRadius
+	local contact = ConfigLookup.GetNpcSoilContactRadius(scale)
+	local contactSq = contact * contact
+	local total = 0
+
+	for _, npc in list do
+		if not npc.soiled then
+			local npcPosition = npc.model:GetPivot().Position
+			local ox = npcPosition.X - root.Position.X
+			local oy = npcPosition.Y - root.Position.Y
+			local oz = npcPosition.Z - root.Position.Z
+			if ox * ox + oy * oy + oz * oz <= checkSq then
+				local closest = Hitbox.ClosestPoint(root, scale, npcPosition)
+				local dx = npcPosition.X - closest.X
+				local dy = npcPosition.Y - closest.Y
+				local dz = npcPosition.Z - closest.Z
+				if dx * dx + dy * dy + dz * dz <= contactSq then
+					total += soilNpc(npc, root.Position)
+				end
+			end
+		end
+	end
+	return total
+end
+
+function NpcService.SoilFromStain(mapModel: Model, hitPart: BasePart, plr: Player): number
+	local npc = findNpcByHit(mapModel, hitPart)
+	if npc == nil then
+		return 0
+	end
+	local character = plr.Character
+	local hrp = if character ~= nil then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
+	local fromPosition = if hrp ~= nil then hrp.Position else npc.model:GetPivot().Position
+	return soilNpc(npc, fromPosition)
 end
 
 function NpcService.Panic(mapModel: Model, plr: Player, position: Vector3)

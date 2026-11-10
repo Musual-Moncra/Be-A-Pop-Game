@@ -22,6 +22,9 @@
 		PanicSpeed: flee speed of a panicking NPC (studs/second)
 		PanicSeconds: how long a panic lasts before the NPC returns to its patrol line (seconds)
 		PanicRadius: a fully soiled prop within this distance makes a patrolling NPC panic (studs)
+		SoilContactRadius: distance from the poop hitbox to an NPC that soils it on contact, scaled
+			by Hitbox.Scale so bigger characters reach further (studs)
+		SoilCheckRadius: coarse pre-check around the poop; only NPCs this close run the contact test (studs)
 		PanicSoilBonus: score paid the first time an NPC itself is soiled (points)
 		PanicCoinCount: coin orbs dropped by a soiled NPC (count)
 		PanicCoinPoints: score paid when one coin orb is picked up (points)
@@ -71,6 +74,8 @@ return {
 	PanicSpeed = 18,
 	PanicSeconds = 4,
 	PanicRadius = 45,
+	SoilContactRadius = 3,
+	SoilCheckRadius = 14,
 	PanicSoilBonus = 100,
 	PanicCoinCount = 3,
 	PanicCoinPoints = 25,

@@ -709,10 +709,33 @@ runTest("ConfigLookup_GetPanicCoinOffset", function()
 	expectNear(clamped.Z, first.Z, 1e-9, "Index below 1 clamps to the first offset")
 end)
 
+runTest("ConfigLookup_GetNpcSoilContactRadius", function()
+	expect(NpcConfig.SoilContactRadius > 0, "SoilContactRadius must be positive")
+	expectNear(
+		ConfigLookup.GetNpcSoilContactRadius(1),
+		NpcConfig.SoilContactRadius,
+		1e-9,
+		"Normal hitbox uses SoilContactRadius"
+	)
+	expectNear(
+		ConfigLookup.GetNpcSoilContactRadius(2),
+		NpcConfig.SoilContactRadius * 2,
+		1e-9,
+		"Contact reach scales with the hitbox"
+	)
+	expectNear(ConfigLookup.GetNpcSoilContactRadius(0), 0, 1e-9, "Zero hitbox has zero contact reach")
+	expectNear(ConfigLookup.GetNpcSoilContactRadius(-1), 0, 1e-9, "Negative hitbox clamps to zero")
+end)
+
 runTest("ConfigIntegrity_NpcPanic_And_Sound", function()
 	expect(NpcConfig.PanicSpeed > 0, "PanicSpeed must be positive")
 	expect(NpcConfig.PanicSeconds > 0, "PanicSeconds must be positive")
 	expect(NpcConfig.PanicRadius > 0, "PanicRadius must be positive")
+	expect(NpcConfig.SoilContactRadius > 0, "SoilContactRadius must be positive")
+	expect(
+		NpcConfig.SoilCheckRadius >= NpcConfig.SoilContactRadius * PowerupConfig.MaxCharacterScale,
+		"SoilCheckRadius must cover the biggest hitbox"
+	)
 	expect(NpcConfig.PanicSoilBonus > 0, "PanicSoilBonus must be positive")
 	expect(NpcConfig.PanicCoinCount == 3, "A soiled NPC must drop 3 PanicCoins")
 	expect(NpcConfig.PanicCoinPoints > 0, "PanicCoinPoints must be positive")

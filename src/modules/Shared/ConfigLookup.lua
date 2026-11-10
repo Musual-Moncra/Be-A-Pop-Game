@@ -32,6 +32,7 @@
 		ConfigLookup.GetMapCellCount(size) -> number        stain cells covering a footprint
 		ConfigLookup.GetMapProgressPercent(stained, total) -> number
 		ConfigLookup.GetPanicCoinOffset(index, count) -> Vector3   orb offset around a soiled NPC
+		ConfigLookup.GetNpcSoilContactRadius(scale) -> number     contact soil reach for a hitbox scale
 		ConfigLookup.GetPotion(id) -> PotionDefinition?
 		ConfigLookup.GetSortedPotionIds() -> { string }
 		ConfigLookup.GetRebirthCost(rebirths) -> number
@@ -426,6 +427,10 @@ function ConfigLookup.GetPanicCoinOffset(index: number, count: number): Vector3
 		NpcConfig.PanicCoinHeight,
 		math.sin(angle) * NpcConfig.PanicCoinSpread
 	)
+end
+
+function ConfigLookup.GetNpcSoilContactRadius(hitboxScale: number): number
+	return NpcConfig.SoilContactRadius * math.max(0, hitboxScale)
 end
 
 function ConfigLookup.GetPotion(id: string): PotionDefinition?
