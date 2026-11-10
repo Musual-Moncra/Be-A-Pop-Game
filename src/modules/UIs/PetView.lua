@@ -2,20 +2,17 @@
 
 --[[
 	PetView
-	Read-only pet metadata helpers shared by the pet UI. PetConfig is being extended in
-	parallel (Stink, MapId, DropOdds, Exclusive, StackCap, StackBonus, IndexGems), so every
-	lookup reads the new field first and falls back to the Phase 6 shape while the branches
-	are apart.
+	Read-only pet metadata helpers shared by the pet UI: map pool, exclusive reward pet,
+	Stink with variant and stacks, drop odds, stack cap and index gems, plus the few derived
+	values the screens need (total equipped Stink, discovered lookup).
 
 	API:
-		PetView.MapId(pet) -> map id a pet drops on, "" = not droppable
-		PetView.BaseStink(pet) -> base Stink multiplier of a pet
 		PetView.Stink(petId, variantId, stacks) -> Stink multiplier including variant and stacks
 		PetView.DropOdds(pet) -> 1/N roll weight, 0 = unknown
-		PetView.IsExclusive(pet) -> true for a map's index reward pet
-		PetView.StackCap() -> most Stacks a pet can hold, 0 = unknown
+		PetView.StackCap() -> most Stacks a pet can hold
 		PetView.IndexGems() -> gems paid when a map index completes
-		PetView.PoolForMap(mapId) -> pets droppable on that map
+		PetView.PoolForMap(mapId) -> non-exclusive pets droppable on that map
+		PetView.ExclusivePet(mapId) -> the map's Pet Index reward pet, if any
 		PetView.TotalStink(data) -> equipped Stink multiplier from the server, else recomputed
 		PetView.IsDiscovered(index, petId) -> pet appears in the saved Pet Index
 	Dependencies: ConfigLookup, PetConfig
@@ -28,30 +25,12 @@ local PetConfig = require(ReplicatedStorage.Modules.Config.PetConfig)
 
 local PetView = {}
 
-function PetView.MapId(pet: any): string
-	local source = pet
-	if type(source.MapId) == "string" then
-		return source.MapId
-	end
-	local egg = ConfigLookup.GetEgg(source.EggId)
-	return if egg ~= nil then egg.MapId else ""
-end
-
-function PetView.BaseStink(pet: any): number
-	local source = pet
-	local stink = tonumber(source.Stink)
-	if stink ~= nil then
-		return stink
-	end
-	return tonumber(source.StinkMultiplier) or 1
+local function baseStink(pet: any): number
+	return tonumber(pet.Stink) or 1
 end
 
 function PetView.StackCap(): number
-	local cap = tonumber((PetConfig :: any).StackCap)
-	if cap == nil or cap <= 0 then
-		return 0
-	end
-	return math.floor(cap)
+	return math.max(0, math.floor(PetConfig.StackCap))
 end
 
 function PetView.Stink(petId: string, variantId: string, stacks: number): number
@@ -61,13 +40,13 @@ function PetView.Stink(petId: string, variantId: string, stacks: number): number
 	end
 	local variant = ConfigLookup.GetVariant(variantId)
 	local variantBonus = if variant ~= nil then variant.Bonus else 1
-	local stackBonus = tonumber((PetConfig :: any).StackBonus) or 0
+	local stackBonus = PetConfig.StackBonus
 	local cap = PetView.StackCap()
 	local capped = math.max(0, math.floor(stacks))
 	if cap > 0 then
 		capped = math.min(capped, cap)
 	end
-	return PetView.BaseStink(pet) * variantBonus * (1 + stackBonus * capped)
+	return baseStink(pet) * variantBonus * (1 + stackBonus * capped)
 end
 
 function PetView.DropOdds(pet: any): number
@@ -78,26 +57,16 @@ function PetView.DropOdds(pet: any): number
 	return math.floor(odds)
 end
 
-function PetView.IsExclusive(pet: any): boolean
-	return pet.Exclusive == true
-end
-
 function PetView.IndexGems(): number
-	local gems = tonumber((PetConfig :: any).IndexGems)
-	if gems == nil then
-		return 0
-	end
-	return math.max(0, math.floor(gems))
+	return math.max(0, math.floor(PetConfig.IndexGems))
 end
 
 function PetView.PoolForMap(mapId: string): { any }
-	local pool = {}
-	for _, pet in ConfigLookup.GetSortedPets() do
-		if PetView.MapId(pet) == mapId then
-			table.insert(pool, pet)
-		end
-	end
-	return pool
+	return ConfigLookup.GetPetsForMap(mapId)
+end
+
+function PetView.ExclusivePet(mapId: string): any
+	return ConfigLookup.GetExclusivePet(mapId)
 end
 
 function PetView.TotalStink(data: any): number

@@ -57,6 +57,12 @@ return function(props: any)
 			radius = Shape.Radius,
 			size = UDim2.new(1, 0, 0, iconHeight),
 		}, {
+			Background = e("Frame", {
+				BackgroundColor3 = props.pet.Color or Palette.Inset,
+				BorderSizePixel = 0,
+				Size = UDim2.fromScale(1, 1),
+				ZIndex = 1,
+			}, { Corner = Primitives.corner(Shape.Radius) }),
 			Icon = Primitives.text({
 				Stroke = false,
 				Text = Pets.PetIcon,

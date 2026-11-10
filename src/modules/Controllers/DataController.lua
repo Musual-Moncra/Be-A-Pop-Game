@@ -70,7 +70,6 @@ local DailyRewardConfig = require(ReplicatedStorage.Modules.Config.DailyRewardCo
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
-local PetConfig = require(ReplicatedStorage.Modules.Config.PetConfig)
 local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
@@ -406,6 +405,7 @@ local function cleanPetEntries(source: any): { PetEntry }
 			and type(entry.Uid) == "string"
 			and type(entry.PetId) == "string"
 			and type(entry.Variant) == "string"
+			and ConfigLookup.GetPet(entry.PetId) ~= nil
 		then
 			table.insert(entries, {
 				Uid = entry.Uid,
@@ -831,53 +831,26 @@ Net.PetInventory.OnClientEvent:Connect(function(payload: any)
 	publish()
 end)
 
-local NetAny = Net :: any
+Net.PetDrop.OnClientEvent:Connect(function(petId: any, variantId: any, isNew: any, converted: any)
+	if type(petId) ~= "string" or type(variantId) ~= "string" then
+		return
+	end
+	state.LastPetDrop = {
+		PetId = petId,
+		Variant = variantId,
+		IsNew = isNew == true,
+		Converted = math.max(0, math.floor(tonumber(converted) or 0)),
+		At = os.clock(),
+	}
+	publish()
+end)
 
-local petDropPacket = NetAny.PetDrop
-if petDropPacket ~= nil then
-	petDropPacket.OnClientEvent:Connect(function(petId: any, variantId: any, isNew: any, converted: any)
-		if type(petId) ~= "string" or type(variantId) ~= "string" then
-			return
-		end
-		state.LastPetDrop = {
-			PetId = petId,
-			Variant = variantId,
-			IsNew = isNew == true,
-			Converted = math.max(0, math.floor(tonumber(converted) or 0)),
-			At = os.clock(),
-		}
-		publish()
-	end)
-end
-
-local petPoopPacket = NetAny.PetPoop
-if petPoopPacket ~= nil then
-	petPoopPacket.OnClientEvent:Connect(function(uid: any, gems: any)
-		if type(uid) ~= "string" then
-			return
-		end
-		local cap = math.max(0, math.floor(tonumber((PetConfig :: any).StackCap) or 0))
-		local stackBonus = tonumber((PetConfig :: any).StackBonus) or 0
-		for index, entry in state.Pets.Pets do
-			if entry.Uid == uid then
-				local bumped = table.clone(entry)
-				bumped.Stacks += 1
-				if cap > 0 then
-					bumped.Stacks = math.min(bumped.Stacks, cap)
-				end
-				if stackBonus > 0 and bumped.Stacks ~= entry.Stacks then
-					local before = 1 + stackBonus * entry.Stacks
-					local after = 1 + stackBonus * bumped.Stacks
-					state.Pets.Stink = math.max(1, state.Pets.Stink * (after / before))
-				end
-				state.Pets.Pets[index] = bumped
-				break
-			end
-		end
-		DataController.PetPoop:Fire(uid, math.max(0, math.floor(tonumber(gems) or 0)))
-		publish()
-	end)
-end
+Net.PetPoop.OnClientEvent:Connect(function(uid: any, gems: any)
+	if type(uid) ~= "string" then
+		return
+	end
+	DataController.PetPoop:Fire(uid, math.max(0, math.floor(tonumber(gems) or 0)))
+end)
 
 Net.CosmeticState.OnClientEvent:Connect(
 	function(equippedSkin: any, equippedTrail: any, ownedSkins: any, ownedTrails: any)

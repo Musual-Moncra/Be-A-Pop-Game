@@ -244,16 +244,8 @@ end
 
 local function indexSection(map: any, data: any, order: number): any
 	local comingSoon = isComingSoon(map)
-	local pool = PetView.PoolForMap(map.Id)
-	local normal = {}
-	local exclusive = nil
-	for _, pet in pool do
-		if PetView.IsExclusive(pet) then
-			exclusive = pet
-		else
-			table.insert(normal, pet)
-		end
-	end
+	local normal = PetView.PoolForMap(map.Id)
+	local exclusive = PetView.ExclusivePet(map.Id)
 	local discoveredCount = 0
 	for _, pet in normal do
 		if PetView.IsDiscovered(data.Pets.Index, pet.Id) then
