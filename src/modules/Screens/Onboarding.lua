@@ -34,7 +34,7 @@ local TAU = math.pi * 2
 local function buildHint(step: number, data: any, route: string): any
 	local inRun = data.RunState == GameConfig.RunStates.Running
 	local showResult = not inRun and data.LastRun ~= nil
-	local reveal = data.LastPetDrop ~= nil
+	local reveal = #data.PetDropQueue > 0
 
 	if step == OnboardingConfig.StepPlay then
 		if inRun or showResult or reveal then

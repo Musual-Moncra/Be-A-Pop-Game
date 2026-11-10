@@ -90,13 +90,14 @@ local function App(props: any)
 	end, {})
 
 	local inRun = data.RunState == GameConfig.RunStates.Running
-	local showResult = not inRun and data.LastRun ~= nil
+	local revealOpen = not inRun and #data.PetDropQueue > 0
+	local showResult = not inRun and data.LastRun ~= nil and not revealOpen
 
 	React.useEffect(function()
-		if inRun or showResult then
+		if inRun or showResult or revealOpen then
 			LobbyState.SetActive(Routes.None)
 		end
-	end, { inRun, showResult } :: { any })
+	end, { inRun, showResult, revealOpen } :: { any })
 
 	React.useEffect(function()
 		local connection = RoomController.OpenRequested:Connect(function()
@@ -112,7 +113,7 @@ local function App(props: any)
 	end
 
 	local lobbyWindow = nil
-	if not inRun and not showResult then
+	if not inRun and not showResult and not revealOpen then
 		if route == Routes.Play then
 			lobbyWindow = e(PlayWindow, { data = data, ui = ui, onClose = close })
 		elseif route == Routes.Upgrades then
@@ -146,6 +147,7 @@ local function App(props: any)
 				"LobbyMenu",
 				if not inRun
 						and not showResult
+						and not revealOpen
 						and lobbyWindow == nil
 					then e("Frame", {
 						BackgroundTransparency = 1,
@@ -163,7 +165,13 @@ local function App(props: any)
 			Reveal = layer(
 				ui,
 				"Reveal",
-				if data.LastPetDrop ~= nil then e(PetReveal, { data = data, ui = ui }) else nil
+				if revealOpen
+					then e(PetReveal, {
+						drop = data.PetDropQueue[1],
+						key = string.format("%s:%s", tostring(data.PetDropQueue[1].At), data.PetDropQueue[1].PetId),
+						ui = ui,
+					})
+					else nil
 			),
 			Onboarding = layer(ui, "Onboarding", e(Onboarding, { data = data, route = route, ui = ui })),
 		}),
