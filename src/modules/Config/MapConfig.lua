@@ -39,11 +39,11 @@ return {
 			Order = 1,
 			UnlockCost = 0,
 			RequiredLevel = 1,
-			RewardMultiplier = 6,
+			RewardMultiplier = 1,
 			SizeLabel = "L",
 			Enabled = true,
 			ComingSoon = false,
-			CompletionGems = 40,
+			CompletionGems = 5,
 			RequirePreviousComplete = true,
 		},
 		{
