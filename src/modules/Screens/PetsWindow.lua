@@ -131,6 +131,7 @@ local function PetGridCard(props: any)
 					Thickness = Shape.RimStroke,
 				})
 				else nil,
+			rarity = if pet ~= nil then pet.Rarity else nil,
 			size = UDim2.fromScale(1, 1),
 			swatch = raritySwatch(pet),
 			zIndex = 2,
@@ -360,6 +361,7 @@ local function indexTile(pet: any, discovered: boolean, order: number): any
 
 	return e(ChunkyButton, {
 		layoutOrder = order,
+		rarity = if discovered then pet.Rarity else nil,
 		swatch = if discovered then raritySwatch(pet) else "Grey",
 	}, {
 		Icon = e(Inset, {
@@ -738,6 +740,7 @@ return function(props: any)
 
 	return e(Window, {
 		height = height,
+		icon = Pets.Icon,
 		onClose = props.onClose,
 		swatch = if isIndex then "Purple" else Pets.Swatch,
 		title = if isIndex then Pets.Tabs[2].Label else Pets.Title,

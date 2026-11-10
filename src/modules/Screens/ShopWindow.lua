@@ -302,7 +302,7 @@ local function potionCard(potion: any, index: number, data: any, tab: string): a
 	local left = math.max(0, endsAt - os.time())
 	local available = potion.ProductId ~= 0
 	return e(ProductCard, {
-		best = bestValue(tab, ""),
+		best = bestValue(tab, potion.Id),
 		bonus = string.format(Shop.PotionStatFormat, potion.Multiplier, potion.Stat),
 		buttonEnabled = available,
 		buttonSwatch = "Green",
@@ -403,7 +403,7 @@ return function(props: any)
 		local available = bomb.Id ~= 0
 		count += 1
 		cards.StainBomb = e(ProductCard, {
-			best = bestValue(tab, "StainBomb"),
+			best = bestValue(tab, "StainBomb") or (data.NewbiePackClaimed == true and bestValue(tab, "NewbiePack")),
 			bonus = Shop.OneShotText,
 			buttonEnabled = available,
 			buttonSwatch = "Green",
@@ -467,6 +467,7 @@ return function(props: any)
 
 	return e(Window, {
 		height = height,
+		icon = Shop.Icon,
 		onClose = props.onClose,
 		swatch = Shop.Swatch,
 		title = Shop.Title,

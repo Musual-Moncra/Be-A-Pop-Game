@@ -100,6 +100,7 @@ local function skinCards(data: any): ({ [string]: any }, number)
 			onButton = function()
 				Net.EquipCosmetic:Fire("Skin", id)
 			end,
+			rarity = item.Rarity,
 			rarityColor = LobbyUIConfig.RarityColors[item.Rarity],
 			selected = isEquipped,
 			swatch = if isOwned then (LobbyUIConfig.RaritySwatches[item.Rarity] or "Purple") else "Grey",
@@ -131,6 +132,7 @@ return function(props: any)
 
 	return e(Window, {
 		height = height,
+		icon = Skins.Icon,
 		onClose = props.onClose,
 		swatch = Skins.Swatch,
 		title = Skins.Title,

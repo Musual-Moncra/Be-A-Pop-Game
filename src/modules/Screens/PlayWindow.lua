@@ -191,6 +191,7 @@ local function MapCard(props: any)
 					onActivated = function()
 						props.onQuickPlay(map.Id)
 					end,
+					shine = true,
 					size = UDim2.fromOffset(Sizes.QuickPlayWidth, Sizes.QuickButtonHeight),
 					swatch = "Green",
 					text = Text.QuickPlay,
@@ -1277,8 +1278,9 @@ local function PlayView(props: any)
 	local top = LobbyUIConfig.Tabs.Height + Gap
 	return e(Window, {
 		height = height,
+		icon = LobbyUIConfig.Play.Icon,
 		onClose = props.onClose,
-		swatch = "Orange",
+		swatch = LobbyUIConfig.Play.Swatch,
 		title = Text.PlayTitle,
 		width = width,
 	}, {

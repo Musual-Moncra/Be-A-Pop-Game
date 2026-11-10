@@ -24,6 +24,7 @@ local Components = ReplicatedStorage.Modules.UIComponents
 local Chip = require(Components.Chip)
 local ChunkyButton = require(Components.ChunkyButton)
 local Primitives = require(Components.Primitives)
+local Sparkle = require(Components.Sparkle)
 local Rays = require(Components.Rays)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
@@ -134,6 +135,16 @@ local function DayTile(props: any)
 	}, {
 		Scale = e("UIScale", { ref = scaleRef }),
 		Rays = if today then e(Rays, { size = Daily.TileHeight * Daily.RaysRatio, zIndex = 0 }) else nil,
+		Sparkles = if isLast
+				and not today
+				and not claimed
+				and not locked
+			then e("Folder", nil, {
+				Sparkle1 = e(Sparkle, { position = UDim2.fromScale(0.12, 0.12), size = 22, zIndex = 4 }),
+				Sparkle2 = e(Sparkle, { delay = 0.3, position = UDim2.fromScale(0.88, 0.22), size = 18, zIndex = 4 }),
+				Sparkle3 = e(Sparkle, { delay = 0.55, position = UDim2.fromScale(0.78, 0.82), size = 20, zIndex = 4 }),
+			})
+			else nil,
 		Tile = e(ChunkyButton, {
 			size = UDim2.fromScale(1, 1),
 			swatch = swatch,
@@ -237,6 +248,7 @@ return function(props: any)
 
 	return e(Window, {
 		height = height,
+		icon = Daily.Icon,
 		onClose = props.onClose,
 		swatch = Daily.Swatch,
 		title = Daily.Title,

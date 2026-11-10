@@ -91,6 +91,7 @@ return function(props: any)
 
 	return e(Window, {
 		height = height,
+		icon = Rebirth.Icon,
 		onClose = props.onClose,
 		swatch = Rebirth.Swatch,
 		title = Rebirth.Title,

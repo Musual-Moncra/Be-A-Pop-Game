@@ -177,6 +177,7 @@ return function(props: any)
 
 	return e(Window, {
 		height = height,
+		icon = Upgrade.Icon,
 		onClose = props.onClose,
 		swatch = Upgrade.Swatch,
 		title = Upgrade.Title,
