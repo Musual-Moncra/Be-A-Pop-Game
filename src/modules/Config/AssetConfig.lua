@@ -21,6 +21,6 @@ return {
 	},
 
 	Textures = {
-		Splat = "",
+		Splat = "rbxassetid://137899280",
 	},
 }
