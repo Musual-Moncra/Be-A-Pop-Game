@@ -2,7 +2,7 @@
 
 --[[
 	CosmeticService
-	Manages player cosmetics, crate opening, equipping skins/trails, and character visual attachments.
+	Manages player cosmetics, crate opening, equipping skins and character skin application.
 	The first apply on a character saves each body part's original Color/Material and
 	SurfaceAppearance.Color as BaseColor / BaseMaterial attributes; the Default skin (or an
 	unknown id) restores those, so leaving a skin always brings back the original poop texture.
@@ -112,20 +112,6 @@ function CosmeticService.OpenCrate(plr: Player, crateId: string): boolean
 			local name = if skinDef ~= nil then skinDef.DisplayName else drop.Id
 			Outbound.Notify(plr, "Success", string.format(MessageConfig.CosmeticUnlocked, name))
 		end
-	elseif drop.Kind == "Trail" then
-		local ownedTrails = data.OwnedTrails or {}
-		if ownedTrails[drop.Id] then
-			refund = CosmeticConfig.DuplicateCoinRefund
-			DataService.AddCoins(plr, refund)
-			Outbound.Notify(plr, "Info", string.format(MessageConfig.CosmeticDuplicate, refund))
-		else
-			ownedTrails[drop.Id] = true
-			data.OwnedTrails = ownedTrails
-			isNew = true
-			local trailDef = ConfigLookup.GetTrail(drop.Id)
-			local name = if trailDef ~= nil then trailDef.DisplayName else drop.Id
-			Outbound.Notify(plr, "Success", string.format(MessageConfig.CosmeticUnlocked, name))
-		end
 	end
 
 	DataService.MarkChanged(plr)
@@ -167,29 +153,6 @@ function CosmeticService.Equip(plr: Player, kind: string, id: string): boolean
 		CosmeticService.ApplyCosmetics(plr, plr.Character)
 		local skinDef = ConfigLookup.GetSkin(id)
 		local name = if skinDef ~= nil then skinDef.DisplayName else id
-		Outbound.Notify(plr, "Success", string.format(MessageConfig.CosmeticEquipped, name))
-		return true
-
-	elseif kind == "Trail" then
-		if id == "" then
-			data.EquippedTrail = ""
-			DataService.MarkChanged(plr)
-			CosmeticService.ApplyCosmetics(plr, plr.Character)
-			Outbound.Notify(plr, "Success", MessageConfig.CosmeticUnequipped)
-			return true
-		end
-
-		local owned = data.OwnedTrails or {}
-		if not owned[id] then
-			Outbound.Notify(plr, "Error", MessageConfig.CosmeticNotOwned)
-			return false
-		end
-
-		data.EquippedTrail = id
-		DataService.MarkChanged(plr)
-		CosmeticService.ApplyCosmetics(plr, plr.Character)
-		local trailDef = ConfigLookup.GetTrail(id)
-		local name = if trailDef ~= nil then trailDef.DisplayName else id
 		Outbound.Notify(plr, "Success", string.format(MessageConfig.CosmeticEquipped, name))
 		return true
 	end
@@ -250,47 +213,6 @@ function CosmeticService.ApplyCosmetics(plr: Player, character: Model?)
 
 	local skinId = data.EquippedSkin or "Default"
 	CosmeticService.ApplySkin(character, skinId)
-
-	local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	if hrp ~= nil and hrp:IsA("BasePart") then
-		local existingTrail = hrp:FindFirstChild("CosmeticTrail")
-		if existingTrail ~= nil then
-			existingTrail:Destroy()
-		end
-
-		local trailId = data.EquippedTrail or ""
-		if trailId ~= "" then
-			local trailDef = ConfigLookup.GetTrail(trailId)
-			if trailDef ~= nil then
-				local att0 = hrp:FindFirstChild("TrailAttachment0") :: Attachment?
-				if att0 == nil then
-					att0 = Instance.new("Attachment")
-					att0.Name = "TrailAttachment0"
-					att0.Position = CosmeticConfig.TrailTop
-					att0.Parent = hrp
-				end
-
-				local att1 = hrp:FindFirstChild("TrailAttachment1") :: Attachment?
-				if att1 == nil then
-					att1 = Instance.new("Attachment")
-					att1.Name = "TrailAttachment1"
-					att1.Position = CosmeticConfig.TrailBottom
-					att1.Parent = hrp
-				end
-
-				local trail = Instance.new("Trail")
-				trail.Name = "CosmeticTrail"
-				trail.Attachment0 = att0
-				trail.Attachment1 = att1
-				trail.Color = trailDef.Color
-				trail.Lifetime = trailDef.Lifetime
-				trail.WidthScale = trailDef.WidthScale
-				trail.Transparency = trailDef.Transparency
-				trail.Texture = trailDef.Texture
-				trail.Parent = hrp
-			end
-		end
-	end
 end
 
 local function trackPlayer(plr: Player)
@@ -312,13 +234,7 @@ Players.PlayerRemoving:Connect(function(plr)
 end)
 
 DataService.Changed:Connect(function(plr, data)
-	Outbound.CosmeticState(
-		plr,
-		data.EquippedSkin or "Default",
-		data.EquippedTrail or "",
-		data.OwnedSkins or {},
-		data.OwnedTrails or {}
-	)
+	Outbound.CosmeticState(plr, data.EquippedSkin or "Default", "", data.OwnedSkins or {}, {})
 
 	if not CharacterCosmeticsApplied[plr] then
 		CharacterCosmeticsApplied[plr] = true

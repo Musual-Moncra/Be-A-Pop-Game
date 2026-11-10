@@ -320,7 +320,7 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 	local potionStainMultiplier = PotionService.GetMultiplier(run.player, "StainSize")
 	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize * potionStainMultiplier
 	addStain(run, rayResult.Position, normal, stainSize, key)
-	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points * PetService.GetMultipliers(run.player).Stink)
+	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points)
 end
 
 local function stepRun(run: ActiveRun, dt: number)
@@ -428,7 +428,7 @@ function RunService.EndRun(plr: Player, outOfTime: boolean)
 				* (1 + coinBonus / 100)
 				* DataService.GetBoostMultiplier(plr, "Coins")
 				* coinMultiplier
-				* PetService.GetMultipliers(plr).Coins
+				* PetService.GetMultipliers(plr).Stink
 				* RebirthService.GetMultiplier(plr)
 		)
 		xp = math.floor(score * GameConfig.XpPerPoint * rewardScale)

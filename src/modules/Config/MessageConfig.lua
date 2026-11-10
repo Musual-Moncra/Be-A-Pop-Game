@@ -33,10 +33,8 @@
 		InvalidCrate: crate does not exist (text)
 		RunUnavailable: the selected map has no world model loaded so a run cannot start (text)
 		DataLoading: a run was requested before the player's save finished loading (text)
-		PetHatched: a pet came out of an egg, %s = pet name (text)
-		PetHatchedVariant: a variant pet came out of an egg, first %s = pet name, second %s = variant name (text)
-		PetInventoryFull: hatching blocked because the pet inventory is full (text)
-		PetEggLocked: egg map is not unlocked, %s = map name (text)
+		PetIndexComplete: a map's Pet Index is complete, first %s = exclusive pet name, %d = gems paid (text)
+		PetConverted: a pet roll was converted because the inventory is full, %d = gems paid (text)
 		PetSlotsFull: equipping blocked because every slot is taken (text)
 		PetMergeNeed: merging blocked because there are not enough identical pets (text)
 		PetMaxVariant: merging blocked because the pet is already at its final variant (text)
@@ -93,10 +91,8 @@ return {
 	InvalidCrate = "Invalid crate.",
 	RunUnavailable = "This map is not ready yet. Try again later.",
 	DataLoading = "Your save is still loading. Try again in a moment.",
-	PetHatched = "%s hatched!",
-	PetHatchedVariant = "%s hatched! (%s)",
-	PetInventoryFull = "Pet inventory is full.",
-	PetEggLocked = "Unlock %s first.",
+	PetIndexComplete = "%s joined your collection! +%d gems",
+	PetConverted = "Pet inventory full! +%d gems",
 	PetSlotsFull = "All pet slots are full.",
 	PetMergeNeed = "You need 5 identical pets to merge.",
 	PetMaxVariant = "This pet is already at its final variant.",

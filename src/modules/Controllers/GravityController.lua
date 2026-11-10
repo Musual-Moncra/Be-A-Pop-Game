@@ -5,7 +5,7 @@
 	Client controller: the local poop sticks to and climbs any surface.
 	Builds custom gravity (LinearVelocity), body alignment (AlignOrientation) and surface
 	detection (raycasts) on the client-owned character, drives movement from the PlayerModule
-	move vector projected onto the current surface plane, handles jump requests, resets
+	move vector projected onto the current surface plane, turns the body toward the direction it moves, handles jump requests, resets
 	gravity on teleports, and publishes the current gravity "up" as the GravityUp attribute
 	on the character model.
 	Every probe distance is multiplied by the character's scale (food can grow the poop),
@@ -52,6 +52,7 @@ local otherConnections: { [Player]: { RBXScriptConnection } } = {}
 local up = WORLD_UP
 local publishedUp = WORLD_UP
 local facing = WORLD_FORWARD
+local heading = WORLD_FORWARD
 local upVelocity = 0
 local grounded = false
 local coyoteTimer = 0
@@ -270,6 +271,7 @@ local function onCharacterAdded(char: Model)
 	up = WORLD_UP
 	publishedUp = WORLD_UP
 	facing = WORLD_FORWARD
+	heading = WORLD_FORWARD
 	upVelocity = 0
 	grounded = false
 	coyoteTimer = 0
@@ -527,8 +529,17 @@ local function update(dt: number)
 
 	velocity.VectorVelocity = desiredVelocity
 
-	local alignTarget = position + facing
-	if facing:Cross(up).Magnitude < 1e-3 then
+	local headingOnPlane = projectOnPlane(heading, up)
+	if headingOnPlane.Magnitude < 1e-3 then
+		headingOnPlane = facing
+	end
+	heading = headingOnPlane.Unit
+	if drive.Magnitude > 1e-3 then
+		heading = projectOnPlane(smoothUp(heading, drive.Unit, MovementConfig.BodyTurnSpeed, dt), up).Unit
+	end
+
+	local alignTarget = position + heading
+	if heading:Cross(up).Magnitude < 1e-3 then
 		local fallback = up:Cross(Vector3.xAxis)
 		if fallback.Magnitude < 1e-3 then
 			fallback = up:Cross(Vector3.zAxis)

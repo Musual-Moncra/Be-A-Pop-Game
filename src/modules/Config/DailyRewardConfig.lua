@@ -28,7 +28,14 @@ return {
 	ClaimToast = "%s claimed!",
 
 	Days = {
-		{ Kind = "Coins", Amount = 100, BoostId = "", Duration = 0, SkinId = "", Label = "100 Coins" },
+		{
+			Kind = "Boost",
+			Amount = 0,
+			BoostId = "Stacks",
+			Duration = 60 * 60,
+			SkinId = "",
+			Label = "x2 Stinky Stacks for 1h",
+		},
 		{ Kind = "Coins", Amount = 250, BoostId = "", Duration = 0, SkinId = "", Label = "250 Coins" },
 		{ Kind = "Gems", Amount = 5, BoostId = "", Duration = 0, SkinId = "", Label = "5 Gems" },
 		{ Kind = "Boost", Amount = 0, BoostId = "Coins", Duration = 60 * 60, SkinId = "", Label = "2x Coins for 1h" },
@@ -39,6 +46,10 @@ return {
 
 	Boosts = {
 		Coins = {
+			Multiplier = 2,
+			Duration = 60 * 60,
+		},
+		Stacks = {
 			Multiplier = 2,
 			Duration = 60 * 60,
 		},

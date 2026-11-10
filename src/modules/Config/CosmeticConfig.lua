@@ -2,14 +2,12 @@
 
 --[[
 	CosmeticConfig
-	Configuration for character skins, trails, and crates. Pure data, no functions.
+	Configuration for character skins and crates. Pure data, no functions.
 
 	Fields:
 		BodyParts: list of character descendant names colored by equipped skins; the legacy
 			Body model is used when present, otherwise the names are looked up on the character
 			(array of strings)
-		TrailTop: offset of the upper attachment for cosmetics trails (Vector3 studs)
-		TrailBottom: offset of the lower attachment for cosmetics trails (Vector3 studs)
 		Skins: table of skin definitions keyed by skin id (Default, DailyStreak7, Gold, Rainbow, Frozen, Ninja, Alien)
 			DisplayName: player-facing skin name (text)
 			Rarity: tier Common, Uncommon, Rare, Epic, Legendary, Mythical, Secret, Darkness (text)
@@ -17,26 +15,16 @@
 				and multiplies the ColorMap, while Default restores the original texture tint (Color3)
 			Material: body parts material (Enum.Material)
 			TextureId: optional texture id for body parts (string)
-		Trails: table of trail definitions keyed by trail id
-			DisplayName: player-facing trail name (text)
-			Rarity: tier Common, Uncommon, Rare, Epic, Legendary, Mythical, Secret, Darkness (text)
-			Color: trail color sequence (ColorSequence)
-			Lifetime: how long trail ribbon lasts (seconds)
-			WidthScale: number sequence scaling trail width from start to end (NumberSequence)
-			Texture: optional trail texture asset url (string)
-			Transparency: trail transparency sequence (NumberSequence)
 		Crates: table of crate definitions keyed by crate id
 			DisplayName: player-facing crate name (text)
 			CostType: currency used "Coins" or "Gems" (text)
 			Cost: price to open (coins or gems)
-			Drops: weighted drop list of { Kind = "Skin" | "Trail", Id = string, Weight = number }
+			Drops: weighted drop list of { Kind = "Skin", Id = string, Weight = number }
 		DuplicateCoinRefund: coins refunded when rolling an already owned cosmetic (coins)
 ]]
 
 return {
 	BodyParts = { "node_0" },
-	TrailTop = Vector3.new(0, 1, 0),
-	TrailBottom = Vector3.new(0, -1, 0),
 
 	Skins = {
 		Default = {
@@ -90,82 +78,6 @@ return {
 		},
 	},
 
-	Trails = {
-		Neon = {
-			DisplayName = "Neon",
-			Rarity = "Uncommon",
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 255)),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 255)),
-			}),
-			Lifetime = 0.6,
-			WidthScale = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 1.2),
-				NumberSequenceKeypoint.new(1, 0),
-			}),
-			Texture = "",
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.2),
-				NumberSequenceKeypoint.new(1, 1),
-			}),
-		},
-		Fire = {
-			DisplayName = "Fire",
-			Rarity = "Rare",
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 230, 0)),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 50, 0)),
-			}),
-			Lifetime = 0.8,
-			WidthScale = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 1.4),
-				NumberSequenceKeypoint.new(1, 0),
-			}),
-			Texture = "",
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.1),
-				NumberSequenceKeypoint.new(1, 1),
-			}),
-		},
-		Water = {
-			DisplayName = "Water",
-			Rarity = "Uncommon",
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 220, 255)),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 255)),
-			}),
-			Lifetime = 0.7,
-			WidthScale = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 1.3),
-				NumberSequenceKeypoint.new(1, 0),
-			}),
-			Texture = "",
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.2),
-				NumberSequenceKeypoint.new(1, 1),
-			}),
-		},
-		IceCream = {
-			DisplayName = "Ice Cream",
-			Rarity = "Epic",
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 182, 193)),
-				ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 224)),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 105, 30)),
-			}),
-			Lifetime = 0.9,
-			WidthScale = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 1.5),
-				NumberSequenceKeypoint.new(1, 0.2),
-			}),
-			Texture = "",
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.15),
-				NumberSequenceKeypoint.new(1, 1),
-			}),
-		},
-	},
-
 	Crates = {
 		StandardCrate = {
 			DisplayName = "Standard Crate",
@@ -173,10 +85,7 @@ return {
 			Cost = 5000,
 			Drops = {
 				{ Kind = "Skin", Id = "Frozen", Weight = 40 },
-				{ Kind = "Trail", Id = "Neon", Weight = 50 },
-				{ Kind = "Trail", Id = "Water", Weight = 50 },
 				{ Kind = "Skin", Id = "Ninja", Weight = 20 },
-				{ Kind = "Trail", Id = "Fire", Weight = 15 },
 			},
 		},
 		PremiumCrate = {
@@ -185,8 +94,6 @@ return {
 			Cost = 50,
 			Drops = {
 				{ Kind = "Skin", Id = "Ninja", Weight = 45 },
-				{ Kind = "Trail", Id = "Fire", Weight = 40 },
-				{ Kind = "Trail", Id = "IceCream", Weight = 30 },
 				{ Kind = "Skin", Id = "Gold", Weight = 15 },
 				{ Kind = "Skin", Id = "Rainbow", Weight = 8 },
 				{ Kind = "Skin", Id = "Alien", Weight = 2 },
