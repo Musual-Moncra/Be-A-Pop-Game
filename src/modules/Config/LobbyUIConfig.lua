@@ -160,6 +160,7 @@
 			IconSize: upgrade icon tile diameter (design pixels)
 			PipWidth / PipHeight / PipGap / PipRadius: level pips (design pixels)
 			BuyWidth / BuyHeight / MaxStampWidth: BUY and MAX control sizes (design pixels)
+			LevelTextSize: level line text size (design pixels)
 			LevelFormat: level line (format: level, max level)
 
 		Motion: shared pass-2 sparkle tuning
@@ -571,6 +572,7 @@ return {
 		BuyWidth = 170,
 		BuyHeight = 54,
 		MaxStampWidth = 130,
+		LevelTextSize = 18,
 		LevelFormat = "Lv %d / %d",
 	},
 
