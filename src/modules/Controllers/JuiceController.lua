@@ -615,7 +615,7 @@ end)
 RunService.Heartbeat:Connect(stepSplats)
 RunService.Heartbeat:Connect(stepBody)
 
-RunService.RenderStepped:Connect(function()
+RunService:BindToRenderStep("JuiceShake", Enum.RenderPriority.Camera.Value + 2, function()
 	local now = os.clock()
 	if now >= shakeEnd then
 		return
