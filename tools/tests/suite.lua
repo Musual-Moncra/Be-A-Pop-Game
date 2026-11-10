@@ -652,25 +652,20 @@ runTest("ConfigLookup_GetMapCellCount_And_ProgressPercent", function()
 	expectNear(ConfigLookup.GetMapProgressPercent(10, -5), 0, 1e-9, "Negative total returns 0%")
 end)
 
-runTest("ConfigLookup_StainBombRadius_ScalesWithStainArea", function()
-	local scale = MonetizationConfig.StainBombAreaScale
-	expect(scale == 3, "Stain Bomb must cover 3x one stain's area")
+runTest("ConfigLookup_StainBombRadius_ScalesWithStainSize", function()
+	expect(MonetizationConfig.StainBombBaseRadius == 43, "Stain Bomb base radius must be 43 studs")
 	expect(MonetizationConfig.StainBombRadius == nil, "Fixed StainBombRadius must be gone")
 
-	local base = 4
-	local expectedBase = math.sqrt(scale) * (base / 2)
-	expectNear(ConfigLookup.GetStainBombRadius(base), expectedBase, 1e-9, "Level-0 stain bomb radius")
+	local baseSize = ConfigLookup.GetUpgradeValue("StainSize", 1)
+	expect(baseSize > 0, "StainSize at upgrade level 1 must be positive")
+
+	expectNear(ConfigLookup.GetStainBombRadius(baseSize), 43, 1e-9, "Level-1 stain size gives 43 studs")
+	expectNear(ConfigLookup.GetStainBombRadius(baseSize * 2), 86, 1e-9, "Double stain size gives 86 studs")
 	expectNear(
-		ConfigLookup.GetStainBombRadius(base * 2),
-		expectedBase * 2,
-		1e-9,
-		"Radius must scale linearly with stain size"
-	)
-	expectNear(
-		ConfigLookup.GetStainBombRadius(base * 2) / ConfigLookup.GetStainBombRadius(base),
+		ConfigLookup.GetStainBombRadius(baseSize * 2) / ConfigLookup.GetStainBombRadius(baseSize),
 		2,
 		1e-9,
-		"Doubling the stain doubles the bomb radius"
+		"Bomb radius scales linearly with stain size"
 	)
 	expectNear(ConfigLookup.GetStainBombRadius(0), 0, 1e-9, "Zero stain size gives zero radius")
 	expectNear(ConfigLookup.GetStainBombRadius(-5), 0, 1e-9, "Negative stain size clamps to zero")

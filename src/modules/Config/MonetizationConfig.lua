@@ -13,8 +13,8 @@
 	Fields:
 		ReviveOfferAt: lifespan left when the revive popup appears (seconds)
 		ReviveWindow: how long the revive offer stays open; a run at zero is kept alive until it closes (seconds)
-		StainBombAreaScale: the Stain Bomb covers this many times the area of one stain splat, so its
-			radius is sqrt(StainBombAreaScale) x the current stain radius (area multiplier)
+		StainBombBaseRadius: Stain Bomb radius at StainSize upgrade level 1; the live radius scales
+			by current stain size / level-1 stain size, so upgrades and power-ups grow it (studs)
 		MagnetPickupRadius: food pickup radius while the Magnet gamepass is owned (studs)
 		MaxPurchaseHistory: processed receipt ids kept per player for idempotency (count)
 		PassCacheSeconds: how long a gamepass ownership answer is trusted before it is re-asked
@@ -54,7 +54,7 @@
 				PriceRobux: planned price for the shop copy, informational only (Robux)
 				Tier: 1-based offer position, offers stop after the last tier (tier)
 				Seconds: lifespan added to the run when this tier is bought (seconds)
-			StainBomb: one-shot product, soils every prop near the player (see StainBombAreaScale)
+			StainBomb: one-shot product, soils every prop near the player (see StainBombBaseRadius)
 				Id: product asset id, 0 = not uploaded yet (asset id)
 				DisplayName: name shown in the shop (text)
 				PriceRobux: planned price for the shop copy, informational only (Robux)
@@ -73,7 +73,7 @@
 return {
 	ReviveOfferAt = 5,
 	ReviveWindow = 8,
-	StainBombAreaScale = 3,
+	StainBombBaseRadius = 43,
 	MagnetPickupRadius = 30,
 	MaxPurchaseHistory = 100,
 	PassCacheSeconds = 120,

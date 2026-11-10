@@ -27,7 +27,7 @@
 		ConfigLookup.GetDevProduct(productId) -> kind, entry
 		ConfigLookup.GetReviveTier(tier) -> ReviveDefinition?
 		ConfigLookup.IsReviveAvailable() -> boolean
-		ConfigLookup.GetStainBombRadius(stainSize) -> number   x3 stain area bomb radius
+		ConfigLookup.GetStainBombRadius(stainSize) -> number   scaled from StainSize level 1
 		ConfigLookup.GetEnabledMaps() -> { MapDefinition }
 		ConfigLookup.GetMapCellCount(size) -> number        stain cells covering a footprint
 		ConfigLookup.GetMapProgressPercent(stained, total) -> number
@@ -379,7 +379,11 @@ function ConfigLookup.GetReviveTier(tier: number): any?
 end
 
 function ConfigLookup.GetStainBombRadius(stainSize: number): number
-	return math.sqrt(MonetizationConfig.StainBombAreaScale) * math.max(0, stainSize) * 0.5
+	local baseStainSize = ConfigLookup.GetUpgradeValue("StainSize", 1)
+	if baseStainSize <= 0 then
+		return 0
+	end
+	return MonetizationConfig.StainBombBaseRadius * math.max(0, stainSize) / baseStainSize
 end
 
 function ConfigLookup.IsReviveAvailable(): boolean
