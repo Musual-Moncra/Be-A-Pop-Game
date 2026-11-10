@@ -33,6 +33,7 @@
 		UnequipPet(uid)
 		DeletePet(uid)
 		MergePet(uid)
+		TutorialStep(step)                 advance the saved tutorial, 255 = finish it
 
 	Server -> Client:
 		SelectionSync(mapId, modeId)
@@ -166,6 +167,7 @@ local Net = {}
 Net.PurchaseUpgrade = Packet.new("PurchaseUpgrade", Packet.String)
 Net.UnlockMap = Packet.new("UnlockMap", Packet.String)
 Net.LeaveRun = Packet.new("LeaveRun")
+Net.TutorialStep = Packet.new("TutorialStep", Packet.NumberU8)
 
 Net.SelectionSync = Packet.new("SelectionSync", Packet.String, Packet.String)
 Net.DataSync = Packet.new("DataSync", Packet.Any)

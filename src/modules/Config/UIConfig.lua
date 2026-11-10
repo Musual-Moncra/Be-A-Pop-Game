@@ -162,7 +162,7 @@
 	ToastSwatches: per toast kind (Info, Success, Error), the Swatches key used
 
 	Layers: drawing order, higher = on top (number): Wallet, RunHud, Juice (combo meter, milestone banners), Extras (map meter, Special Time, revive), LobbyMenu, Backdrop (full-screen
-		dimmer behind open windows), Window, Result, Toasts, Reveal (pet drop)
+		dimmer behind open windows), Window, Result, Toasts, Reveal (pet drop), Onboarding (tutorial hints)
 
 	Text (every word the UI shows; %s = text, %d = whole number, %.1f = one decimal):
 		Icons: CloseIcon, SparkleIcon, CoinIcon, GemIcon, XpIcon, LockIcon, CheckIcon (emoji/text)
@@ -571,6 +571,7 @@ return {
 		Result = 6,
 		Toasts = 7,
 		Reveal = 8,
+		Onboarding = 9,
 	},
 
 	Text = {

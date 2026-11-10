@@ -29,6 +29,7 @@ local UIScaleContext = require(ReplicatedStorage.Modules.UIComponents.UIScaleCon
 local Screens = ReplicatedStorage.Modules.Screens
 local DailyWindow = require(Screens.DailyWindow)
 local LobbyDock = require(Screens.LobbyDock)
+local Onboarding = require(Screens.Onboarding)
 local PetReveal = require(Screens.PetReveal)
 local PetsWindow = require(Screens.PetsWindow)
 local RebirthWindow = require(Screens.RebirthWindow)
@@ -164,6 +165,7 @@ local function App(props: any)
 				"Reveal",
 				if data.LastPetDrop ~= nil then e(PetReveal, { data = data, ui = ui }) else nil
 			),
+			Onboarding = layer(ui, "Onboarding", e(Onboarding, { data = data, route = route, ui = ui })),
 		}),
 	})
 end
