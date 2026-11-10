@@ -19,6 +19,10 @@
 		StainThickness: extrusion height of stain parts perpendicular to surface (studs)
 		StainTransparency: visual transparency level of stain parts (0 to 1)
 		PracticeTimeLeft: time-left value sent to the client for untimed runs (seconds, -1 = no timer)
+		ComboStep: new stain cells needed for the next combo level (count)
+		ComboMax: highest combo level reachable (level)
+		ComboDecay: time without a new stain cell before one combo level is lost (seconds)
+		ComboBonus: score bonus per combo level above 1 (multiplier)
 		NpcPatrols: per map id, the NPCs that walk back and forth between two points (vision and
 			chase tuning lives in NpcConfig)
 			name: name of the NPC Model inside the map's NPCs folder (string)
@@ -42,6 +46,10 @@ return {
 	StainThickness = 0.08,
 	StainTransparency = 0.0,
 	PracticeTimeLeft = -1,
+	ComboStep = 12,
+	ComboMax = 5,
+	ComboDecay = 1.2,
+	ComboBonus = 0.25,
 
 	NpcPatrols = {
 		["Zone1"] = {
