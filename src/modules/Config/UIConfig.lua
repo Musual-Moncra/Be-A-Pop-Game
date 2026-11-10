@@ -223,7 +223,7 @@
 		ResultQuests: quests badge (format: count)
 		ResultSoiled: soiled objects badge (format: count)
 		ResultPlus: reward amount (format: amount)
-		ResultStinkFormat: score, stink and coin line on the result window (format: score, multiplier, coins)
+		ResultStinkFormat: score and Stink line on the result window; the coin row below it is the server total (format: score, multiplier)
 		StinkFormat: Stink multiplier chip (format: multiplier)
 		Continue: result window button
 		PowerupPickedFormat: popup when food is eaten (format: food name)
@@ -685,7 +685,7 @@ return {
 		ResultQuests = "%d QUESTS DONE",
 		ResultSoiled = "%d objects soiled",
 		ResultPlus = "+%s",
-		ResultStinkFormat = "Score %s × Stink x%s = %s coins",
+		ResultStinkFormat = "Score %s × Stink x%s",
 		StinkFormat = "💩 x%s",
 		Continue = "CONTINUE",
 

@@ -169,13 +169,7 @@ return function(props: any)
 	end
 	local badgeRows = math.ceil(badgeCount / Sizes.BadgesPerRow)
 	local stink = PetView.TotalStink(props.data)
-	local stinkCoins = math.floor(summary.Score * stink)
-	local stinkLine = string.format(
-		Text.ResultStinkFormat,
-		Format.commas(summary.Score),
-		Format.multiplier(stink),
-		Format.commas(stinkCoins)
-	)
+	local stinkLine = string.format(Text.ResultStinkFormat, Format.commas(summary.Score), Format.multiplier(stink))
 	local footerHeight = UIConfig.Sizes.Play.PlayButtonHeight
 	local contentHeight = TextSizes.Body
 		+ TextSizes.Huge
