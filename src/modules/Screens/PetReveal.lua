@@ -2,14 +2,15 @@
 
 --[[
 	PetReveal
-	Full-screen pet drop reveal: waits for the MAP CLEARED banner to finish, then the pet shakes
-	as a dark silhouette for a moment and bursts with rarity-coloured rays showing its name,
-	rarity, variant, Stink value and NEW tag (or the gems it turned into when the bag was full).
-	Tapping after a short delay, or waiting, closes it.
+	Full-screen pet drop reveal: the pet shakes as a dark silhouette for a moment, then bursts
+	with rarity-coloured rays showing its name, rarity, variant, Stink value and NEW tag (or the
+	gems it turned into when the bag was full). It never closes by itself: tapping or COLLECT
+	after the shake acknowledges it. App shows one queued drop at a time, after a run and
+	before the result window.
 
-	Props: data (DataController state with LastPetDrop), ui (useUIScale result)
-	Dependencies: React, TweenService, DataController, ConfigLookup, JuiceConfig, UIConfig,
-		LobbyUIConfig, PetView, Primitives, ChunkyButton, Chip, Inset, Rays, Format, WindowSize
+	Props: drop (one PetDrop from DataController), ui (useUIScale result)
+	Dependencies: React, TweenService, DataController, ConfigLookup, UIConfig, LobbyUIConfig,
+		PetView, Primitives, ChunkyButton, Chip, Inset, Rays, Format, WindowSize
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -17,7 +18,6 @@ local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
-local JuiceConfig = require(ReplicatedStorage.Modules.Config.JuiceConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
@@ -39,37 +39,22 @@ local Animation = UIConfig.Animation
 local TextSizes = UIConfig.TextSizes
 
 return function(props: any)
-	local drop = props.data.LastPetDrop
-	local phase, setPhase = React.useState("waiting")
-	local startedAt = React.useRef(os.clock())
+	local drop = props.drop
+	local phase, setPhase = React.useState("shake")
+	local dismissedRef = React.useRef(false)
 	local iconScaleRef = React.useRef(nil)
 	local iconRef = React.useRef(nil)
-	local bannerSeconds = JuiceConfig.MilestoneClearSeconds
 
 	React.useEffect(function()
-		startedAt.current = os.clock()
-		setPhase("waiting")
-		local shakeThread = task.delay(bannerSeconds, function()
-			setPhase("shake")
-		end)
-		local revealThread = task.delay(bannerSeconds + Reveal.ShakeSeconds, function()
+		dismissedRef.current = false
+		setPhase("shake")
+		local thread = task.delay(Reveal.ShakeSeconds, function()
 			setPhase("revealed")
 		end)
 		return function()
-			task.cancel(shakeThread)
-			task.cancel(revealThread)
-		end
-	end, { drop.At } :: { any })
-
-	React.useEffect(function()
-		if phase ~= "revealed" then
-			return
-		end
-		local thread = task.delay(Reveal.AutoSeconds, DataController.DismissPetDrop)
-		return function()
 			task.cancel(thread)
 		end
-	end, { phase } :: { any })
+	end, { drop.At } :: { any })
 
 	React.useEffect(function()
 		local icon = iconRef.current
@@ -113,14 +98,11 @@ return function(props: any)
 	local iconCenter = UDim2.fromScale(0.5, 0.32)
 
 	local function tap()
-		if os.clock() - startedAt.current < bannerSeconds + Reveal.TapAfter then
+		if phase ~= "revealed" or dismissedRef.current then
 			return
 		end
+		dismissedRef.current = true
 		DataController.DismissPetDrop()
-	end
-
-	if phase == "waiting" then
-		return nil
 	end
 
 	return e("TextButton", {
@@ -195,7 +177,7 @@ return function(props: any)
 					else nil,
 				Rarity = if revealed and pet ~= nil
 					then Primitives.text({
-						Position = UDim2.new(0.08, 0, 0.66, 0),
+						Position = UDim2.new(0.08, 0, 0.65, 0),
 						Size = UDim2.new(0.84, 0, 0, TextSizes.Header),
 						Text = string.format(LobbyUIConfig.Pets.TraitFormat, rarityName, variantName),
 						TextSize = TextSizes.Header,
@@ -205,7 +187,7 @@ return function(props: any)
 				Stink = if revealed and pet ~= nil
 					then Primitives.text({
 						Color = Palette.Sparkle,
-						Position = UDim2.new(0.08, 0, 0.75, 0),
+						Position = UDim2.new(0.08, 0, 0.73, 0),
 						Size = UDim2.new(0.84, 0, 0, TextSizes.Large),
 						Text = string.format(
 							Reveal.StinkFormat,
@@ -218,7 +200,7 @@ return function(props: any)
 				Converted = if revealed and drop.Converted > 0
 					then Primitives.text({
 						Color = Palette.TextSoft,
-						Position = UDim2.new(0.08, 0, 0.83, 0),
+						Position = UDim2.new(0.08, 0, 0.80, 0),
 						Size = UDim2.new(0.84, 0, 0, TextSizes.Body),
 						Text = string.format(Reveal.ConvertedFormat, drop.Converted),
 						TextSize = TextSizes.Body,
@@ -236,15 +218,16 @@ return function(props: any)
 						zIndex = 5,
 					})
 					else nil,
-				Tap = if revealed
-					then Primitives.text({
-						Color = Palette.TextSoft,
-						Position = UDim2.new(0.08, 0, 0.9, 0),
-						Size = UDim2.new(0.84, 0, 0, TextSizes.Body),
-						StrokeSize = Shape.SmallTextStroke,
-						Text = Reveal.TapText,
-						TextSize = TextSizes.Body,
-						ZIndex = 4,
+				Collect = if revealed
+					then e(ChunkyButton, {
+						anchorPoint = Vector2.new(0.5, 1),
+						onActivated = tap,
+						position = UDim2.new(0.5, 0, 1, -12),
+						size = UDim2.fromOffset(Reveal.CollectWidth, Reveal.CollectHeight),
+						swatch = Reveal.CollectSwatch,
+						text = Reveal.CollectText,
+						textSize = TextSizes.Title,
+						zIndex = 5,
 					})
 					else nil,
 			}),

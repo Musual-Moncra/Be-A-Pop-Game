@@ -12,7 +12,7 @@
 		DataController.PushToast(kind, text) client-only notification toast
 		DataController.PushPopup(kind, text) client-only in-run popup
 		DataController.DismissResult() clears the last run summary
-		DataController.DismissPetDrop() clears the last pet drop reveal
+		DataController.DismissPetDrop() clears the oldest queued pet drop reveal
 		DataController.Stained -> Signal ()            a stain step was painted
 		DataController.Soiled -> Signal ()             a prop became fully soiled
 		DataController.PowerupPicked -> Signal ()      a food item was eaten
@@ -37,7 +37,8 @@
 		GoldenTargets: golden prop paths relative to the map model (name paths)
 		Pets: owned and equipped pets { Pets, Equipped, Slots, Stink, Index, IndexClaimed }
 		      (pet entries with Stacks / uids / slots / total Stink multiplier / discovered pets / claimed maps)
-		LastPetDrop: last pet drop { PetId, Variant, IsNew, Converted, At }, At = os.clock(), nil until a drop
+		PetDropQueue: queued pet drops { PetId, Variant, IsNew, Converted, At }, shown one at a time;
+		               At = os.clock()
 		Cosmetics: { EquippedSkin, EquippedTrail, OwnedSkins, OwnedTrails } (ids / owned maps)
 		LastCrate: last crate reward { CrateId, Kind, Id, IsNew, Refund }, nil until a crate opens
 		Rebirths: rebirths completed (count)
@@ -59,7 +60,8 @@
 		QuestsCompleted, QuestCoins, QuestGems, BonusCoins, BonusGems,
 		LeveledUp, NewLevel, OutOfTime
 
-	Dependencies: Net, Signal, ConfigLookup, GameConfig, MapConfig, MessageConfig, ModeConfig, UIConfig
+	Dependencies: Net, Signal, ConfigLookup, GameConfig, MapConfig, MessageConfig, ModeConfig, UIConfig,
+		LobbyUIConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -72,6 +74,7 @@ local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
+local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
 
 export type Stats = {
@@ -225,7 +228,7 @@ export type State = {
 	Daily: DailyState?,
 	GoldenTargets: { string },
 	Pets: Pets,
-	LastPetDrop: PetDrop?,
+	PetDropQueue: { PetDrop },
 	Cosmetics: Cosmetics,
 	LastCrate: CrateResult?,
 	Rebirths: number,
@@ -290,7 +293,7 @@ local function defaultState(): State
 			Index = {},
 			IndexClaimed = {},
 		},
-		LastPetDrop = nil,
+		PetDropQueue = {},
 		Cosmetics = {
 			EquippedSkin = "Default",
 			EquippedTrail = "",
@@ -553,10 +556,10 @@ function DataController.DismissResult()
 end
 
 function DataController.DismissPetDrop()
-	if state.LastPetDrop == nil then
+	if #state.PetDropQueue == 0 then
 		return
 	end
-	state.LastPetDrop = nil
+	table.remove(state.PetDropQueue, 1)
 	publish()
 end
 
@@ -839,14 +842,18 @@ Net.PetDrop.OnClientEvent:Connect(function(petId: any, variantId: any, isNew: an
 	if type(petId) ~= "string" or type(variantId) ~= "string" then
 		return
 	end
-	state.LastPetDrop = {
+	table.insert(state.PetDropQueue, {
 		PetId = petId,
 		Variant = variantId,
 		IsNew = isNew == true,
 		Converted = math.max(0, math.floor(tonumber(converted) or 0)),
 		At = os.clock(),
-	}
-	publish()
+	})
+	if state.RunState == GameConfig.RunStates.Running then
+		DataController.PushToast(UIConfig.Text.ToastSuccessKind, LobbyUIConfig.PetReveal.QueueToast)
+	else
+		publish()
+	end
 end)
 
 Net.CosmeticState.OnClientEvent:Connect(

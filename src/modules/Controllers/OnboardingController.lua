@@ -170,7 +170,7 @@ local function onData(state: any)
 		end
 	end
 
-	if not petSeen and (state.LastPetDrop ~= nil or #state.Pets.Pets > 0) then
+	if not petSeen and ((state.PetDropQueue ~= nil and #state.PetDropQueue > 0) or #state.Pets.Pets > 0) then
 		setPetSeen()
 	end
 

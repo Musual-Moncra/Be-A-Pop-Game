@@ -122,12 +122,14 @@
 		PetReveal: full-screen pet drop reveal (design pixels unless noted)
 			Width / Height / Swatch: card size and body colour (UIConfig.Swatches key)
 			OverlayTransparency: dimmer behind the card (0 to 1)
-			ShakeSeconds / TapAfter / AutoSeconds: silhouette shake, earliest tap, auto close (seconds)
+			ShakeSeconds: silhouette shake before the pet is shown (seconds)
 			RaysSize / IconSize: burst diameter and pet icon diameter (design pixels)
 			RaritySwatches: body colour per rarity id (UIConfig.Swatches key)
 			LockedIcon: icon shown on the shaking silhouette (text)
 			NameFormat / StinkFormat / ConvertedFormat: reveal lines (format: pet name, stink multiplier, gems)
-			NewTag / TapText: NEW badge and skip hint (text)
+			NewTag / CollectText: NEW badge and collect button (text)
+			CollectWidth / CollectHeight / CollectSwatch: collect button size and colour (design pixels, Swatches key)
+			QueueToast: run toast when a pet drops and waits for the reveal (text)
 		Rebirth: rebirth window
 			Width / Height / Swatch / Title: window size, header colour, title
 			Icon: big emoji (text)
@@ -389,8 +391,6 @@ return {
 		Swatch = "Purple",
 		OverlayTransparency = 0.25,
 		ShakeSeconds = 1.2,
-		TapAfter = 0.6,
-		AutoSeconds = 5,
 		RaysSize = 460,
 		IconSize = 170,
 		RaritySwatches = {
@@ -408,7 +408,11 @@ return {
 		StinkFormat = "💩 Stink x%s",
 		ConvertedFormat = "Bag full! +%d 💎 instead",
 		NewTag = "NEW!",
-		TapText = "TAP TO CONTINUE",
+		CollectText = "COLLECT",
+		CollectWidth = 360,
+		CollectHeight = 72,
+		CollectSwatch = "Green",
+		QueueToast = "🐾 New pet found! Reveal after the run",
 	},
 
 	Rebirth = {
