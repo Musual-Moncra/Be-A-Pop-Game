@@ -511,7 +511,7 @@ return {
 	Sizes = {
 		Hud = {
 			BadgeSize = 64,
-			XpRingSize = 72,
+			XpRingSize = 80,
 			XpRingThickness = 6,
 			XpRingSegments = 36,
 			PillWidth = 220,
@@ -525,7 +525,7 @@ return {
 			StinkSwatch = "Brown",
 			Gap = 12,
 			MobileBadgeSize = 52,
-			MobileRingSize = 60,
+			MobileRingSize = 68,
 			MobileRingThickness = 5,
 			MobilePillWidth = 170,
 			MobilePillHeight = 44,

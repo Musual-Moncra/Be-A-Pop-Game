@@ -24,6 +24,7 @@
 				Icon: emoji on the tile (text)
 				Swatch: tile colour (UIConfig.Swatches key)
 				Route: LobbyState route the tile opens (LobbyState.Routes key)
+				Tab: optional tab id the opened window should select (string)
 				Name: optional instance name the onboarding tutorial looks up (string)
 			ButtonSize / ItemSize / LabelHeight / Lift / BigScale / Stagger / Margin: legacy fields
 				kept for the onboarding hint layout while it catches up (design pixels)
@@ -149,20 +150,20 @@ return {
 		TileLabelSize = 18,
 		TileGap = 10,
 		TileColumns = 2,
-		PlaySize = 150,
+		PlaySize = 160,
 		PlayIcon = "▶",
 		PlayLabel = "PLAY",
 		PlaySwatch = "Green",
-		PlayIconSize = 40,
-		PlayTextSize = 30,
+		PlayIconSize = 48,
+		PlayTextSize = 34,
 		PlayPulseScale = 1.05,
 		PlayPulseSeconds = 1.2,
-		TimerWidth = 180,
-		TimerHeight = 34,
-		TimerIconSize = 42,
+		TimerWidth = 200,
+		TimerHeight = 48,
+		TimerIconSize = 40,
 		TimerGap = 6,
 		TimerMax = 3,
-		TimerTextSize = 18,
+		TimerTextSize = 22,
 		TimerFormat = "%d:%02d",
 		PotionSwatch = "Teal",
 		CoinBoostSwatch = "Gold",
@@ -174,13 +175,13 @@ return {
 		MobileTileLabelHeight = 20,
 		MobileTileLabelSize = 16,
 		MobileTileGap = 8,
-		MobilePlaySize = 120,
-		MobilePlayIconSize = 34,
-		MobilePlayTextSize = 26,
-		MobileTimerWidth = 150,
-		MobileTimerHeight = 30,
-		MobileTimerIconSize = 36,
-		MobileTimerTextSize = 16,
+		MobilePlaySize = 132,
+		MobilePlayIconSize = 40,
+		MobilePlayTextSize = 28,
+		MobileTimerWidth = 180,
+		MobileTimerHeight = 42,
+		MobileTimerIconSize = 34,
+		MobileTimerTextSize = 18,
 		ButtonSize = 150,
 		ItemSize = 84,
 		LabelHeight = 22,
@@ -198,7 +199,7 @@ return {
 				Route = "Pets",
 				Name = "OnboardingPetsButton",
 			},
-			{ Id = "Index", Label = "INDEX", Icon = "📖", Swatch = "Purple", Route = "Pets" },
+			{ Id = "Index", Label = "INDEX", Icon = "📖", Swatch = "Purple", Route = "Pets", Tab = "Index" },
 			{
 				Id = "Upgrades",
 				Label = "UPGRADES",
@@ -238,16 +239,16 @@ return {
 
 	Layouts = {
 		PC = {
-			Dock = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -40, 0.32, 0) },
-			Grid = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 96) },
-			Play = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -40, 0.32, 0) },
-			Timers = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -40, 0.52, 0) },
+			Dock = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0.32, 0) },
+			Grid = { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 24, 0.5, 0) },
+			Play = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0.32, 0) },
+			Timers = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0.52, 0) },
 		},
 		Mobile = {
-			Dock = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0.24, 0) },
-			Grid = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 84) },
-			Play = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0.24, 0) },
-			Timers = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0.48, 0) },
+			Dock = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0.24, 0) },
+			Grid = { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 16, 0.5, 0) },
+			Play = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0.24, 0) },
+			Timers = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0.48, 0) },
 		},
 	},
 

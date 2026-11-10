@@ -5,7 +5,8 @@
 	Shared lobby route so the menu wheel and the two panels agree on what is open.
 	API: LobbyState.Get() -> a LobbyState.Routes value ("None", "Play", "Upgrades", "Daily",
 	     "Shop", "Pets", "Skins", "Rebirth");
-	     LobbyState.SetActive(route).
+	     LobbyState.GetTab() -> the tab requested for the open window, nil = the window default;
+	     LobbyState.SetActive(route, tab?) -> open a route and optionally ask its window for a tab.
 	Dependencies: Signal.
 ]]
 
@@ -28,20 +29,27 @@ LobbyState.Routes = {
 }
 
 local active = LobbyState.Routes.None
+local requestedTab: string? = nil
 
 function LobbyState.Get(): string
 	return active
 end
 
-function LobbyState.SetActive(route: string)
+function LobbyState.GetTab(): string?
+	return requestedTab
+end
+
+function LobbyState.SetActive(route: string, tab: string?)
 	if LobbyState.Routes[route] == nil then
 		return
 	end
-	if route == active then
+	local nextTab = if route == LobbyState.Routes.None then nil else tab
+	if route == active and nextTab == requestedTab then
 		return
 	end
 	active = route
-	LobbyState.Changed:Fire(active)
+	requestedTab = nextTab
+	LobbyState.Changed:Fire(active, requestedTab)
 end
 
 return LobbyState

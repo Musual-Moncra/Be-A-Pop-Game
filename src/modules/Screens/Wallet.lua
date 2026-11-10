@@ -47,7 +47,7 @@ local function LevelBadge(props: any)
 		local filled = (index - 1) / segments < ratio
 		children["Segment" .. index] = e("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),
-			BackgroundColor3 = if filled then fill.Mid else Palette.Inset,
+			BackgroundColor3 = if filled then fill.Mid else Palette.Ink,
 			BorderSizePixel = 0,
 			Position = UDim2.new(0.5, math.cos(angle) * radius, 0.5, math.sin(angle) * radius),
 			Rotation = math.deg(angle) + 90,
@@ -77,6 +77,7 @@ local function LevelBadge(props: any)
 	})
 	return e("Frame", {
 		BackgroundTransparency = 1,
+		LayoutOrder = props.layoutOrder,
 		Size = UDim2.fromOffset(ringSize, ringSize),
 	}, children)
 end
@@ -102,27 +103,8 @@ return function(props: any)
 	local plusSize = if mobile then Hud.MobilePlusSize else Hud.PlusSize
 	local gap = if mobile then Hud.MobileGap else Hud.Gap
 
-	local function openShop()
-		LobbyState.SetActive(Routes.Shop)
-	end
-
-	local function coinPill(icon: string, swatch: string, value: number)
-		return e(Pill, {
-			height = pillHeight,
-			icon = icon,
-			iconSize = pillIcon,
-			onPlus = openShop,
-			plusSize = plusSize,
-			swatch = swatch,
-			valueElement = e(CountUp, {
-				compact = true,
-				color = Palette.Text,
-				size = UDim2.fromScale(1, 1),
-				textSize = TextSizes.Header,
-				value = value,
-			}),
-			width = pillWidth,
-		})
+	local function openShop(tab: string)
+		LobbyState.SetActive(Routes.Shop, tab)
 	end
 
 	return e("Frame", {
@@ -139,17 +121,55 @@ return function(props: any)
 		),
 		Level = LevelBadge({
 			badgeSize = badgeSize,
+			layoutOrder = 1,
 			level = data.Level,
 			ratio = ratio,
 			ringSize = ringSize,
 			thickness = ringThickness,
 		}),
-		Coins = coinPill(Text.CoinIcon, "Gold", data.Coins),
-		Gems = coinPill(Text.GemIcon, "Purple", data.Gems),
+		Coins = e(Pill, {
+			height = pillHeight,
+			icon = Text.CoinIcon,
+			iconSize = pillIcon,
+			layoutOrder = 2,
+			onPlus = function()
+				openShop("Coins")
+			end,
+			plusSize = plusSize,
+			swatch = "Gold",
+			valueElement = e(CountUp, {
+				compact = true,
+				color = Palette.Text,
+				size = UDim2.fromScale(1, 1),
+				textSize = TextSizes.Header,
+				value = data.Coins,
+			}),
+			width = pillWidth,
+		}),
+		Gems = e(Pill, {
+			height = pillHeight,
+			icon = Text.GemIcon,
+			iconSize = pillIcon,
+			layoutOrder = 3,
+			onPlus = function()
+				openShop("Gems")
+			end,
+			plusSize = plusSize,
+			swatch = "Purple",
+			valueElement = e(CountUp, {
+				compact = true,
+				color = Palette.Text,
+				size = UDim2.fromScale(1, 1),
+				textSize = TextSizes.Header,
+				value = data.Gems,
+			}),
+			width = pillWidth,
+		}),
 		Stink = e(Pill, {
 			height = stinkHeight,
 			icon = Text.StinkIcon,
 			iconSize = stinkIcon,
+			layoutOrder = 4,
 			swatch = Hud.StinkSwatch,
 			textSize = TextSizes.Header,
 			value = string.format(Text.StinkChipFormat, PetView.TotalStink(data)),

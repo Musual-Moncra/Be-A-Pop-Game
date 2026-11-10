@@ -212,7 +212,7 @@ return function(props: any)
 			layoutOrder = index,
 			name = item.Name,
 			onActivated = function()
-				LobbyState.SetActive(item.Route)
+				LobbyState.SetActive(item.Route, item.Tab)
 			end,
 			phase = index * 0.17,
 			size = dock.TileSize,
@@ -262,6 +262,7 @@ return function(props: any)
 				icon = Dock.PlayIcon,
 				iconSize = dock.PlayIconSize,
 				name = "OnboardingPlayButton",
+				stacked = true,
 				onActivated = function()
 					LobbyState.SetActive(Routes.Play)
 				end,
