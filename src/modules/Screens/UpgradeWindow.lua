@@ -124,8 +124,8 @@ local function BreatheBuy(props: any)
 		Scale = e("UIScale", { ref = scaleRef }),
 		Glow = if props.active
 			then e(GlowRing, {
-				color = Primitives.swatch("Gold").Top,
-				size = Upgrade.BuyWidth * Motion.GlowSizeRatio,
+				radius = Shape.Radius,
+				swatch = "Green",
 				zIndex = 1,
 			})
 			else nil,

@@ -35,6 +35,7 @@ local e = React.createElement
 local Motion = LobbyUIConfig.Motion
 local Rebirth = LobbyUIConfig.Rebirth
 local Gap = UIConfig.Sizes.Window.Gap
+local Shape = UIConfig.Shape
 local Palette = UIConfig.Palette
 local Text = UIConfig.Text
 local TextSizes = UIConfig.TextSizes
@@ -144,8 +145,8 @@ return function(props: any)
 			Scale = e("UIScale", { ref = buttonScale }),
 			Glow = if canRebirth
 				then e(GlowRing, {
-					color = UIConfig.Swatches.Gold.Top,
-					size = Rebirth.ButtonHeight * 2.4,
+					radius = Shape.Radius,
+					swatch = "Green",
 					zIndex = 1,
 				})
 				else nil,

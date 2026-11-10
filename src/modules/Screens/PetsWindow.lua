@@ -541,8 +541,8 @@ local function RewardBox(props: any): any
 		Scale = e("UIScale", { ref = scaleRef }),
 		Glow = if claimable
 			then e(GlowRing, {
-				color = UIConfig.Swatches.Gold.Top,
-				size = Index.RewardBoxHeight * Motion.GlowSizeRatio,
+				radius = Shape.Radius,
+				swatch = "Gold",
 				zIndex = 1,
 			})
 			else nil,
