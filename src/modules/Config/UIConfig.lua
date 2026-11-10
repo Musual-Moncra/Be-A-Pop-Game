@@ -84,7 +84,7 @@
 		Hud.BadgeSize: gold level badge diameter
 		Hud.XpBarHeight: XP bar height
 		Hud.PillHeight / Hud.PillIconSize: coin/gem pill height / round icon diameter
-		Hud.StinkChipHeight / StinkChipWidth: Stink chip height / width reserved beside the coins (design pixels)
+		Hud.StinkSwatch: Stink pill colour (UIConfig.Swatches key)
 		Hud.Gap: gap between wallet rows
 		Hud.XpBarLeftRatio / XpBarDropDivisor: XP bar start and vertical drop as fractions of BadgeSize
 		Hud.CaptionHeightRatio / CaptionHeightDivisor: level caption height as a fraction of BadgeSize
@@ -224,7 +224,7 @@
 		ResultSoiled: soiled objects badge (format: count)
 		ResultPlus: reward amount (format: amount)
 		ResultStinkFormat: score and Stink line on the result window; the coin row below it is the server total (format: score, multiplier)
-		StinkFormat: Stink multiplier chip (format: multiplier)
+		StinkIcon / StinkPillFormat: Stink pill icon and text (format: multiplier with two decimals)
 		Continue: result window button
 		PowerupPickedFormat: popup when food is eaten (format: food name)
 		ObjectSoiledFormat: popup when an object is fully soiled (format: object name, bonus points)
@@ -405,8 +405,7 @@ return {
 			XpBarHeight = 34,
 			PillHeight = 58,
 			PillIconSize = 74,
-			StinkChipHeight = 44,
-			StinkChipWidth = 116,
+			StinkSwatch = "Brown",
 			Gap = 14,
 			XpBarLeftRatio = 0.5,
 			XpBarDropDivisor = 6,
@@ -687,7 +686,8 @@ return {
 		ResultSoiled = "%d objects soiled",
 		ResultPlus = "+%s",
 		ResultStinkFormat = "Score %s × Stink x%s",
-		StinkFormat = "💩 x%s",
+		StinkIcon = "💩",
+		StinkPillFormat = "x%.2f Stink",
 		Continue = "CONTINUE",
 
 		PowerupPickedFormat = "Yum! %s",

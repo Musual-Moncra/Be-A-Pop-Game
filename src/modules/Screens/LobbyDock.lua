@@ -94,6 +94,7 @@ local function DockItem(props: any)
 		Button = e(ChunkyButton, {
 			icon = item.Icon,
 			iconSize = size * UIConfig.Shape.IconFill,
+			name = item.Name,
 			onActivated = function()
 				props.onPick(item.Route)
 			end,
@@ -185,6 +186,7 @@ return function(props: any)
 			Menu = e(ChunkyButton, {
 				icon = if open then Dock.OpenIcon else Dock.Icon,
 				iconSize = TextSizes.BigIcon,
+				name = Dock.Name,
 				onActivated = function()
 					setOpen(not open)
 				end,

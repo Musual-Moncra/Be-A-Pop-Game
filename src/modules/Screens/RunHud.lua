@@ -2,12 +2,12 @@
 
 --[[
 	RunHud
-	Everything shown during a run: the score panel (big score, Stink chip, timer bar that turns
+	Everything shown during a run: the score panel (big score, Stink pill, timer bar that turns
 	red when low, Challenge target bar), the quest list, active food power-ups with countdowns,
 	floating popups (food eaten, object soiled, caught by a chef) and the LEAVE button.
 
 	Props: data (DataController state), ui (useUIScale result)
-	Dependencies: React, UIConfig, RunUIConfig, ConfigLookup, PetView, Net, Primitives, ChunkyButton, Bar, Chip, Inset, Format
+	Dependencies: React, UIConfig, RunUIConfig, ConfigLookup, PetView, Net, Primitives, ChunkyButton, Bar, Pill, Inset, Format
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,10 +22,10 @@ local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
 local Components = ReplicatedStorage.Modules.UIComponents
 local Bar = require(Components.Bar)
-local Chip = require(Components.Chip)
 local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
 local Inset = require(Components.Inset)
+local Pill = require(Components.Pill)
 local Primitives = require(Components.Primitives)
 
 local e = React.createElement
@@ -106,12 +106,14 @@ local function ScorePanel(props: any)
 			Text = Format.commas(data.Score),
 			TextSize = TextSizes.Huge,
 		}),
-		Stink = e(Chip, {
-			layoutOrder = 3,
+		Stink = e(Pill, {
 			height = RunUIConfig.Stink.Height,
+			icon = Text.StinkIcon,
+			iconSize = RunUIConfig.Stink.IconSize,
+			layoutOrder = 3,
 			swatch = RunUIConfig.Stink.Swatch,
-			text = string.format(RunUIConfig.Stink.Format, Format.multiplier(PetView.TotalStink(data))),
-			textSize = TextSizes.Small,
+			value = string.format(Text.StinkPillFormat, PetView.TotalStink(data)),
+			width = Sizes.ScoreWidth,
 		}),
 	}
 	if target > 0 then

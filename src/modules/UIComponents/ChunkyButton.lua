@@ -9,6 +9,7 @@
 	Props:
 		swatch: UIConfig.Swatches key (string), Grey when disabled
 		size, position, anchorPoint, layoutOrder, zIndex
+		name: optional instance name (onboarding targets look buttons up by name)
 		round: true for a circle
 		text, textSize, icon, iconSize: label and emoji; icon sits left of the text,
 			or above it when stacked = true. Text-only and stacked labels shrink to fit the
@@ -148,6 +149,7 @@ return function(props: any)
 		AutoButtonColor = if clickable then false else nil,
 		BackgroundTransparency = 1,
 		LayoutOrder = props.layoutOrder,
+		Name = props.name,
 		Position = props.position,
 		Selectable = clickable and enabled,
 		Size = props.size,

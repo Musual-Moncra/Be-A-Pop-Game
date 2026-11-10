@@ -12,10 +12,9 @@
 			Swatch: fill colour (UIConfig.Swatches key)
 			Format: bar text (format: percent with one decimal)
 			BestFormat: caption under the bar (format: best percent)
-		Stink: Stink multiplier chip under the run score
-			Height: chip height (design pixels)
-			Swatch: chip colour (UIConfig.Swatches key)
-			Format: chip text (format: multiplier)
+		Stink: Stink pill under the run score
+			Height / IconSize: pill height and icon diameter (design pixels)
+			Swatch: pill colour (UIConfig.Swatches key)
 		Event: Special Time banner, shown in the lobby and in runs
 			Width / Height: banner size (design pixels)
 			Swatch: banner colour (UIConfig.Swatches key)
@@ -47,9 +46,9 @@ return {
 	},
 
 	Stink = {
-		Height = 38,
+		Height = 46,
+		IconSize = 56,
 		Swatch = "Brown",
-		Format = "💩 STINK x%s",
 	},
 
 	Event = {

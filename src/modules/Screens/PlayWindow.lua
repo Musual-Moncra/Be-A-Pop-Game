@@ -587,6 +587,7 @@ local function CreateView(props: any)
 	footerButtons.Submit = e(ChunkyButton, {
 		enabled = canPlay,
 		layoutOrder = 2,
+		name = if editing then nil else "OnboardingPlayButton",
 		onActivated = function()
 			if canPlay then
 				props.onSubmit(map.Id, mode.Id, maxPlayers, friendsOnly)
