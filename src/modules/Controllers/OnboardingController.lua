@@ -19,8 +19,7 @@
 		OnboardingController.Skip()
 		OnboardingController.HasLowLifespan() -> boolean
 		OnboardingController.HasPetSeen() -> boolean
-		OnboardingController.FindTarget(key) -> GuiObject?   "Play" | "Upgrades" | "Pets"
-		OnboardingController.GetPortalPosition() -> Vector3?
+		OnboardingController.FindTarget(key) -> GuiObject?   "Play" | "Upgrades" | "Pets" | "Menu"
 		OnboardingController.GetNearestTargetPosition() -> Vector3?
 
 	Dependencies: Players, Workspace, Signal, DataController, GameConfig, LobbyState,
@@ -237,24 +236,6 @@ function OnboardingController.FindTarget(key: string): GuiObject?
 		if instance ~= nil and instance:IsA("GuiObject") and isShown(instance) then
 			return instance
 		end
-	end
-	return nil
-end
-
-function OnboardingController.GetPortalPosition(): Vector3?
-	local lobby = Workspace:FindFirstChild("Lobby")
-	if lobby == nil then
-		return nil
-	end
-	local portal = lobby:FindFirstChild("Portal", true)
-	if portal == nil then
-		return nil
-	end
-	if portal:IsA("BasePart") then
-		return portal.Position
-	end
-	if portal:IsA("Model") then
-		return portal:GetPivot().Position
 	end
 	return nil
 end
