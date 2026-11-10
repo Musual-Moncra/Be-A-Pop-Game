@@ -51,7 +51,8 @@ return function(props: any)
 			return
 		end
 		local started = os.clock()
-		local connection = RunService.Heartbeat:Connect(function()
+		local connection: RBXScriptConnection
+		connection = RunService.Heartbeat:Connect(function()
 			local progress = math.clamp((os.clock() - started) / duration, 0, 1)
 			local eased = 1 - (1 - progress) * (1 - progress)
 			setShown(from + (target - from) * eased)
