@@ -34,6 +34,7 @@
 				(purchase ids, oldest first)
 			GrantedPets: pet ids delivered by a developer product, read by the pet system
 				(pet ids)
+			NewbiePackClaimed: true once the Newbie Pack was granted; the pack pays only once (boolean)
 			CoinBoostUntil: unix time the purchased coin boost stops working, 0 = no boost
 				(unix seconds)
 			MapProgress: best percent reached per map, map id = 0..100 (percent)
@@ -89,6 +90,7 @@ return {
 		Boosts = {},
 		Purchases = {},
 		GrantedPets = {},
+		NewbiePackClaimed = false,
 		CoinBoostUntil = 0,
 		MapProgress = {},
 		Potions = {},

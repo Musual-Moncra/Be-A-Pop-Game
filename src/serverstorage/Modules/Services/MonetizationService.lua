@@ -17,15 +17,16 @@
 
 	Revive: RunService fires RunEvents.TimeUp when a timed run has ReviveOfferAt seconds left and
 	keeps the offer open MonetizationConfig.ReviveWindow seconds. This service answers with Outbound.ReviveOffer
-	(product id, tier index, seconds). A revive receipt fires RunEvents.ReviveActivated so
-	RunService adds ReviveSeconds and closes the window. Every revive inside one run moves to
-	the next, more expensive tier; the last tier repeats. A revive bought outside a run becomes
-	credit that is spent on the next offer instead of being lost.
+	(product id, tier index, seconds). A revive receipt fires RunEvents.ReviveActivated with that
+	tier's Seconds so RunService adds them and closes the window. Every revive inside one run moves
+	to the next, more expensive tier; once every tier is used the offer stops. A revive bought
+	outside a run becomes credit that is spent on the next offer instead of being lost.
 
 	API:
 		MonetizationService.HasPass(plr, passKey) -> boolean
 		MonetizationService.GetCoinMultiplier(plr) -> number
 		MonetizationService.GetGemMultiplier(plr) -> number
+		MonetizationService.CanRevive(plr) -> boolean
 		MonetizationService.GrantProduct -> { [kind: string]: (plr, entry, purchaseId) -> boolean }
 		MonetizationService.PassStateChanged -> Signal (plr) gamepass cache was refreshed
 
@@ -33,7 +34,7 @@
 	PetService requires this service for the Extra Pet Slots gamepass, so a top-level require
 	on both sides would be a cycle.
 
-	Dependencies: MarketplaceService, DataService, RunEvents, Outbound, ConfigLookup,
+	Dependencies: MarketplaceService, DataService, PotionService, RunEvents, Outbound, ConfigLookup,
 		MonetizationConfig, Signal, PetService (lazily)
 ]]
 
@@ -43,6 +44,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local DataService = require(script.Parent.DataService)
+local PotionService = require(script.Parent.PotionService)
 local RunEvents = require(script.Parent.Parent.Shared.RunEvents)
 local Outbound = require(script.Parent.Parent.Remotes.Outbound)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
@@ -158,18 +160,23 @@ GrantProduct.CoinPack = function(plr: Player, entry: any, _purchaseId: string): 
 	return true
 end
 
-GrantProduct.Revive = function(plr: Player, _entry: any, _purchaseId: string): boolean
+GrantProduct.Revive = function(plr: Player, entry: any, _purchaseId: string): boolean
+	local seconds = entry.Seconds
 	if activeRuns[plr] then
 		reviveCount[plr] = (reviveCount[plr] or 0) + 1
-		RunEvents.ReviveActivated:Fire(plr, MonetizationConfig.ReviveSeconds)
+		RunEvents.ReviveActivated:Fire(plr, seconds)
 	else
-		pendingReviveSeconds[plr] = (pendingReviveSeconds[plr] or 0) + MonetizationConfig.ReviveSeconds
+		pendingReviveSeconds[plr] = (pendingReviveSeconds[plr] or 0) + seconds
 	end
-	Outbound.Notify(
-		plr,
-		"Success",
-		string.format(MonetizationConfig.Messages.ReviveGranted, MonetizationConfig.ReviveSeconds)
-	)
+	Outbound.Notify(plr, "Success", string.format(MonetizationConfig.Messages.ReviveGranted, seconds))
+	return true
+end
+
+GrantProduct.Potion = function(plr: Player, entry: any, _purchaseId: string): boolean
+	if not PotionService.GrantPotion(plr, entry.Id) then
+		return false
+	end
+	Outbound.Notify(plr, "Success", string.format(MonetizationConfig.Messages.PotionGranted, entry.DisplayName))
 	return true
 end
 
@@ -184,6 +191,16 @@ GrantProduct.StainBomb = function(plr: Player, _entry: any, _purchaseId: string)
 end
 
 GrantProduct.NewbiePack = function(plr: Player, entry: any, _purchaseId: string): boolean
+	local data = DataService.Get(plr)
+	if data == nil then
+		return false
+	end
+	if data.NewbiePackClaimed == true then
+		Outbound.Notify(plr, "Info", MonetizationConfig.Messages.NewbiePackOwned)
+		return true
+	end
+	data.NewbiePackClaimed = true
+
 	DataService.AddGems(plr, entry.Gems)
 	DataService.AddCoins(plr, entry.Coins)
 
@@ -192,15 +209,26 @@ GrantProduct.NewbiePack = function(plr: Player, entry: any, _purchaseId: string)
 		PetService.GrantPet(plr, entry.PetId, entry.PetVariant)
 	end
 
-	local data = DataService.Get(plr)
-	local boostUntil = if data ~= nil then math.max(data.CoinBoostUntil or 0, os.time()) else os.time()
+	local boostUntil = math.max(data.CoinBoostUntil or 0, os.time())
 	DataService.SetCoinBoostUntil(plr, boostUntil + entry.CoinBoostSeconds)
+	DataService.MarkChanged(plr)
 
 	Outbound.Notify(plr, "Success", MonetizationConfig.Messages.NewbiePackGranted)
 	return true
 end
 
 MonetizationService.GrantProduct = GrantProduct
+
+function MonetizationService.CanRevive(plr: Player): boolean
+	if not activeRuns[plr] then
+		return false
+	end
+	if (pendingReviveSeconds[plr] or 0) > 0 then
+		return true
+	end
+	local tier = ConfigLookup.GetReviveTier((reviveCount[plr] or 0) + 1)
+	return tier ~= nil and tier.Id ~= 0
+end
 
 local function processReceipt(receipt: any): Enum.ProductPurchaseDecision
 	local plr = Players:GetPlayerByUserId(receipt.PlayerId)

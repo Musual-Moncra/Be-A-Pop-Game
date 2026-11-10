@@ -652,6 +652,30 @@ runTest("ConfigLookup_GetMapCellCount_And_ProgressPercent", function()
 	expectNear(ConfigLookup.GetMapProgressPercent(10, -5), 0, 1e-9, "Negative total returns 0%")
 end)
 
+runTest("ConfigLookup_StainBombRadius_ScalesWithStainArea", function()
+	local scale = MonetizationConfig.StainBombAreaScale
+	expect(scale == 3, "Stain Bomb must cover 3x one stain's area")
+	expect(MonetizationConfig.StainBombRadius == nil, "Fixed StainBombRadius must be gone")
+
+	local base = 4
+	local expectedBase = math.sqrt(scale) * (base / 2)
+	expectNear(ConfigLookup.GetStainBombRadius(base), expectedBase, 1e-9, "Level-0 stain bomb radius")
+	expectNear(
+		ConfigLookup.GetStainBombRadius(base * 2),
+		expectedBase * 2,
+		1e-9,
+		"Radius must scale linearly with stain size"
+	)
+	expectNear(
+		ConfigLookup.GetStainBombRadius(base * 2) / ConfigLookup.GetStainBombRadius(base),
+		2,
+		1e-9,
+		"Doubling the stain doubles the bomb radius"
+	)
+	expectNear(ConfigLookup.GetStainBombRadius(0), 0, 1e-9, "Zero stain size gives zero radius")
+	expectNear(ConfigLookup.GetStainBombRadius(-5), 0, 1e-9, "Negative stain size clamps to zero")
+end)
+
 runTest("ConfigLookup_GetPreviousMap_Chain", function()
 	local sorted = ConfigLookup.GetSortedMaps()
 	expect(#sorted >= 4, "Expected at least 4 maps")
@@ -772,8 +796,29 @@ runTest("ConfigLookup_AllOtherAccessors", function()
 
 	expect(ConfigLookup.GetPass("DoubleCoins") ~= nil, "DoubleCoins pass must exist")
 	expect(ConfigLookup.GetDevProduct(0) == nil, "ProductId 0 must return nil")
-	expect(ConfigLookup.GetReviveTier(1) ~= nil, "Revive tier 1 must exist")
+
+	local reviveTiers = MonetizationConfig.DevProducts.Revive
+	expect(#reviveTiers == 3, "Expected 3 revive tiers")
+	for index, tier in reviveTiers do
+		expect(tier.Tier == index, "Revive tier order must match its index: " .. tostring(index))
+		expect(tier.Seconds > 0, "Revive tier needs positive Seconds: " .. tostring(index))
+		expect(tier.PriceRobux > 0, "Revive tier needs a price: " .. tostring(index))
+	end
+	expect(
+		reviveTiers[1].Seconds == 20 and reviveTiers[2].Seconds == 20 and reviveTiers[3].Seconds == 30,
+		"GDD revive seconds must be 20 / 20 / 30"
+	)
+	expect(
+		reviveTiers[1].PriceRobux == 4 and reviveTiers[2].PriceRobux == 9 and reviveTiers[3].PriceRobux == 13,
+		"GDD revive prices must be 4 / 9 / 13"
+	)
+	expect(ConfigLookup.GetReviveTier(1) == reviveTiers[1], "GetReviveTier(1) must be the first tier")
+	expect(ConfigLookup.GetReviveTier(3) == reviveTiers[3], "GetReviveTier(3) must be the last tier")
+	expect(ConfigLookup.GetReviveTier(4) == nil, "No revive tier past the list")
+	expect(ConfigLookup.GetReviveTier(0) == nil, "No revive tier below 1")
+	expect(MonetizationConfig.ReviveSeconds == nil, "Single ReviveSeconds must be gone")
 	expect(type(ConfigLookup.IsReviveAvailable()) == "boolean", "IsReviveAvailable must return boolean")
+	expect(MonetizationConfig.DevProducts.StainBomb.PriceRobux == 16, "Stain Bomb must cost 16 R$")
 
 	local potionIds = ConfigLookup.GetSortedPotionIds()
 	expect(#potionIds == 3, "Expected 3 potions")
@@ -999,6 +1044,11 @@ runTest("ConfigIntegrity_Pets_Rarities_Variants", function()
 	expect(type(DataConfig.Template.PetIndexClaimed) == "table", "Template.PetIndexClaimed must be a table")
 
 	local newbie = MonetizationConfig.DevProducts.NewbiePack
+	expect(newbie.Gems == 200, "Newbie Pack must grant 200 gems")
+	expect(newbie.Coins == 5000, "Newbie Pack must grant 5000 coins")
+	expect(newbie.CoinBoostMultiplier == 2, "Newbie Pack must grant a x2 coin boost")
+	expect(newbie.CoinBoostSeconds == 3600, "Newbie Pack coin boost must last 1 hour")
+	expect(DataConfig.Template.NewbiePackClaimed == false, "Newbie Pack must start unclaimed")
 	expect(ConfigLookup.GetPet(newbie.PetId) ~= nil, "NewbiePack PetId must exist in PetConfig.Pets")
 	expect(ConfigLookup.GetVariant(newbie.PetVariant) ~= nil, "NewbiePack PetVariant must exist in PetConfig.Variants")
 end)
@@ -1058,7 +1108,9 @@ end)
 
 runTest("ConfigIntegrity_Potions_Quests_Powerups_Cosmetics_DataTemplate", function()
 	local validPotionStats = { Lifespan = true, Speed = true, Stink = true }
+	local potionRobuxPrices = { LifespanPotion = 24, SpeedPotion = 25, StinkPotion = 30 }
 	for potionId, potion in PotionConfig.Potions do
+		expect(potion.Id == potionId, "Potion key/Id mismatch: " .. tostring(potionId))
 		expect(
 			validPotionStats[potion.Stat] == true,
 			string.format("Potion %s has invalid Stat %s", potionId, tostring(potion.Stat))
@@ -1066,6 +1118,12 @@ runTest("ConfigIntegrity_Potions_Quests_Powerups_Cosmetics_DataTemplate", functi
 		expect(
 			potion.Duration > 0 and potion.Multiplier > 0,
 			"Potion Duration and Multiplier must be positive: " .. potionId
+		)
+		expect(type(potion.ProductId) == "number", "Potion ProductId must be a number: " .. potionId)
+		local expectedPrice = potionRobuxPrices[potionId]
+		expect(
+			expectedPrice ~= nil and potion.PriceRobux == expectedPrice,
+			"Potion price must match the GDD Robux price: " .. potionId
 		)
 	end
 	for potionId in DataConfig.Template.PotionInventory do

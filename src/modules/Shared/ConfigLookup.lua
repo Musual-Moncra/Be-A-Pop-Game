@@ -27,6 +27,7 @@
 		ConfigLookup.GetDevProduct(productId) -> kind, entry
 		ConfigLookup.GetReviveTier(tier) -> ReviveDefinition?
 		ConfigLookup.IsReviveAvailable() -> boolean
+		ConfigLookup.GetStainBombRadius(stainSize) -> number   x3 stain area bomb radius
 		ConfigLookup.GetEnabledMaps() -> { MapDefinition }
 		ConfigLookup.GetMapCellCount(size) -> number        stain cells covering a footprint
 		ConfigLookup.GetMapProgressPercent(stained, total) -> number
@@ -133,12 +134,15 @@ export type PowerupDefinition = {
 }
 
 export type PotionDefinition = {
+	Id: string,
 	DisplayName: string,
 	Icon: string,
 	Duration: number,
 	Multiplier: number,
 	Stat: string,
 	Description: string,
+	ProductId: number,
+	PriceRobux: number,
 }
 
 export type ObjectDefinition = {
@@ -349,6 +353,11 @@ function ConfigLookup.GetDevProduct(productId: number): (string?, any?)
 			return "Revive", entry
 		end
 	end
+	for _, potion in PotionConfig.Potions do
+		if potion.ProductId ~= 0 and potion.ProductId == productId then
+			return "Potion", potion
+		end
+	end
 
 	local stainBomb = MonetizationConfig.DevProducts.StainBomb
 	if stainBomb.Id ~= 0 and stainBomb.Id == productId then
@@ -363,10 +372,14 @@ end
 
 function ConfigLookup.GetReviveTier(tier: number): any?
 	local tiers = MonetizationConfig.DevProducts.Revive
-	if #tiers == 0 then
+	if tier < 1 or tier > #tiers then
 		return nil
 	end
-	return tiers[math.clamp(tier, 1, #tiers)]
+	return tiers[tier]
+end
+
+function ConfigLookup.GetStainBombRadius(stainSize: number): number
+	return math.sqrt(MonetizationConfig.StainBombAreaScale) * math.max(0, stainSize) * 0.5
 end
 
 function ConfigLookup.IsReviveAvailable(): boolean
