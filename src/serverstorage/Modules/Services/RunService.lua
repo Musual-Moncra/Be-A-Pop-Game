@@ -104,12 +104,16 @@ local RunService = {}
 local activeRuns: { [Player]: ActiveRun } = {}
 local portalDebounce: { [Player]: number } = {}
 local stepAccumulator = 0
-local reviveEnabled = ConfigLookup.IsReviveAvailable()
 
 local function getUpgradeValue(plr: Player, id: string): number
 	local data = DataService.Get(plr)
 	local level = if data ~= nil and data.Upgrades ~= nil then data.Upgrades[id] or 0 else 0
 	return ConfigLookup.GetUpgradeValue(id, level)
+end
+
+local function getStainSize(plr: Player, multipliers: PowerupService.Multipliers): number
+	local potionStainMultiplier = PotionService.GetMultiplier(plr, "StainSize")
+	return getUpgradeValue(plr, "StainSize") * multipliers.StainSize * potionStainMultiplier
 end
 
 local function getSurfaceCFrame(position: Vector3, normal: Vector3): CFrame
@@ -317,8 +321,7 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 	run.visitedCells[key] = true
 	run.stainCells += 1
 
-	local potionStainMultiplier = PotionService.GetMultiplier(run.player, "StainSize")
-	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize * potionStainMultiplier
+	local stainSize = getStainSize(run.player, multipliers)
 	addStain(run, rayResult.Position, normal, stainSize, key)
 	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points)
 end
@@ -374,9 +377,9 @@ local function stepRun(run: ActiveRun, dt: number)
 	end
 	if
 		run.hasTimer
-		and reviveEnabled
 		and run.reviveDeadline == 0
 		and run.timeLeft <= MonetizationConfig.ReviveOfferAt
+		and MonetizationService.CanRevive(plr)
 	then
 		run.reviveDeadline = run.elapsedTime + MonetizationConfig.ReviveWindow
 		RunEvents.TimeUp:Fire(plr)
@@ -665,7 +668,8 @@ RunEvents.StainBomb:Connect(function(plr: Player)
 	if hrp == nil then
 		return
 	end
-	soilPropsInRadius(run, hrp.Position, MonetizationConfig.StainBombRadius)
+	local stainSize = getStainSize(plr, PowerupService.GetMultipliers(plr))
+	soilPropsInRadius(run, hrp.Position, ConfigLookup.GetStainBombRadius(stainSize))
 end)
 
 RunEvents.MiniBombDetonated:Connect(function(plr: Player, origin: Vector3, radius: number)
