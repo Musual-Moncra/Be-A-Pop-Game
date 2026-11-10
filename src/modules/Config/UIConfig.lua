@@ -641,7 +641,7 @@ return {
 	Layouts = {
 		PC = {
 			Wallet = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12) },
-			Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 24) },
+			Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 96) },
 			RunTimer = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 20) },
 			RunScore = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 20) },
 			RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 200) },
@@ -652,7 +652,7 @@ return {
 		},
 		Mobile = {
 			Wallet = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8) },
-			Toasts = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 12) },
+			Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 80) },
 			RunTimer = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10) },
 			RunScore = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 10) },
 			RunQuests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 190) },
