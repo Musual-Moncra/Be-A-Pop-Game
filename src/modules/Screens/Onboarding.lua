@@ -232,40 +232,6 @@ return function(props: any)
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
 	}, {
-		Arrow = if hint.TargetKey ~= nil
-			then e("TextLabel", {
-				AnchorPoint = Vector2.new(0.5, 1),
-				BackgroundTransparency = 1,
-				FontFace = Primitives.displayFont(),
-				Position = UDim2.fromOffset(0, 0),
-				Size = UDim2.fromOffset(OnboardingConfig.ArrowBoxSize, OnboardingConfig.ArrowBoxSize),
-				Text = OnboardingConfig.ArrowText,
-				TextColor3 = OnboardingConfig.ArrowColor,
-				TextSize = OnboardingConfig.ArrowTextSize,
-				TextStrokeColor3 = OnboardingConfig.ArrowStrokeColor,
-				TextStrokeTransparency = 0,
-				Visible = false,
-				ref = arrowRef,
-			})
-			else nil,
-		Ring = if hint.TargetKey ~= nil
-			then e("Frame", {
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				BackgroundTransparency = 1,
-				Position = UDim2.fromOffset(0, 0),
-				Size = UDim2.fromOffset(OnboardingConfig.RingSize, OnboardingConfig.RingSize),
-				Visible = false,
-				ref = ringRef,
-			}, {
-				Scale = e("UIScale", { ref = ringScaleRef }),
-				Corner = e("UICorner", { CornerRadius = UDim.new(1, 0) }),
-				Stroke = e("UIStroke", {
-					Color = OnboardingConfig.RingColor,
-					Thickness = OnboardingConfig.RingThickness,
-					Transparency = OnboardingConfig.RingTransparency,
-				}),
-			})
-			else nil,
 		Panel = e("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundColor3 = OnboardingConfig.PanelColor,
@@ -301,5 +267,39 @@ return function(props: any)
 				textSize = OnboardingConfig.SkipTextSize,
 			}),
 		}),
+		Arrow = if hint.TargetKey ~= nil
+			then e("TextLabel", {
+				AnchorPoint = Vector2.new(0.5, 1),
+				BackgroundTransparency = 1,
+				FontFace = Primitives.displayFont(),
+				Position = UDim2.fromOffset(0, 0),
+				Size = UDim2.fromOffset(OnboardingConfig.ArrowBoxSize, OnboardingConfig.ArrowBoxSize),
+				Text = OnboardingConfig.ArrowText,
+				TextColor3 = OnboardingConfig.ArrowColor,
+				TextSize = OnboardingConfig.ArrowTextSize,
+				TextStrokeColor3 = OnboardingConfig.ArrowStrokeColor,
+				TextStrokeTransparency = 0,
+				Visible = false,
+				ref = arrowRef,
+			})
+			else nil,
+		Ring = if hint.TargetKey ~= nil
+			then e("Frame", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				BackgroundTransparency = 1,
+				Position = UDim2.fromOffset(0, 0),
+				Size = UDim2.fromOffset(OnboardingConfig.RingSize, OnboardingConfig.RingSize),
+				Visible = false,
+				ref = ringRef,
+			}, {
+				Scale = e("UIScale", { ref = ringScaleRef }),
+				Corner = e("UICorner", { CornerRadius = UDim.new(1, 0) }),
+				Stroke = e("UIStroke", {
+					Color = OnboardingConfig.RingColor,
+					Thickness = OnboardingConfig.RingThickness,
+					Transparency = OnboardingConfig.RingTransparency,
+				}),
+			})
+			else nil,
 	})
 end
