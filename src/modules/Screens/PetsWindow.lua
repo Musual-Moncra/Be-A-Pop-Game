@@ -394,9 +394,10 @@ local function indexTile(pet: any, discovered: boolean, order: number): any
 	local oddsText = if odds > 0 then string.format(Index.OddsFormat, Format.multiplier(odds)) else ""
 	local swatchName = if discovered then raritySwatch(pet) else "Grey"
 	local swatch = Primitives.swatch(swatchName)
-	local wellColor = if discovered
-		then (rarity.Color or LobbyUIConfig.RarityColors[pet.Rarity] or Palette.Inset)
-		else Palette.Ink
+	local wellColor = if not discovered
+		then Palette.Ink
+		elseif rarity ~= nil then rarity.Color
+		else LobbyUIConfig.RarityColors[pet.Rarity] or Palette.Inset
 
 	return e(ChunkyButton, {
 		layoutOrder = order,
