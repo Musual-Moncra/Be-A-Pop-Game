@@ -15,7 +15,7 @@
 		Outbound.QuestState(plr, quests)                 coalesced
 		Outbound.PowerupState(plr, active)               coalesced
 		Outbound.SelectionSync(plr, mapId, modeId)
-		Outbound.RunState(plr, state, timeLeft, score)
+		Outbound.RunState(plr, state, timeLeft, score, combo)
 		Outbound.RunEnded(plr, summary)
 		Outbound.PowerupPicked(plr, powerupId)
 		Outbound.ObjectStained(plr, object, step)
@@ -100,9 +100,15 @@ function Outbound.SelectionSync(plr: Player, mapId: string, modeId: string)
 	end
 end
 
-function Outbound.RunState(plr: Player, state: string, timeLeft: number, score: number)
+function Outbound.RunState(plr: Player, state: string, timeLeft: number, score: number, combo: number)
 	if connected(plr) then
-		Net.RunState:FireClient(plr, state, timeLeft, math.max(0, math.floor(score)))
+		Net.RunState:FireClient(
+			plr,
+			state,
+			timeLeft,
+			math.max(0, math.floor(score)),
+			math.clamp(math.floor(combo), 1, 255)
+		)
 	end
 end
 

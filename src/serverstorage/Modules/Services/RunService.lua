@@ -84,6 +84,9 @@ export type ActiveRun = {
 	sentTint: { [Model]: number },
 	pendingTint: { [Model]: number },
 	objectsSoiled: number,
+	comboLevel: number,
+	comboCells: number,
+	comboLastCellTime: number,
 	stainParts: { BasePart },
 	stainCursor: number,
 	stainFolder: Folder,
@@ -299,6 +302,23 @@ local function cellKey(hitPos: Vector3, normal: Vector3): number
 	return ((x * CELL_KEY_RANGE + y) * CELL_KEY_RANGE + z) * FACE_COUNT + faceIndex(normal)
 end
 
+local function advanceCombo(run: ActiveRun)
+	if run.elapsedTime - run.comboLastCellTime >= RunConfig.ComboDecay then
+		run.comboLevel = 1
+		run.comboCells = 0
+	end
+	run.comboCells += 1
+	if run.comboLevel < RunConfig.ComboMax and run.comboCells >= RunConfig.ComboStep then
+		run.comboCells -= RunConfig.ComboStep
+		run.comboLevel += 1
+	end
+	run.comboLastCellTime = run.elapsedTime
+end
+
+local function comboMultiplier(run: ActiveRun): number
+	return 1 + RunConfig.ComboBonus * (run.comboLevel - 1)
+end
+
 local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: PowerupService.Multipliers)
 	local scale = Hitbox.Scale(hrp)
 	local rootCFrame = hrp.CFrame
@@ -316,11 +336,17 @@ local function dropSurfaceStain(run: ActiveRun, hrp: BasePart, multipliers: Powe
 	end
 	run.visitedCells[key] = true
 	run.stainCells += 1
+	advanceCombo(run)
 
 	local potionStainMultiplier = PotionService.GetMultiplier(run.player, "StainSize")
 	local stainSize = getUpgradeValue(run.player, "StainSize") * multipliers.StainSize * potionStainMultiplier
 	addStain(run, rayResult.Position, normal, stainSize, key)
-	scoreStain(run, rayResult.Instance, stainSize, multipliers.Points * PetService.GetMultipliers(run.player).Stink)
+	scoreStain(
+		run,
+		rayResult.Instance,
+		stainSize,
+		multipliers.Points * PetService.GetMultipliers(run.player).Stink * comboMultiplier(run)
+	)
 end
 
 local function stepRun(run: ActiveRun, dt: number)
@@ -328,6 +354,11 @@ local function stepRun(run: ActiveRun, dt: number)
 	local modeDef = run.modeDef
 
 	run.elapsedTime += dt
+	if run.comboLevel > 1 and run.elapsedTime - run.comboLastCellTime >= RunConfig.ComboDecay then
+		run.comboLevel -= 1
+		run.comboCells = 0
+		run.comboLastCellTime = run.elapsedTime
+	end
 	run.npcCooldown = math.max(0, run.npcCooldown - dt)
 	if run.hasTimer then
 		run.timeLeft = math.max(0, run.timeLeft - dt)
@@ -366,7 +397,7 @@ local function stepRun(run: ActiveRun, dt: number)
 	if run.syncTimer >= RunConfig.RunStateSyncInterval then
 		run.syncTimer = 0
 		local reportedTime = if run.hasTimer then run.timeLeft else RunConfig.PracticeTimeLeft
-		Outbound.RunState(plr, GameConfig.RunStates.Running, reportedTime, run.score)
+		Outbound.RunState(plr, GameConfig.RunStates.Running, reportedTime, run.score, run.comboLevel)
 	end
 
 	if run.reviveDeadline > 0 and run.timeLeft > MonetizationConfig.ReviveOfferAt then
@@ -580,6 +611,9 @@ function RunService.StartRun(plr: Player, instance: MapInstance, modeDef: Config
 		sentTint = {},
 		pendingTint = {},
 		objectsSoiled = 0,
+		comboLevel = 1,
+		comboCells = 0,
+		comboLastCellTime = 0,
 		stainParts = {},
 		stainCursor = 0,
 		stainFolder = stainFolder,
@@ -596,7 +630,7 @@ function RunService.StartRun(plr: Player, instance: MapInstance, modeDef: Config
 	QuestService.StartRun(plr, mapDef, modeDef)
 
 	RunEvents.RunStarted:Fire(plr, mapDef.Id, modeDef.Id, mapModel)
-	Outbound.RunState(plr, GameConfig.RunStates.Running, initialTimeLeft, 0)
+	Outbound.RunState(plr, GameConfig.RunStates.Running, initialTimeLeft, 0, 1)
 
 	runTrove:Connect(humanoid.Died, function()
 		RunService.EndRun(plr, false)
