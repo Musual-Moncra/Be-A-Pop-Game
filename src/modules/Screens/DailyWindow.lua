@@ -120,8 +120,8 @@ local function DayTile(props: any)
 		Scale = e("UIScale", { ref = scaleRef }),
 		Glow = if today
 			then e(GlowRing, {
-				color = Primitives.swatch("Gold").Top,
-				size = Daily.TileHeight * Motion.GlowSizeRatio,
+				radius = Shape.Radius,
+				swatch = swatch,
 				zIndex = 0,
 			})
 			else nil,

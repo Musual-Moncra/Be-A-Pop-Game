@@ -73,21 +73,19 @@ return function(props: any)
 		Size = UDim2.fromOffset(size, size + labelHeight),
 		ZIndex = props.zIndex,
 	}, {
-		Glow = if hasBadge
-			then e(GlowRing, {
-				active = props.active ~= false,
-				anchorPoint = Vector2.new(0.5, 0.5),
-				color = UIConfig.Palette.Sparkle,
-				position = UDim2.fromOffset(size / 2, size / 2),
-				size = size * 1.35,
-				zIndex = (props.zIndex or 1) - 1,
-			})
-			else nil,
 		Tile = e("Frame", {
 			BackgroundTransparency = 1,
 			Size = UDim2.fromOffset(size, size),
 			ZIndex = props.zIndex,
 		}, {
+			Glow = if hasBadge
+				then e(GlowRing, {
+					active = props.active ~= false,
+					radius = UIConfig.Shape.Radius,
+					swatch = props.swatch,
+					zIndex = props.zIndex,
+				})
+				else nil,
 			Scale = e("UIScale", { ref = breatheRef }),
 			Button = e(ChunkyButton, {
 				gloss = true,

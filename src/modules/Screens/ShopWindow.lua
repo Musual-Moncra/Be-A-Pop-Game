@@ -105,8 +105,8 @@ local function BreatheButton(props: any)
 		Scale = e("UIScale", { ref = scaleRef }),
 		Glow = if props.active
 			then e(GlowRing, {
-				color = Primitives.swatch("Gold").Top,
-				size = props.glowSize,
+				radius = Shape.Radius,
+				swatch = props.swatch,
 				zIndex = 1,
 			})
 			else nil,
@@ -191,7 +191,6 @@ local function ProductCard(props: any)
 		Buy = e(BreatheButton, {
 			active = props.buttonEnabled ~= false,
 			anchorPoint = buttonAnchor,
-			glowSize = (if hasSecond then 42 else 52) * Motion.GlowSizeRatio,
 			onActivated = props.onButton,
 			phase = (props.order or 1) * 0.17,
 			position = buttonX,

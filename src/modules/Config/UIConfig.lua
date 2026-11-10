@@ -121,7 +121,10 @@
 		BurstStarText / BurstColors / MaxBurst: star glyph, candy piece colours and piece cap
 		CoinFlyCount / CoinFlyDuration / CoinFlyArc / CoinFlySize: coin fly pieces, time, arc height
 			and icon size (design pixels)
-		GlowPeriod / GlowScale / GlowTransparencies: claimable glow breathe (seconds, multiplier, 0 to 1)
+		GlowPeriod / GlowScale: claimable glow breathe time and size (seconds, multiplier); the
+			transparency does the breathing, so 1 keeps the 18% limit
+		GlowExtend / GlowLayers: how far the glow reaches beyond its target per side and layer count
+		GlowTransparencyMin / Max / Step: breathing transparency range and per-layer step (0 to 1)
 		RainbowSeconds / RainbowColors: rotating rainbow rim speed and colours
 		PillTwinkleRate / PillShineInterval: top-bar pill stars per second and shine wait (seconds)
 		TileShineMin / TileShineMax: lobby tile shine wait range (seconds)
@@ -412,8 +415,12 @@ return {
 		CoinFlyArc = 140,
 		CoinFlySize = 34,
 		GlowPeriod = 1.4,
-		GlowScale = 1.08,
-		GlowTransparencies = { 0.55, 0.7, 0.85 },
+		GlowScale = 1,
+		GlowExtend = 0.18,
+		GlowLayers = 3,
+		GlowTransparencyMin = 0.55,
+		GlowTransparencyMax = 0.85,
+		GlowTransparencyStep = 0.06,
 		RainbowSeconds = 3,
 		RainbowColors = {
 			Color3.fromRGB(255, 130, 170),
