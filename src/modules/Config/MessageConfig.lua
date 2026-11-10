@@ -35,6 +35,7 @@
 		DataLoading: a run was requested before the player's save finished loading (text)
 		PetIndexComplete: a map's Pet Index is complete, first %s = exclusive pet name, %d = gems paid (text)
 		PetConverted: a pet roll was converted because the inventory is full, %d = gems paid (text)
+		LegacyPetsRemoved: old pet ids were removed from the save, first %d = pets removed, second %d = gems paid (text)
 		PetSlotsFull: equipping blocked because every slot is taken (text)
 		PetMergeNeed: merging blocked because there are not enough identical pets (text)
 		PetMaxVariant: merging blocked because the pet is already at its final variant (text)
@@ -93,6 +94,7 @@ return {
 	DataLoading = "Your save is still loading. Try again in a moment.",
 	PetIndexComplete = "%s joined your collection! +%d gems",
 	PetConverted = "Pet inventory full! +%d gems",
+	LegacyPetsRemoved = "Removed %d old pets. +%d gems",
 	PetSlotsFull = "All pet slots are full.",
 	PetMergeNeed = "You need 5 identical pets to merge.",
 	PetMaxVariant = "This pet is already at its final variant.",

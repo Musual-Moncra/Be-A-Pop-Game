@@ -18,6 +18,7 @@
 		InventoryCap: most pets one player may own; a drop at the cap pays FullInventoryGems (count)
 		FullInventoryGems: gems paid instead of a pet when the inventory is full (gems)
 		IndexGems: gems paid when a map's Pet Index is complete (gems)
+		LegacyPetGems: gems paid for each removed pet whose PetId is no longer in PetConfig (gems)
 		PoopInterval: seconds between two poops of one equipped pet during a run (seconds)
 		PoopGemChance: chance that one pet poop pays PoopGems (0 to 1)
 		PoopGems: gems paid by a successful pet poop (gems)
@@ -30,7 +31,6 @@
 		VfxParticleTransparency: sparkle particle fade over its life (NumberSequence)
 		VfxParticleLightEmission: how much the sparkles glow (0 to 1)
 		VfxParticleSpreadAngle: sparkle emission cone (degrees, X and Y)
-		VfxOutlineThickness: line thickness of the variant outline (studs)
 		FollowFolderName: Workspace folder that holds the pet followers (string)
 		FollowModelPrefix: name prefix of every follower model (string)
 		FollowSpawnDelay: wait after a character spawns before followers are rebuilt (seconds)
@@ -81,6 +81,7 @@ return {
 	InventoryCap = 50,
 	FullInventoryGems = 25,
 	IndexGems = 100,
+	LegacyPetGems = 10,
 	PoopInterval = 6,
 	PoopGemChance = 0.1,
 	PoopGems = 1,
@@ -99,7 +100,6 @@ return {
 	}),
 	VfxParticleLightEmission = 1,
 	VfxParticleSpreadAngle = Vector2.new(60, 60),
-	VfxOutlineThickness = 0.06,
 	FollowFolderName = "PetFollowers",
 	FollowModelPrefix = "Pet_",
 	FollowSpawnDelay = 0.4,

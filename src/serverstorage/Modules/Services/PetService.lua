@@ -52,6 +52,7 @@ local NEUTRAL_MULTIPLIERS: ConfigLookup.PetMultipliers = table.freeze({ Stink = 
 
 local followers: { [Player]: { Instance } } = {}
 local synced: { [Player]: boolean } = {}
+local legacyChecked: { [Player]: boolean } = {}
 local poopPlayers: { [Player]: boolean } = {}
 local poopAccumulator = 0
 local uidCounter = 0
@@ -319,7 +320,7 @@ local function tintVariant(model: Model, variant: any)
 	end
 end
 
-local function addVariantVfx(model: Model, primary: BasePart, variant: any)
+local function addVariantVfx(primary: BasePart, variant: any)
 	if variant == nil or variant.VfxRate <= 0 then
 		return
 	end
@@ -336,14 +337,6 @@ local function addVariantVfx(model: Model, primary: BasePart, variant: any)
 	emitter.LightEmission = PetConfig.VfxParticleLightEmission
 	emitter.SpreadAngle = PetConfig.VfxParticleSpreadAngle
 	emitter.Parent = primary
-
-	local outline = Instance.new("SelectionBox")
-	outline.Name = "VariantOutline"
-	outline.Adornee = model
-	outline.Color3 = variant.VfxColor
-	outline.LineThickness = PetConfig.VfxOutlineThickness
-	outline.SurfaceTransparency = 1
-	outline.Parent = model
 end
 
 local function attachFollower(hrp: BasePart, model: Model, primary: BasePart, offset: Vector3, instances: { Instance })
@@ -435,7 +428,7 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 		if model ~= nil and primary ~= nil then
 			model.Name = PetConfig.FollowModelPrefix .. pet.DisplayName
 			tintVariant(model, variant)
-			addVariantVfx(model, primary, variant)
+			addVariantVfx(primary, variant)
 			attachFollower(hrp, model, primary, offset, instances)
 			model.Parent = folder
 			model:PivotTo(hrp.CFrame * CFrame.new(offset))
@@ -449,7 +442,7 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 	local model, body = createPlaceholder(pet, variant)
 	model.Name = PetConfig.FollowModelPrefix .. pet.DisplayName
 	body.CFrame = hrp.CFrame * CFrame.new(offset)
-	addVariantVfx(model, body, variant)
+	addVariantVfx(body, variant)
 	attachFollower(hrp, model, body, offset, instances)
 	model.Parent = folder
 end
@@ -545,6 +538,46 @@ function PetService.GrantPet(plr: Player, petId: string, variantId: string): boo
 	recordIndex(plr, pets, petId, variantId)
 	publish(plr)
 	return true
+end
+
+local function migrateLegacyPets(plr: Player)
+	local pets = getPets(plr)
+	if pets == nil or legacyChecked[plr] == true then
+		return
+	end
+	legacyChecked[plr] = true
+
+	local removed = 0
+	for index = #pets.Inventory, 1, -1 do
+		local entry = pets.Inventory[index]
+		if type(entry) ~= "table" or type(entry.PetId) ~= "string" or ConfigLookup.GetPet(entry.PetId) == nil then
+			table.remove(pets.Inventory, index)
+			removed += 1
+		end
+	end
+	if removed == 0 then
+		return
+	end
+
+	local equippedChanged = false
+	for index = #pets.Equipped, 1, -1 do
+		local uid = pets.Equipped[index]
+		if type(uid) ~= "string" or findIndex(pets, uid) == nil then
+			table.remove(pets.Equipped, index)
+			equippedChanged = true
+		end
+	end
+
+	local gems = removed * PetConfig.LegacyPetGems
+	if gems > 0 then
+		DataService.AddGems(plr, gems)
+	end
+	Outbound.Notify(plr, "Info", string.format(MessageConfig.LegacyPetsRemoved, removed, gems))
+	DataService.MarkChanged(plr)
+	if equippedChanged then
+		rebuild(plr)
+	end
+	PetService.Sync(plr)
 end
 
 local function migrateGrantedPets(plr: Player, data: any)
@@ -751,13 +784,13 @@ local function poop(plr: Player)
 					end
 				end
 				Outbound.PetPoop(plr, uid, gems)
+				Outbound.PetStacks(plr, uid, entry.Stacks)
 				changed = true
 			end
 		end
 	end
 	if changed then
 		DataService.MarkChanged(plr)
-		PetService.Sync(plr)
 	end
 end
 
@@ -811,6 +844,7 @@ DataService.Changed:Connect(function(plr, data)
 	if type(data) ~= "table" or type(data.Pets) ~= "table" then
 		return
 	end
+	migrateLegacyPets(plr)
 	migrateGrantedPets(plr, data)
 	if synced[plr] == true then
 		return
@@ -828,6 +862,7 @@ Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(function(plr)
 	clearFollowers(plr)
 	synced[plr] = nil
+	legacyChecked[plr] = nil
 	poopPlayers[plr] = nil
 end)
 

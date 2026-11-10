@@ -60,8 +60,8 @@
 		QuestsCompleted, QuestCoins, QuestGems, BonusCoins, BonusGems,
 		LeveledUp, NewLevel, OutOfTime
 
-	Dependencies: Net, Signal, ConfigLookup, GameConfig, MapConfig, MessageConfig, ModeConfig, UIConfig,
-		LobbyUIConfig
+	Dependencies: Net, Signal, ConfigLookup, GameConfig, MapConfig, MessageConfig, ModeConfig,
+		PotionConfig, UIConfig, LobbyUIConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -73,6 +73,7 @@ local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
+local PotionConfig = require(ReplicatedStorage.Modules.Config.PotionConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
@@ -420,6 +421,31 @@ local function cleanPetEntries(source: any): { PetEntry }
 		end
 	end
 	return entries
+end
+
+local function recomputePetStink(): number
+	local equipped: { [string]: boolean } = {}
+	for _, uid in state.Pets.Equipped do
+		equipped[uid] = true
+	end
+
+	local stink = 1
+	for _, entry in state.Pets.Pets do
+		if equipped[entry.Uid] == true then
+			stink *= ConfigLookup.GetPetMultipliers(entry.PetId, entry.Variant, entry.Stacks).Stink
+		end
+	end
+
+	local now = os.time()
+	for potionId, potion in PotionConfig.Potions do
+		if potion.Stat == "Stink" then
+			local expiresAt = state.Potions[potionId]
+			if type(expiresAt) == "number" and expiresAt > now then
+				stink *= potion.Multiplier
+			end
+		end
+	end
+	return stink
 end
 
 local function cleanPetIndex(source: any): { PetIndexEntry }
@@ -835,6 +861,26 @@ Net.PetInventory.OnClientEvent:Connect(function(payload: any)
 		Index = cleanPetIndex(payload.Index),
 		IndexClaimed = cleanStringSet(payload.IndexClaimed),
 	}
+	publish()
+end)
+
+Net.PetStacks.OnClientEvent:Connect(function(uid: any, stacks: any)
+	if type(uid) ~= "string" then
+		return
+	end
+	local value = math.max(0, math.floor(tonumber(stacks) or 0))
+	local found = false
+	for _, entry in state.Pets.Pets do
+		if entry.Uid == uid then
+			entry.Stacks = value
+			found = true
+			break
+		end
+	end
+	if not found then
+		return
+	end
+	state.Pets.Stink = recomputePetStink()
 	publish()
 end)
 

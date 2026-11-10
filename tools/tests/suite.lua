@@ -512,6 +512,7 @@ local Hitbox = robloxRequire(RepShared.Hitbox)
 local CharacterConfig = robloxRequire(RepConfig.CharacterConfig)
 local CosmeticConfig = robloxRequire(RepConfig.CosmeticConfig)
 local DailyRewardConfig = robloxRequire(RepConfig.DailyRewardConfig)
+local EventConfig = robloxRequire(RepConfig.EventConfig)
 local GameConfig = robloxRequire(RepConfig.GameConfig)
 local MapConfig = robloxRequire(RepConfig.MapConfig)
 local MessageConfig = robloxRequire(RepConfig.MessageConfig)
@@ -1053,6 +1054,7 @@ runTest("ConfigIntegrity_Pets_Rarities_Variants", function()
 	expect(PetConfig.StackBonus > 0, "PetConfig.StackBonus must be positive")
 	expect(PetConfig.PoopInterval > 0, "PetConfig.PoopInterval must be positive")
 	expect(PetConfig.PoopGemChance >= 0 and PetConfig.PoopGemChance <= 1, "PetConfig.PoopGemChance must be a chance")
+	expect(PetConfig.LegacyPetGems >= 0, "PetConfig.LegacyPetGems must not be negative")
 	expect(
 		type(PetConfig.VfxParticleTexture) == "string" and #PetConfig.VfxParticleTexture > 0,
 		"VfxParticleTexture must be set"
@@ -1069,7 +1071,6 @@ runTest("ConfigIntegrity_Pets_Rarities_Variants", function()
 		PetConfig.VfxParticleLightEmission >= 0 and PetConfig.VfxParticleLightEmission <= 1,
 		"VfxParticleLightEmission must be 0..1"
 	)
-	expect(PetConfig.VfxOutlineThickness > 0, "VfxOutlineThickness must be positive")
 
 	for rarityId, rarity in PetConfig.Rarities do
 		expect(rarity.Id == rarityId, "Rarity key/Id mismatch: " .. tostring(rarityId))
@@ -2033,6 +2034,232 @@ runTest("RoomService_PlayerRemoving_AllStates", function()
 	expect(h.getStats().npcRemoveCalls == 1, "NPCs removed when last running player leaves")
 	h.advanceClock(RoomConfig.EmptyRoomGrace + 0.1)
 	expect(h.getStats().releaseCalls == 1, "Map released exactly once after last running player leaves")
+end)
+
+local function newMapProgressHarness()
+	local function newSignal()
+		local listeners: { (...any) -> () } = {}
+		return {
+			Connect = function(_self: any, fn: (...any) -> ())
+				table.insert(listeners, fn)
+			end,
+			Fire = function(_self: any, ...: any)
+				for _, fn in listeners do
+					fn(...)
+				end
+			end,
+		}
+	end
+
+	local runStarted = newSignal()
+	local runEnded = newSignal()
+	local heartbeat = newSignal()
+	local playerRemoving = newSignal()
+
+	local servicesNode: any = {
+		RunService = {},
+		DataService = {},
+		MapInstanceService = {},
+		PetService = {},
+	}
+	local sharedNode = { RunEvents = {} }
+	local remotesNode = { Outbound = {} }
+	servicesNode.Parent = { Shared = sharedNode, Remotes = remotesNode }
+
+	local configNode = { EventConfig = {}, MessageConfig = {} }
+	local replicatedNode = {
+		Modules = {
+			Config = configNode,
+			Shared = { ConfigLookup = {} },
+		},
+	}
+
+	local data = { MapProgress = {} }
+	local gemsAdded = 0
+	local dataServiceStub = {
+		Get = function(_plr: any): any
+			return data
+		end,
+		MarkChanged = function(_plr: any) end,
+		AddGems = function(_plr: any, amount: number)
+			gemsAdded += amount
+		end,
+	}
+
+	local playArea = {
+		Size = Vector3Lib.new(200, 5, 90),
+		IsA = function(_self: any, className: string): boolean
+			return className == "BasePart"
+		end,
+	}
+	local templateModel = {
+		FindFirstChild = function(_self: any, name: string, _recursive: boolean?): any
+			if name == "Props" then
+				return {
+					GetChildren = function(): { any }
+						return {}
+					end,
+				}
+			elseif name == "PlayArea" then
+				return playArea
+			end
+			return nil
+		end,
+	}
+	local mapInstanceServiceStub = {
+		GetTemplate = function(_mapDef: any): any
+			return templateModel
+		end,
+	}
+
+	local progressPackets: { any } = {}
+	local petDrops: { any } = {}
+	local notifications: { any } = {}
+	local outboundStub = {
+		MapProgress = function(_plr: any, mapId: string, percent: number)
+			table.insert(progressPackets, { MapId = mapId, Percent = percent })
+		end,
+		Notify = function(_plr: any, kind: string, text: string)
+			table.insert(notifications, { Kind = kind, Text = text })
+		end,
+		PetDrop = function(_plr: any, petId: string, variantId: string, isNew: boolean, converted: number)
+			table.insert(petDrops, {
+				PetId = petId,
+				Variant = variantId,
+				IsNew = isNew,
+				Converted = converted,
+			})
+		end,
+	}
+
+	local rollDrops = 0
+	local petServiceStub = {
+		RollDrop = function(plr: any, mapId: string): boolean
+			rollDrops += 1
+			outboundStub.PetDrop(plr, "Snail", "Default", true, 0)
+			table.insert(notifications, { Kind = "Roll", Text = mapId })
+			return true
+		end,
+	}
+
+	local runEventsStub = { RunStarted = runStarted, RunEnded = runEnded }
+	local runServiceModuleStub = {
+		GetRun = function(_plr: any): any
+			return nil
+		end,
+	}
+
+	local requireMap: { [any]: any } = {
+		[servicesNode.RunService] = runServiceModuleStub,
+		[servicesNode.DataService] = dataServiceStub,
+		[servicesNode.MapInstanceService] = mapInstanceServiceStub,
+		[servicesNode.PetService] = petServiceStub,
+		[sharedNode.RunEvents] = runEventsStub,
+		[remotesNode.Outbound] = outboundStub,
+		[configNode.EventConfig] = EventConfig,
+		[configNode.MessageConfig] = MessageConfig,
+		[replicatedNode.Modules.Shared.ConfigLookup] = ConfigLookup,
+	}
+	local function customRequire(target: any): any
+		local mapped = requireMap[target]
+		if mapped ~= nil then
+			return mapped
+		end
+		return robloxRequire(target)
+	end
+
+	local playersStub = {
+		PlayerRemoving = playerRemoving,
+		GetPlayers = function(): { any }
+			return {}
+		end,
+	}
+	local gameStubLocal = {
+		GetService = function(_self: any, name: string): any
+			if name == "Players" then
+				return playersStub
+			elseif name == "ReplicatedStorage" then
+				return replicatedNode
+			elseif name == "RunService" then
+				return { Heartbeat = heartbeat }
+			end
+			error("Unsupported service in MapProgressService harness: " .. tostring(name))
+		end,
+	}
+
+	local source = sourceMap["ServerServices.MapProgressService"]
+	assert(type(source) == "string", "Missing ServerServices.MapProgressService source")
+	local chunk, compileErr = (loadstring :: any)(source, "@MapProgressService")
+	assert(chunk ~= nil, string.format("Failed to compile MapProgressService: %s", tostring(compileErr)))
+
+	local env = setmetatable({
+		game = gameStubLocal,
+		require = customRequire,
+		script = { Parent = servicesNode },
+	}, { __index = baseEnv })
+	setfenv(chunk, env)
+	local MapProgressService = chunk()
+	assert(MapProgressService ~= nil, "MapProgressService must return a table")
+
+	local player = { Name = "MapTester" }
+	local run = {
+		player = player,
+		mapDef = ConfigLookup.GetMap("Zone3"),
+		objectsSoiled = 0,
+		stainCells = 0,
+	}
+	runServiceModuleStub.GetRun = function(): any
+		return run
+	end
+
+	return {
+		player = player,
+		run = run,
+		heartbeat = heartbeat,
+		runStarted = runStarted,
+		runEnded = runEnded,
+		data = data,
+		progressPackets = progressPackets,
+		petDrops = petDrops,
+		notifications = notifications,
+		rollDrops = function(): number
+			return rollDrops
+		end,
+		gemsAdded = function(): number
+			return gemsAdded
+		end,
+		startRun = function()
+			runStarted:Fire(player, "Zone3")
+		end,
+		endRun = function()
+			runEnded:Fire(player)
+		end,
+	}
+end
+
+runTest("MapProgressService_FullClear_RollsPetDropOncePerRun", function()
+	local h = newMapProgressHarness()
+	h.startRun()
+
+	h.run.stainCells = 2500
+	h.heartbeat:Fire(0.5)
+
+	expect(h.rollDrops() == 1, "A full clear must roll one pet")
+	expect(#h.petDrops == 1, "Outbound.PetDrop must fire once")
+	expect(h.petDrops[1].PetId == "Snail", "PetDrop must carry the rolled pet")
+	expect(h.data.MapProgress.Zone3 == 100, "First clear must save 100%")
+	expect(h.gemsAdded() == h.run.mapDef.CompletionGems, "First clear must pay CompletionGems")
+	local last = h.progressPackets[#h.progressPackets]
+	expect(last ~= nil and last.Percent == 100, "Live progress must be clamped to 100 on overflow")
+
+	h.endRun()
+	h.startRun()
+	h.run.stainCells = 2500
+	h.heartbeat:Fire(0.5)
+
+	expect(h.rollDrops() == 2, "Every full clear must roll a pet, even a repeat clear")
+	expect(#h.petDrops == 2, "Outbound.PetDrop must fire on a repeat clear")
+	expect(h.gemsAdded() == h.run.mapDef.CompletionGems, "CompletionGems must not be paid twice")
 end)
 
 print(string.format("TESTS SUMMARY: %d / %d passed", passedTests, totalTests))
