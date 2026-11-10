@@ -33,6 +33,9 @@
       "StarterPlayerScripts": {
         "$path": "src/client"
       },
+      "StarterCharacter": {
+        "$path": "src/character/StarterCharacter.model.json"
+      },
       "StarterCharacterScripts": {
         "$path": "src/characterscripts"
       }
