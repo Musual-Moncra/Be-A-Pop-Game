@@ -6,7 +6,7 @@
 	thin beams through one centre, each fading out towards both ends, spinning forever.
 	Built from plain Frames so it needs no image asset.
 
-	Props: size (diameter, design pixels), position, anchorPoint, zIndex
+	Props: size (diameter, design pixels), position, anchorPoint, zIndex, color (optional beam colour)
 	Dependencies: React, LobbyUIConfig
 ]]
 
@@ -38,12 +38,13 @@ return function(props: any)
 		end
 	end, {})
 
+	local color = props.color or RaysConfig.Color
 	local beams = {}
 	local halfTurn = 180 / RaysConfig.Count
 	for index = 1, RaysConfig.Count do
 		beams["Beam" .. index] = e("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),
-			BackgroundColor3 = RaysConfig.Color,
+			BackgroundColor3 = color,
 			BorderSizePixel = 0,
 			Position = UDim2.fromScale(0.5, 0.5),
 			Rotation = (index - 1) * halfTurn,

@@ -1196,12 +1196,6 @@ runTest("ConfigIntegrity_UI_Swatches_Visuals_And_Rarities", function()
 	for _, swatchName in UIConfig.ToastSwatches do
 		expect(swatches[swatchName] ~= nil, "UIConfig.ToastSwatches invalid swatch " .. tostring(swatchName))
 	end
-	for _, row in UIConfig.Text.StatRows do
-		expect(
-			DataConfig.Template.Stats[row.Key] ~= nil,
-			"UIConfig.Text.StatRows unknown stat key " .. tostring(row.Key)
-		)
-	end
 	expect(swatches[RunUIConfig.Meter.Swatch] ~= nil, "RunUIConfig.Meter.Swatch invalid")
 	expect(swatches[RunUIConfig.Event.Swatch] ~= nil, "RunUIConfig.Event.Swatch invalid")
 	expect(swatches[RunUIConfig.Revive.Swatch] ~= nil, "RunUIConfig.Revive.Swatch invalid")

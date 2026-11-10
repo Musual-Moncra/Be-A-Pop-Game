@@ -72,6 +72,7 @@
 		HudTick: how often power-up countdowns redraw
 		ToastSeconds / PopupSeconds: how long a toast / in-run popup stays on screen
 		ResultAutoCloseSeconds: result window closes by itself after this, 0 = never
+		ResultCountSeconds: score and coin numbers count up over this time (seconds)
 		ToastMaxVisible: most toasts shown at once (count)
 		LowTimeRatio: timer bar turns red at or below this fraction of the run (0 to 1)
 		SpringStyle / SpringDirection: easing of pop-ins and button presses (Enum.EasingStyle / Direction)
@@ -83,6 +84,7 @@
 		Hud.BadgeSize: gold level badge diameter
 		Hud.XpBarHeight: XP bar height
 		Hud.PillHeight / Hud.PillIconSize: coin/gem pill height / round icon diameter
+		Hud.StinkChipHeight / StinkChipWidth: Stink chip height / width reserved beside the coins (design pixels)
 		Hud.Gap: gap between wallet rows
 		Hud.XpBarLeftRatio / XpBarDropDivisor: XP bar start and vertical drop as fractions of BadgeSize
 		Hud.CaptionHeightRatio / CaptionHeightDivisor: level caption height as a fraction of BadgeSize
@@ -128,8 +130,6 @@
 		Upgrade.IconSize: round icon diameter on upgrade cards
 		Upgrade.BuyButtonHeight: height of the price button
 		Upgrade.LevelBarHeight: height of the level bar
-		Stats.Width / Stats.Height: stats window size
-		Stats.RowHeight: height of a stat row
 		Run.ScoreWidth: width of the score panel (top right)
 		Run.TimerWidth: width of the lifespan panel (top centre)
 		Run.TimerBarHeight: lifespan bar height
@@ -145,7 +145,7 @@
 		Result.BadgesPerRow: badges that fit on one row, used to size the window (count)
 		Result.RowHeight: height of a reward row
 		Result.BadgeHeight: height of the level-up / target / quest badges
-		Result.BaseRows: rows above the badges (caption, score, three rewards, badge block) (count)
+		Result.BaseRows: rows above the badges (caption, score, stink line, three rewards, badge block) (count)
 		Toast.Width / Toast.Height / Toast.Gap: toast size and the gap between stacked toasts
 		Popup.Width / Popup.Height: size of a floating in-run popup
 
@@ -162,7 +162,7 @@
 	ToastSwatches: per toast kind (Info, Success, Error), the Swatches key used
 
 	Layers: drawing order, higher = on top (number): Wallet, RunHud, Juice (combo meter, milestone banners), Extras (map meter, Special Time, revive), LobbyMenu, Backdrop (full-screen
-		dimmer behind open windows), Window, Result, Toasts
+		dimmer behind open windows), Window, Result, Toasts, Reveal (pet drop)
 
 	Text (every word the UI shows; %s = text, %d = whole number, %.1f = one decimal):
 		Icons: CloseIcon, SparkleIcon, CoinIcon, GemIcon, XpIcon, LockIcon, CheckIcon (emoji/text)
@@ -176,6 +176,7 @@
 		LockedModeFormat: locked mode tile (format: mode name, required level)
 		Owned / ComingSoon / MapLocked: map state chips
 		NeedMapFirst: requirement chip when the previous map is not owned (format: map name)
+		RequireCompleteFormat: requirement chip when the previous map is not cleared 100%% (format: map name)
 		NeedLevel: requirement chip when the level is too low (format: level)
 		DurationLifespan / DurationSeconds / DurationNone: mode timer chip (DurationSeconds format: seconds)
 		FoodOn / FoodOff / ChefsOn / ChefsOff: mode rule chips
@@ -207,8 +208,6 @@
 		UpgradeArrow: current and next value (format: current, next)
 		UpgradeMaxValue: value text at max level (format: value)
 		Max: price button text at max level
-		StatsTitle: stats window title
-		StatRows: rows of the stats window; Key = save Stats key, Icon = emoji, Label = text
 		ScoreLabel: caption over the run score
 		TimerFormat: timer bar text (format: seconds)
 		Untimed: timer bar text for untimed modes
@@ -224,6 +223,8 @@
 		ResultQuests: quests badge (format: count)
 		ResultSoiled: soiled objects badge (format: count)
 		ResultPlus: reward amount (format: amount)
+		ResultStinkFormat: score and Stink line on the result window; the coin row below it is the server total (format: score, multiplier)
+		StinkFormat: Stink multiplier chip (format: multiplier)
 		Continue: result window button
 		PowerupPickedFormat: popup when food is eaten (format: food name)
 		ObjectSoiledFormat: popup when an object is fully soiled (format: object name, bonus points)
@@ -386,6 +387,7 @@ return {
 		ToastSeconds = 3,
 		PopupSeconds = 1.8,
 		ResultAutoCloseSeconds = 0,
+		ResultCountSeconds = 0.9,
 		ToastMaxVisible = 3,
 		LowTimeRatio = 0.25,
 		SpringStyle = Enum.EasingStyle.Back,
@@ -403,6 +405,8 @@ return {
 			XpBarHeight = 34,
 			PillHeight = 58,
 			PillIconSize = 74,
+			StinkChipHeight = 44,
+			StinkChipWidth = 116,
 			Gap = 14,
 			XpBarLeftRatio = 0.5,
 			XpBarDropDivisor = 6,
@@ -474,11 +478,6 @@ return {
 			BuyButtonHeight = 50,
 			LevelBarHeight = 18,
 		},
-		Stats = {
-			Width = 620,
-			Height = 480,
-			RowHeight = 62,
-		},
 		Run = {
 			ScoreWidth = 300,
 			TimerWidth = 340,
@@ -498,7 +497,7 @@ return {
 			BadgesPerRow = 2,
 			RowHeight = 64,
 			BadgeHeight = 44,
-			BaseRows = 6,
+			BaseRows = 7,
 		},
 		Toast = {
 			Width = 560,
@@ -571,6 +570,7 @@ return {
 		Window = 5,
 		Result = 6,
 		Toasts = 7,
+		Reveal = 8,
 	},
 
 	Text = {
@@ -597,6 +597,7 @@ return {
 		ComingSoon = "COMING SOON",
 		MapLocked = "LOCKED",
 		NeedMapFirst = "Unlock %s first",
+		RequireCompleteFormat = "Clear %s 100%% first",
 		NeedLevel = "Reach level %d",
 		DurationLifespan = "⏰ Lifespan",
 		DurationSeconds = "⏰ %ds",
@@ -663,15 +664,6 @@ return {
 		UpgradeMaxValue = "%s",
 		Max = "MAX",
 
-		StatsTitle = "STATS",
-		StatRows = {
-			{ Key = "BestScore", Icon = "🏆", Label = "Best score" },
-			{ Key = "TotalRuns", Icon = "🏃", Label = "Runs played" },
-			{ Key = "ObjectsSoiled", Icon = "💩", Label = "Objects soiled" },
-			{ Key = "PowerupsEaten", Icon = "🍔", Label = "Food eaten" },
-			{ Key = "QuestsCompleted", Icon = "📜", Label = "Quests completed" },
-		},
-
 		ScoreLabel = "SCORE",
 		TimerFormat = "%.1fs",
 		Untimed = "NO TIMER",
@@ -693,6 +685,8 @@ return {
 		ResultQuests = "%d QUESTS DONE",
 		ResultSoiled = "%d objects soiled",
 		ResultPlus = "+%s",
+		ResultStinkFormat = "Score %s × Stink x%s",
+		StinkFormat = "💩 x%s",
 		Continue = "CONTINUE",
 
 		PowerupPickedFormat = "Yum! %s",

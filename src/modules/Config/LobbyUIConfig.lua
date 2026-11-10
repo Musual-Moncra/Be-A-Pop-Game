@@ -64,6 +64,7 @@
 			Claim: claim button text (text)
 			NextFormat: button text while waiting (format: hh:mm:ss)
 			Claimed: stamp on claimed tiles (text)
+			LockedIcon: icon on days still locked (text)
 			StreakFormat: streak line under the tiles (format: streak, streak length)
 		Tabs: tab strip at the top of feature windows
 			Height: tab button height (design pixels)
@@ -83,22 +84,43 @@
 			CountFormat: potion count (format: count)
 		Pets: pets window
 			Width / Height / Swatch / Title: window size, header colour, title
-			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Eggs" or "Inventory"
-			EggIcon / PetIcon: emoji shown for eggs / pets (text)
-			HatchFormat: hatch button text (format: coin price)
-			LockedText: hatch button text while the egg's map is locked (text)
-			EquipText / UnequipText / MergeText: pet card buttons (text)
-			SlotsFormat: equipped slots line (format: equipped, slots)
-			MultiplierFormat: pet bonus line (format: coin multiplier, stink multiplier)
+			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "MyPets" or "Index"
+			PetIcon: emoji shown on every pet card (text)
+			EquipText / UnequipText / EvolveText / DeleteText / DeleteConfirmText: pet card buttons (text)
+			EvolveNeedFormat / EvolveMaxText: evolve button while short of copies / on a final variant
+				(format: copies needed)
+			SlotsFormat: equipped slots line (format: used, total)
+			StinkFormat / PetStinkFormat: total Stink header and card Stink value (format: multiplier)
+			StackFormat / StackOnlyFormat: stacks bar text with / without a known cap (format: stacks, cap)
+			TraitFormat: rarity and variant line on a card (format: rarity, variant)
 			EmptyText: inventory text when no pets are owned (text)
-			LastHatchFormat: banner after a hatch (format: pet name, variant name)
+			DeleteConfirmSeconds: how long the DELETE button stays in its confirm state (seconds)
+			Card: pet card and grid cell size, padding, icon share, button, delete, tag and stacks-bar
+				heights (design pixels)
+			Index: Pet Index section look and text
+				Columns / TileWidth / TileHeight / TileIconSize: tile grid (count, design pixels)
+				HeaderHeight / SectionGap / RewardHeight: section header, section gap, reward line (design pixels)
+				ProgressFormat: discovered / total line (format: found, total)
+				OddsFormat: drop odds line (format: drop odds denominator, decimal allowed)
+				UnknownName / LockedIcon: undiscovered pet name and icon (text)
+				RewardHeader / RewardFormat / RewardGemsFormat: reward preview (format: exclusive pet name, gems)
+				ClaimedText / ComingSoonText / NoPetsText: section states (text)
 		Skins: skins window
 			Width / Height / Swatch / Title: window size, header colour, title
-			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Crates", "Skins" or "Trails"
-			CrateIcon / SkinIcon / TrailIcon: emoji for crates, skins, trails (text)
+			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Crates" or "Skins"
+			CrateIcon / SkinIcon: emoji for crates and skins (text)
 			OpenFormat: open button text (format: price, currency icon)
-			EquipText / EquippedText / UnequipText / LockedText: cosmetic card buttons (text)
+			EquipText / EquippedText / LockedText: cosmetic card buttons (text)
 			LastCrateFormat: banner after a crate (format: item name)
+		PetReveal: full-screen pet drop reveal (design pixels unless noted)
+			Width / Height / Swatch: card size and body colour (UIConfig.Swatches key)
+			OverlayTransparency: dimmer behind the card (0 to 1)
+			ShakeSeconds / TapAfter / AutoSeconds: silhouette shake, earliest tap, auto close (seconds)
+			RaysSize / IconSize: burst diameter and pet icon diameter (design pixels)
+			RaritySwatches: body colour per rarity id (UIConfig.Swatches key)
+			LockedIcon: icon shown on the shaking silhouette (text)
+			NameFormat / StinkFormat / ConvertedFormat: reveal lines (format: pet name, stink multiplier, gems)
+			NewTag / TapText: NEW badge and skip hint (text)
 		Rebirth: rebirth window
 			Width / Height / Swatch / Title: window size, header colour, title
 			Icon: big emoji (text)
@@ -135,7 +157,6 @@ return {
 			{ Id = "Upgrades", Label = "UPGRADE", Icon = "⚡", Swatch = "Orange", Route = "Upgrades", Big = false },
 			{ Id = "Daily", Label = "DAILY", Icon = "🎁", Swatch = "Pink", Route = "Daily", Big = false },
 			{ Id = "Rebirth", Label = "REBIRTH", Icon = "🌀", Swatch = "Teal", Route = "Rebirth", Big = false },
-			{ Id = "Stats", Label = "STATS", Icon = "🏆", Swatch = "Grey", Route = "Stats", Big = false },
 		},
 	},
 
@@ -171,7 +192,6 @@ return {
 
 	Stations = {
 		Upgrades = { Route = "Upgrades", ActionText = "Upgrade", ObjectText = "Upgrade Stand" },
-		Eggs = { Route = "Pets", ActionText = "Hatch", ObjectText = "Pet Eggs" },
 		Crates = { Route = "Skins", ActionText = "Open", ObjectText = "Skin Crates" },
 		Daily = { Route = "Daily", ActionText = "Claim", ObjectText = "Daily Gift" },
 		Rebirth = { Route = "Rebirth", ActionText = "Rebirth", ObjectText = "Golden Poop" },
@@ -202,6 +222,7 @@ return {
 		Claim = "CLAIM!",
 		NextFormat = "NEXT IN %s",
 		Claimed = "✅",
+		LockedIcon = "🔒",
 		StreakFormat = "Streak: %d / %d days",
 	},
 
@@ -250,45 +271,105 @@ return {
 
 	Pets = {
 		Width = 1100,
-		Height = 720,
+		Height = 760,
 		Swatch = "Blue",
 		Title = "PETS",
 		Tabs = {
-			{ Id = "Eggs", Label = "EGGS", Icon = "🥚", Swatch = "Gold" },
-			{ Id = "Inventory", Label = "MY PETS", Icon = "🐶", Swatch = "Blue" },
+			{ Id = "MyPets", Label = "MY PETS", Icon = "🐶", Swatch = "Blue" },
+			{ Id = "Index", Label = "PET INDEX", Icon = "📖", Swatch = "Purple" },
 		},
-		EggIcon = "🥚",
 		PetIcon = "🐾",
-		HatchFormat = "💰 %s",
-		LockedText = "🔒 LOCKED",
 		EquipText = "EQUIP",
 		UnequipText = "UNEQUIP",
-		MergeText = "MERGE x5",
-		SlotsFormat = "Equipped %d / %d",
-		MultiplierFormat = "💰 x%s   💩 x%s",
-		EmptyText = "No pets yet. Hatch an egg!",
-		LastHatchFormat = "You hatched %s (%s)!",
+		EvolveText = "EVOLVE",
+		EvolveNeedFormat = "%d NEEDED",
+		EvolveMaxText = "MAX",
+		DeleteText = "DELETE",
+		DeleteConfirmText = "SURE?",
+		DeleteConfirmSeconds = 2.5,
+		SlotsFormat = "Slots %d / %d",
+		StinkFormat = "💩 Stink x%s",
+		PetStinkFormat = "💩 x%s",
+		StackFormat = "%d / %d",
+		StackOnlyFormat = "%d stacks",
+		TraitFormat = "%s  •  %s",
+		EmptyText = "No pets yet. Clear a map to catch one!",
+		Card = {
+			Width = 240,
+			Height = 384,
+			IconRatio = 0.28,
+			Padding = 14,
+			Gap = 10,
+			ButtonHeight = 40,
+			DeleteHeight = 34,
+			TagHeight = 26,
+			StackBarHeight = 20,
+		},
+		Index = {
+			Columns = 5,
+			TileWidth = 176,
+			TileHeight = 174,
+			TileIconSize = 62,
+			HeaderHeight = 52,
+			SectionGap = 18,
+			RewardHeight = 40,
+			ProgressFormat = "%d/%d",
+			OddsFormat = "1/%s",
+			UnknownName = "???",
+			LockedIcon = "❔",
+			RewardHeader = "COMPLETE TO EARN",
+			RewardFormat = "%s + %d 💎",
+			RewardGemsFormat = "%d 💎",
+			ClaimedText = "🎁 CLAIMED",
+			ComingSoonText = "COMING SOON",
+			NoPetsText = "No pets live here yet",
+		},
 	},
 
 	Skins = {
 		Width = 1100,
 		Height = 720,
 		Swatch = "Purple",
-		Title = "SKINS & TRAILS",
+		Title = "SKINS",
 		Tabs = {
 			{ Id = "Crates", Label = "CRATES", Icon = "📦", Swatch = "Gold" },
 			{ Id = "Skins", Label = "SKINS", Icon = "💩", Swatch = "Purple" },
-			{ Id = "Trails", Label = "TRAILS", Icon = "✨", Swatch = "Pink" },
 		},
 		CrateIcon = "📦",
 		SkinIcon = "💩",
-		TrailIcon = "✨",
 		OpenFormat = "%s %s",
 		EquipText = "EQUIP",
 		EquippedText = "EQUIPPED",
-		UnequipText = "TAKE OFF",
 		LockedText = "🔒",
 		LastCrateFormat = "You got %s!",
+	},
+
+	PetReveal = {
+		Width = 620,
+		Height = 540,
+		Swatch = "Purple",
+		OverlayTransparency = 0.25,
+		ShakeSeconds = 1.2,
+		TapAfter = 0.6,
+		AutoSeconds = 5,
+		RaysSize = 460,
+		IconSize = 170,
+		RaritySwatches = {
+			Common = "Grey",
+			Uncommon = "Green",
+			Rare = "Blue",
+			Epic = "Purple",
+			Legendary = "Gold",
+			Mythical = "Pink",
+			Secret = "Teal",
+			Darkness = "Grey",
+		},
+		LockedIcon = "❔",
+		NameFormat = "%s!",
+		StinkFormat = "💩 Stink x%s",
+		ConvertedFormat = "Bag full! +%d 💎 instead",
+		NewTag = "NEW!",
+		TapText = "TAP TO CONTINUE",
 	},
 
 	Rebirth = {

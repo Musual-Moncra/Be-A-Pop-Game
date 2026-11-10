@@ -2,10 +2,10 @@
 
 --[[
 	DailyWindow
-	7-day login streak: one chunky tile per DailyRewardConfig.Days entry (icon, day, reward
-	label), claimed days stamped, today's tile glowing with a sunburst, and a big CLAIM button
-	that counts down to the next claim while waiting. Claiming fires Net.ClaimDaily; the
-	server answers with DailyState + DataSync + a toast.
+	7-day login streak: one chunky tile per DailyRewardConfig.Days entry with its icon, day and
+	label; claimed days are stamped, today's tile glows with a sunburst and locked days show a
+	padlock. A big CLAIM button counts down to the next claim while waiting. Claiming fires
+	Net.ClaimDaily; the server answers with DailyState + DataSync + a toast.
 
 	Props: data (DataController state), ui (useUIScale result), onClose
 	Dependencies: React, Net, UIConfig, LobbyUIConfig, DailyRewardConfig, Primitives, ChunkyButton,
@@ -50,6 +50,7 @@ local function DayTile(props: any)
 	local reward = props.reward
 	local visual = Daily.KindVisuals[reward.Kind] or Daily.KindVisuals.Coins
 	local today = props.isToday
+	local icon = if props.claimed then Daily.Claimed elseif props.locked then Daily.LockedIcon else visual.Icon
 	return e("Frame", {
 		BackgroundTransparency = 1,
 		LayoutOrder = props.day,
@@ -58,7 +59,7 @@ local function DayTile(props: any)
 		Rays = if today then e(Rays, { size = Daily.TileHeight * Daily.RaysRatio, zIndex = 0 }) else nil,
 		Tile = e(ChunkyButton, {
 			size = UDim2.fromScale(1, 1),
-			swatch = if props.claimed then "Grey" else visual.Swatch,
+			swatch = if today then visual.Swatch elseif props.claimed or props.locked then "Grey" else visual.Swatch,
 			zIndex = 2,
 		}, {
 			Day = Primitives.text({
@@ -73,7 +74,7 @@ local function DayTile(props: any)
 				Position = UDim2.fromScale(0, 0.24),
 				Size = UDim2.fromScale(1, 0.42),
 				Stroke = false,
-				Text = if props.claimed then Daily.Claimed else visual.Icon,
+				Text = icon,
 				TextSize = TextSizes.BigIcon,
 				ZIndex = 3,
 			}),
@@ -134,6 +135,7 @@ return function(props: any)
 			claimed = claimed and streak > 0,
 			day = day,
 			isToday = canClaim and day == today,
+			locked = day > today,
 			reward = reward,
 		})
 	end

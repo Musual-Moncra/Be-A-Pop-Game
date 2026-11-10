@@ -3,8 +3,9 @@
 --[[
 	PlayWindow
 	The play window, with three views driven by RoomController:
-		Create: map cards, mode tiles, room-size selector and friends-only switch; the footer
-			button sends Net.CreateRoom. Map unlock buttons keep firing Net.UnlockMap.
+		Create: map cards (ComingSoon greyed, previous map must be 100% when
+			RequirePreviousComplete), mode tiles, room-size selector and friends-only switch;
+			the footer button sends Net.CreateRoom. Map unlock buttons keep firing Net.UnlockMap.
 		Browse: Net.RoomList rows (host, map, mode, players, friends badge, JOIN), friends'
 			rooms first, with an empty state. Fires Net.WatchRooms true while open, false on close.
 		Room: map/mode summary, member list with level, ready and host marks, kick for the host,
@@ -55,8 +56,13 @@ local Views = {
 	Settings = "Settings",
 }
 
+local function isComingSoon(map: any): boolean
+	local raw = map :: any
+	return map.Enabled == false or raw.ComingSoon == true
+end
+
 local function mapStatus(data: any, map: any): (string, string?)
-	if not map.Enabled then
+	if isComingSoon(map) then
 		return "Soon", nil
 	end
 	if data.UnlockedMaps[map.Id] then
@@ -65,6 +71,13 @@ local function mapStatus(data: any, map: any): (string, string?)
 	local previous = ConfigLookup.GetPreviousMap(map.Id)
 	if previous ~= nil and not data.UnlockedMaps[previous.Id] then
 		return "Blocked", string.format(Text.NeedMapFirst, previous.DisplayName)
+	end
+	if
+		previous ~= nil
+		and (map :: any).RequirePreviousComplete == true
+		and (data.BestMapProgress[previous.Id] or 0) < 100
+	then
+		return "Blocked", string.format(Text.RequireCompleteFormat, previous.DisplayName)
 	end
 	if data.Level < map.RequiredLevel then
 		return "Blocked", string.format(Text.NeedLevel, map.RequiredLevel)
@@ -159,7 +172,7 @@ local function MapCard(props: any)
 		end,
 		overlay = selectionRing(props.selected),
 		size = UDim2.new(1, -Shape.RimStroke * 2, 0, Sizes.MapCardHeight),
-		swatch = visual.Swatch,
+		swatch = if status == "Soon" then "Grey" else visual.Swatch,
 	}, {
 		Padding = Primitives.paddingXY(Gap, Gap / 2),
 		Icon = e(Inset, {
@@ -170,7 +183,7 @@ local function MapCard(props: any)
 		}, {
 			Emoji = Primitives.text({
 				Stroke = false,
-				Text = if locked and status ~= "Buyable" then Text.LockIcon else visual.Icon,
+				Text = if status == "Soon" or (locked and status ~= "Buyable") then Text.LockIcon else visual.Icon,
 				TextSize = Sizes.MapIconSize * Shape.IconFill,
 			}),
 		}),
@@ -394,7 +407,8 @@ local function CreateView(props: any)
 
 	local map = ConfigLookup.GetMap(selectedMapId) or ConfigLookup.GetSortedMaps()[1]
 	local mode = ConfigLookup.GetMode(selectedModeId) or ConfigLookup.GetSortedModes()[1]
-	local mapOwned = map.Enabled and data.UnlockedMaps[map.Id] == true
+	local mapStatusNow = mapStatus(data, map)
+	local mapOwned = mapStatusNow == "Owned"
 	local modeOpen = data.Level >= mode.RequiredLevel
 	local canPlay = mapOwned and modeOpen
 
