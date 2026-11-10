@@ -31,3 +31,5 @@ ARGS+=("ServerServices.MapProgressService" "$(cat "$ROOT_DIR/src/serverstorage/M
 
 "$LUAU_BIN" "$ROOT_DIR/tools/tests/suite.lua" -a "${ARGS[@]}"
 python3 "$ROOT_DIR/tools/tests/run_rooms.py"
+
+python3 -I "$ROOT_DIR/tools/tests/config_refs.py"

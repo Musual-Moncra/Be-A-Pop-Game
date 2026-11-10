@@ -104,7 +104,7 @@
 			TimeFormat: time left on a potion (format: minutes, seconds)
 			CountFormat: potion count (format: count)
 			StainBombIcon / NewbiePackIcon: item icons on the Extras tab (text)
-			StainBombInfoFormat: Stain Bomb card line (format: area multiplier)
+			StainBombInfoFormat: Stain Bomb card line (format: blast radius at starting stain size, studs)
 			NewbiePackInfoFormat: Newbie Pack card line (format: pet name, gems, coins, coin boost)
 		Pets: pets window
 			Width / Height / Swatch / Title / Icon: window size, header colour, title, emoji
@@ -437,7 +437,7 @@ return {
 		CountFormat = "x%d",
 		StainBombIcon = "💣",
 		NewbiePackIcon = "🎁",
-		StainBombInfoFormat = "Blasts stain over %sx the area around you",
+		StainBombInfoFormat = "Splats everything within %d studs!",
 		NewbiePackInfoFormat = "%s + %s 💎 + %s 💰 + x%s coins",
 	},
 

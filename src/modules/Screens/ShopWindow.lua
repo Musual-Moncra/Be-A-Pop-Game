@@ -441,7 +441,7 @@ return function(props: any)
 			buttonSwatch = "Green",
 			buttonText = robux(bomb.PriceRobux),
 			icon = Shop.StainBombIcon,
-			info = string.format(Shop.StainBombInfoFormat, Format.multiplier(MonetizationConfig.StainBombAreaScale)),
+			info = string.format(Shop.StainBombInfoFormat, MonetizationConfig.StainBombBaseRadius),
 			onButton = function()
 				promptProduct(bomb.Id)
 			end,
