@@ -25,7 +25,7 @@
 			Width / Height: popup size (design pixels)
 			Swatch: popup button colour (UIConfig.Swatches key)
 			Title: popup title (text)
-			ButtonFormat: buy button text (format: robux price)
+			ButtonFormat: buy button text (format: seconds added, robux price)
 			CountdownFormat: seconds left line (format: seconds)
 		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of Meter, Event and Revive
 		NarrowWidth: safe widths below this move Meter and Event to the bottom centre (design pixels)
@@ -65,7 +65,7 @@ return {
 		Height = 230,
 		Swatch = "Green",
 		Title = "OUT OF TIME!",
-		ButtonFormat = "💖 REVIVE  R$ %d",
+		ButtonFormat = "💖 REVIVE +%ds  R$ %d",
 		CountdownFormat = "%ds",
 	},
 

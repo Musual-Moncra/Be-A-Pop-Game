@@ -121,6 +121,8 @@ local function RevivePopup(props: any)
 	end
 	local tier = ConfigLookup.GetReviveTier(offer.Tier)
 	local config = RunUIConfig.Revive
+	local seconds = if tier ~= nil then tier.Seconds else 0
+	local price = if tier ~= nil then tier.PriceRobux else 0
 	return e("Frame", {
 		AnchorPoint = props.layout.AnchorPoint,
 		BackgroundTransparency = 1,
@@ -141,13 +143,14 @@ local function RevivePopup(props: any)
 			}),
 			Buy = e(ChunkyButton, {
 				anchorPoint = Vector2.new(0.5, 1),
+				enabled = tier ~= nil and offer.ProductId ~= 0,
 				onActivated = function()
 					MarketplaceService:PromptProductPurchase(Players.LocalPlayer, offer.ProductId)
 				end,
 				position = UDim2.fromScale(0.5, 1),
 				size = UDim2.fromScale(0.9, 0.45),
 				swatch = config.Swatch,
-				text = string.format(config.ButtonFormat, if tier ~= nil then tier.PriceRobux else 0),
+				text = string.format(config.ButtonFormat, seconds, price),
 				textSize = TextSizes.Large,
 			}),
 		}),

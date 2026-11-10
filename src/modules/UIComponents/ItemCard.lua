@@ -12,6 +12,8 @@
 		rarityColor: colour of the strip under the icon (Color3, optional)
 		iconColor: tint behind the icon (Color3, optional)
 		buttonText, buttonSwatch, buttonEnabled (default true), onButton (nil hides the button)
+		secondButtonText, secondButtonSwatch, secondButtonEnabled, onSecondButton: optional
+			second action drawn beside the first (BUY next to USE)
 		selected: true draws a sparkle ring around the card
 		layoutOrder
 	Dependencies: React, UIConfig, LobbyUIConfig, Primitives, ChunkyButton
@@ -33,6 +35,7 @@ local TextSizes = UIConfig.TextSizes
 
 return function(props: any)
 	local hasButton = props.onButton ~= nil
+	local hasSecond = props.onSecondButton ~= nil and props.secondButtonText ~= nil
 	local bottomInset = if hasButton then Card.ButtonHeight + Shape.ContentPadding else 0
 
 	local face: { [string]: any } = {
@@ -97,13 +100,30 @@ return function(props: any)
 			else nil,
 		Action = if hasButton
 			then e(ChunkyButton, {
-				anchorPoint = Vector2.new(0.5, 1),
+				anchorPoint = if hasSecond then Vector2.new(0, 1) else Vector2.new(0.5, 1),
 				enabled = props.buttonEnabled ~= false,
 				onActivated = props.onButton,
-				position = UDim2.new(0.5, 0, 1, -Shape.ContentPadding),
-				size = UDim2.new(0.86, 0, 0, Card.ButtonHeight),
+				position = if hasSecond
+					then UDim2.new(Card.SplitButtonInset, 0, 1, -Shape.ContentPadding)
+					else UDim2.new(0.5, 0, 1, -Shape.ContentPadding),
+				size = if hasSecond
+					then UDim2.new(Card.SplitButtonWidth, 0, 0, Card.ButtonHeight)
+					else UDim2.new(0.86, 0, 0, Card.ButtonHeight),
 				swatch = props.buttonSwatch or "Green",
 				text = props.buttonText,
+				textSize = TextSizes.Body,
+				zIndex = 4,
+			})
+			else nil,
+		SecondAction = if hasSecond
+			then e(ChunkyButton, {
+				anchorPoint = Vector2.new(1, 1),
+				enabled = props.secondButtonEnabled ~= false,
+				onActivated = props.onSecondButton,
+				position = UDim2.new(1 - Card.SplitButtonInset, 0, 1, -Shape.ContentPadding),
+				size = UDim2.new(Card.SplitButtonWidth, 0, 0, Card.ButtonHeight),
+				swatch = props.secondButtonSwatch or "Gold",
+				text = props.secondButtonText,
 				textSize = TextSizes.Body,
 				zIndex = 4,
 			})

@@ -69,19 +69,24 @@
 		Tabs: tab strip at the top of feature windows
 			Height: tab button height (design pixels)
 			Gap: space between tabs (design pixels)
-		Card: item card used in shop, pets and skins grids
+		Card: item card used in shop and skins grids
 			Width / Height: card size (design pixels)
 			IconRatio: share of the card height used by the icon (0 to 1)
 			ButtonHeight: height of the action button on a card (design pixels)
+			SplitButtonWidth / SplitButtonInset: width and side margin of two side-by-side
+				action buttons as a share of the card width (0 to 1)
 		RarityColors: per rarity name, the colour of the rarity strip on cards (RGB)
 		Shop: shop window
 			Width / Height / Swatch / Title: window size (design pixels), header colour, title (text)
-			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Passes", "Gems", "Coins" or "Potions"
+			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Passes", "Gems", "Coins", "Potions" or "Extras"
 			RobuxFormat: price text (format: robux)
 			OwnedText / SoonText / UseText: button text when owned / product id not set / potion use (text)
 			ActiveFormat: potion card text while active (format: time left)
 			TimeFormat: time left on a potion (format: minutes, seconds)
 			CountFormat: potion count (format: count)
+			StainBombIcon / NewbiePackIcon: item icons on the Extras tab (text)
+			StainBombInfoFormat: Stain Bomb card line (format: area multiplier)
+			NewbiePackInfoFormat: Newbie Pack card line (format: pet name, gems, coins, coin boost)
 		Pets: pets window
 			Width / Height / Swatch / Title: window size, header colour, title
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "MyPets" or "Index"
@@ -236,6 +241,8 @@ return {
 		Height = 236,
 		IconRatio = 0.36,
 		ButtonHeight = 48,
+		SplitButtonWidth = 0.42,
+		SplitButtonInset = 0.07,
 	},
 
 	RarityColors = {
@@ -259,6 +266,7 @@ return {
 			{ Id = "Gems", Label = "GEMS", Icon = "💎", Swatch = "Purple" },
 			{ Id = "Coins", Label = "COINS", Icon = "💰", Swatch = "Orange" },
 			{ Id = "Potions", Label = "POTIONS", Icon = "🧪", Swatch = "Teal" },
+			{ Id = "Extras", Label = "EXTRAS", Icon = "🧨", Swatch = "Red" },
 		},
 		RobuxFormat = "R$ %d",
 		OwnedText = "OWNED",
@@ -267,6 +275,10 @@ return {
 		ActiveFormat = "ACTIVE %s",
 		TimeFormat = "%d:%02d",
 		CountFormat = "x%d",
+		StainBombIcon = "💣",
+		NewbiePackIcon = "🎁",
+		StainBombInfoFormat = "Blasts stain over %sx the area around you",
+		NewbiePackInfoFormat = "%s + %s 💎 + %s 💰 + x%s coins",
 	},
 
 	Pets = {
