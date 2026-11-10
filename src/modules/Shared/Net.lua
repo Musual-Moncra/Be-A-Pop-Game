@@ -29,7 +29,6 @@
 		Rebirth()
 		OpenCrate(crateId)
 		EquipCosmetic(kind, id)
-		HatchEgg(eggId)
 		EquipPet(uid)
 		UnequipPet(uid)
 		DeletePet(uid)
@@ -62,9 +61,10 @@
 		                                   MapId "" means the event just ended
 		CosmeticState(equippedSkin, equippedTrail, ownedSkins, ownedTrails)
 		CrateResult(crateId, kind, id, isNew, refund)
-		PetInventory(state)                { Pets = { PetEntry }, Equipped = { uid }, Slots }
-		HatchResult(petId, variantId)      pet that came out of the last egg
-		PetPoop(uid, gems)                 one equipped pet pooped during a run, gems = gems paid
+		PetInventory(state)                { Pets = { PetEntry }, Equipped = { uid }, Slots,
+		                                   Stink, Index = { { PetId, Variant } }, IndexClaimed = { mapId } }
+		PetDrop(petId, variant, isNew, converted)  pet rolled at 100% map clear, converted = gems if full
+		PetPoop(uid, gems)                 one equipped pet pooped during a run, client plays the puddle
 		LeaderboardData(Period, Entries)   Entries { { Rank, Name, Value } }, Period "Daily" | "Weekly" | "AllTime"
 
 	RunSummary:
@@ -133,12 +133,21 @@ local PetEntry = {
 	Uid = Packet.String,
 	PetId = Packet.String,
 	Variant = Packet.String,
+	Stacks = Packet.NumberU16,
+}
+
+local PetIndexEntry = {
+	PetId = Packet.String,
+	Variant = Packet.String,
 }
 
 local PetInventoryState = {
 	Pets = { PetEntry },
 	Equipped = { Packet.String },
 	Slots = Packet.NumberU8,
+	Stink = Packet.NumberF32,
+	Index = { PetIndexEntry },
+	IndexClaimed = { Packet.String },
 }
 
 local LeaderboardEntry = {
@@ -194,14 +203,13 @@ Net.EquipCosmetic = Packet.new("EquipCosmetic", Packet.String, Packet.String)
 Net.CosmeticState = Packet.new("CosmeticState", Packet.String, Packet.String, Packet.Any, Packet.Any)
 Net.CrateResult = Packet.new("CrateResult", CrateResultStruct)
 
-Net.HatchEgg = Packet.new("HatchEgg", Packet.String)
 Net.EquipPet = Packet.new("EquipPet", Packet.String)
 Net.UnequipPet = Packet.new("UnequipPet", Packet.String)
 Net.DeletePet = Packet.new("DeletePet", Packet.String)
 Net.MergePet = Packet.new("MergePet", Packet.String)
 
 Net.PetInventory = Packet.new("PetInventory", PetInventoryState)
-Net.HatchResult = Packet.new("HatchResult", Packet.String, Packet.String)
+Net.PetDrop = Packet.new("PetDrop", Packet.String, Packet.String, Packet.Boolean8, Packet.NumberU16)
 Net.PetPoop = Packet.new("PetPoop", Packet.String, Packet.NumberU8)
 
 local RoomMember = {

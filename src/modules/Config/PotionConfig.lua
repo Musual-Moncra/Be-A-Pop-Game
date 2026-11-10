@@ -10,7 +10,7 @@
 			Icon: emoji or short icon string (text)
 			Duration: active duration when consumed (seconds)
 			Multiplier: boost multiplier applied to the target stat (multiplier)
-			Stat: stat boosted ("Lifespan" | "Speed" | "StainSize")
+			Stat: stat boosted ("Lifespan" | "Speed" | "Stink")
 			Description: description of what the potion does (text)
 ]]
 
@@ -37,8 +37,8 @@ return {
 			Icon = "💨",
 			Duration = 1200,
 			Multiplier = 2,
-			Stat = "StainSize",
-			Description = "x2 Stain size for 20 minutes",
+			Stat = "Stink",
+			Description = "x2 Stink for 20 minutes",
 		},
 	},
 }

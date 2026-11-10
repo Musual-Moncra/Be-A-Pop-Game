@@ -9,7 +9,7 @@
 		CostGrowth: exponential scale factor per prior rebirth (multiplier)
 		MultiplierPerRebirth: permanent bonus to coins and stink per rebirth (percent, 0.25 = +25%)
 		GemsPerRebirth: gems awarded upon rebirth (gems)
-		ResetUnlockedMaps: whether rebirth also resets unlocked maps back to Zone1 (boolean)
+		ResetUnlockedMaps: whether rebirth also resets unlocked maps back to DefaultMapId (boolean)
 ]]
 
 return {

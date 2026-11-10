@@ -30,8 +30,9 @@
 		Outbound.SpecialEvent(plr, mapId, endsAt)
 		Outbound.CosmeticState(plr, equippedSkin, equippedTrail, ownedSkins, ownedTrails)
 		Outbound.CrateResult(plr, result)
-		Outbound.PetInventory(plr, state)                coalesced, { Pets, Equipped, Slots }
-		Outbound.HatchResult(plr, petId, variantId)
+		Outbound.PetInventory(plr, state)                coalesced, { Pets, Equipped, Slots, Stink, Index, IndexClaimed }
+		Outbound.PetDrop(plr, petId, variantId, isNew, converted)
+		Outbound.PetPoop(plr, uid, gems)
 		Outbound.LeaderboardData(plr, period, entries)
 		Outbound.RoomState(plr, payload)                 the room this client is in
 		Outbound.RoomList(plr, rooms)                    joinable rooms, while watching
@@ -200,9 +201,15 @@ function Outbound.PetInventory(plr: Player, state: any)
 	queue(Net.PetInventory, plr, state)
 end
 
-function Outbound.HatchResult(plr: Player, petId: string, variantId: string)
+function Outbound.PetDrop(plr: Player, petId: string, variantId: string, isNew: boolean, converted: number)
 	if connected(plr) then
-		Net.HatchResult:FireClient(plr, petId, variantId)
+		Net.PetDrop:FireClient(plr, petId, variantId, isNew, math.max(0, math.floor(converted)))
+	end
+end
+
+function Outbound.PetPoop(plr: Player, uid: string, gems: number)
+	if connected(plr) then
+		Net.PetPoop:FireClient(plr, uid, math.clamp(math.floor(gems), 0, 255))
 	end
 end
 

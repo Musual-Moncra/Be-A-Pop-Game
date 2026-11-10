@@ -669,88 +669,81 @@ runTest("ConfigLookup_GetPreviousMap_Chain", function()
 	expect(ConfigLookup.GetPreviousMap("UnknownMapId") == nil, "Unknown map id must return nil")
 end)
 
-runTest("ConfigLookup_RollPet_Boundaries", function()
-	for _, egg in ConfigLookup.GetSortedEggs() do
-		local pets = ConfigLookup.GetPetsForEgg(egg.Id)
-		expect(#pets > 0, "Egg must have at least one pet: " .. egg.Id)
-		local totalWeight = ConfigLookup.GetEggWeight(egg.Id)
-		expect(totalWeight > 0, "Egg total weight must be positive: " .. egg.Id)
+runTest("ConfigLookup_RollPet_MapPools", function()
+	for _, map in ConfigLookup.GetSortedMaps() do
+		if map.Enabled then
+			local pets = ConfigLookup.GetPetsForMap(map.Id)
+			expect(#pets > 0, "Enabled map has no pet pool: " .. map.Id)
 
-		local petAtZero = ConfigLookup.RollPet(egg.Id, 0)
-		local petAtNeg = ConfigLookup.RollPet(egg.Id, -1)
-		local petAtOne = ConfigLookup.RollPet(egg.Id, 1)
-		local petAtOver = ConfigLookup.RollPet(egg.Id, 2)
-
-		expect(petAtZero ~= nil and petAtZero.Id == pets[1].Id, "RollPet at 0 must pick first pet in " .. egg.Id)
-		expect(petAtNeg ~= nil and petAtNeg.Id == pets[1].Id, "RollPet at <0 must clamp and pick first pet")
-		expect(petAtOne ~= nil and petAtOne.Id == pets[#pets].Id, "RollPet at 1 must pick last pet in " .. egg.Id)
-		expect(petAtOver ~= nil and petAtOver.Id == pets[#pets].Id, "RollPet at >1 must clamp and pick last pet")
-
-		local cursor = 0
-		for idx, pet in pets do
-			local rarity = ConfigLookup.GetRarity(pet.Rarity)
-			expect(rarity ~= nil, "Missing rarity for pet " .. pet.Id)
-			local weight = (rarity :: any).Weight
-			local midRoll = (cursor + weight * 0.5) / totalWeight
-			local rolledMid = ConfigLookup.RollPet(egg.Id, midRoll)
-			expect(
-				rolledMid ~= nil and rolledMid.Id == pet.Id,
-				string.format("Mid-band roll for %s in %s picked wrong pet", pet.Id, egg.Id)
-			)
-
-			local exactBoundaryRoll = cursor / totalWeight
-			local rolledAtStart = ConfigLookup.RollPet(egg.Id, exactBoundaryRoll + 1e-12)
-			expect(
-				rolledAtStart ~= nil and rolledAtStart.Id == pet.Id,
-				string.format("Just-above-boundary roll for %s in %s failed", pet.Id, egg.Id)
-			)
-			if idx > 1 then
-				local rolledJustBefore = ConfigLookup.RollPet(egg.Id, exactBoundaryRoll - 1e-12)
-				expect(
-					rolledJustBefore ~= nil and rolledJustBefore.Id == pets[idx - 1].Id,
-					string.format("Just-below-boundary roll before %s in %s failed", pet.Id, egg.Id)
-				)
+			local totalWeight = 0
+			for _, pet in pets do
+				expect(pet.DropOdds > 0, "Pool pet needs positive DropOdds: " .. pet.Id)
+				totalWeight += 1 / pet.DropOdds
 			end
-			cursor += weight
+			expect(totalWeight > 0, "Map pool weight must be positive: " .. map.Id)
+
+			local petAtZero = ConfigLookup.RollPet(map.Id, 0)
+			local petAtNeg = ConfigLookup.RollPet(map.Id, -1)
+			local petAtOne = ConfigLookup.RollPet(map.Id, 1)
+			local petAtOver = ConfigLookup.RollPet(map.Id, 2)
+			expect(petAtZero ~= nil and petAtZero.Id == pets[1].Id, "RollPet at 0 must pick first pet in " .. map.Id)
+			expect(petAtNeg ~= nil and petAtNeg.Id == pets[1].Id, "RollPet at <0 must clamp and pick first pet")
+			expect(petAtOne ~= nil and petAtOne.Id == pets[#pets].Id, "RollPet at 1 must pick last pet in " .. map.Id)
+			expect(petAtOver ~= nil and petAtOver.Id == pets[#pets].Id, "RollPet at >1 must clamp and pick last pet")
+
+			local cursor = 0
+			for _, pet in pets do
+				local weight = 1 / pet.DropOdds
+				local midRoll = (cursor + weight * 0.5) / totalWeight
+				local rolledMid = ConfigLookup.RollPet(map.Id, midRoll)
+				expect(
+					rolledMid ~= nil and rolledMid.Id == pet.Id,
+					string.format("Mid-band roll for %s in %s picked wrong pet", pet.Id, map.Id)
+				)
+				cursor += weight
+			end
 		end
 	end
 
-	expect(ConfigLookup.RollPet("NonExistentEgg", 0.5) == nil, "RollPet for unknown egg must return nil")
+	expect(ConfigLookup.RollPet("NonExistentMap", 0.5) == nil, "RollPet for unknown map must return nil")
 end)
 
-runTest("ConfigLookup_RollVariant_Boundaries", function()
+runTest("ConfigLookup_RollVariant_DropOdds", function()
+	local default = PetConfig.Variants.Default
+	expect(default ~= nil, "Default variant must exist")
+
+	local specials = {}
+	local specialTotal = 0
+	for _, variant in PetConfig.Variants do
+		expect(variant.DropOdds >= 0, "Variant DropOdds must not be negative: " .. tostring(variant.Id))
+		if variant.DropOdds > 0 then
+			table.insert(specials, variant)
+			specialTotal += 1 / variant.DropOdds
+		end
+	end
+	table.sort(specials, function(a, b)
+		return a.DropOdds < b.DropOdds
+	end)
+	expect(#specials > 0, "Expected at least one special variant")
+	expect(specialTotal < 1, "Special variant odds must leave room for the Default variant")
+
+	local cursor = 0
+	for _, variant in specials do
+		local chance = 1 / variant.DropOdds
+		local midRoll = cursor + chance * 0.5
+		local picked = ConfigLookup.RollVariant(midRoll)
+		expect(picked ~= nil and picked.Id == variant.Id, "RollVariant mid-band mismatch for " .. variant.Id)
+		cursor += chance
+	end
+
 	local vZero = ConfigLookup.RollVariant(0)
 	local vNeg = ConfigLookup.RollVariant(-0.5)
 	local vOne = ConfigLookup.RollVariant(1)
 	local vOver = ConfigLookup.RollVariant(1.5)
-	expect(vZero ~= nil and vZero.Id ~= nil, "RollVariant(0) must return a valid variant")
+	expect(vZero ~= nil and vZero.Id == specials[1].Id, "RollVariant(0) must pick the most common special")
 	expect(vNeg ~= nil and vNeg.Id == (vZero :: any).Id, "RollVariant(<0) must match RollVariant(0)")
-	expect(vOne ~= nil and vOne.Id ~= nil, "RollVariant(1) must return a valid variant")
-	expect(vOver ~= nil and vOver.Id == (vOne :: any).Id, "RollVariant(>1) must match RollVariant(1)")
-
-	local total = 0
-	local order: { any } = {}
-	for _, variant in PetConfig.Variants do
-		total += variant.Weight
-		table.insert(order, variant)
-	end
-	expect(total > 0, "Total variant weight must be positive")
-
-	local cursor = 0
-	for idx, variant in order do
-		local midRoll = (cursor + variant.Weight * 0.5) / total
-		local picked = ConfigLookup.RollVariant(midRoll)
-		expect(picked ~= nil and picked.Id == variant.Id, "RollVariant mid-band mismatch for " .. variant.Id)
-
-		if idx > 1 then
-			local boundary = cursor / total
-			local below = ConfigLookup.RollVariant(boundary - 1e-12)
-			local above = ConfigLookup.RollVariant(boundary + 1e-12)
-			expect(below ~= nil and below.Id == order[idx - 1].Id, "RollVariant below boundary mismatch")
-			expect(above ~= nil and above.Id == variant.Id, "RollVariant above boundary mismatch")
-		end
-		cursor += variant.Weight
-	end
+	expect(vOne ~= nil and vOne.Id == default.Id, "RollVariant(1) must pick Default")
+	expect(vOver ~= nil and vOver.Id == default.Id, "RollVariant(>1) must clamp to Default")
 end)
 
 runTest("ConfigLookup_AllOtherAccessors", function()
@@ -789,24 +782,31 @@ runTest("ConfigLookup_AllOtherAccessors", function()
 	end
 
 	expect(ConfigLookup.GetSkin("Default") ~= nil, "Default skin must exist")
-	expect(ConfigLookup.GetTrail("Neon") ~= nil, "Neon trail must exist")
 	expect(ConfigLookup.GetCrate("StandardCrate") ~= nil, "StandardCrate must exist")
+	expect(ConfigLookup.GetDailyBoost("Stacks") ~= nil, "Stacks daily boost must exist")
 
 	for _, pet in ConfigLookup.GetSortedPets() do
 		expect(ConfigLookup.GetPet(pet.Id) == pet, "GetPet round-trip for " .. pet.Id)
 		local mult = ConfigLookup.GetPetMultipliers(pet.Id, "Default")
-		expectNear(mult.Coins, pet.CoinMultiplier, 1e-9, "Default variant coin multiplier")
-		expectNear(mult.Stink, pet.StinkMultiplier, 1e-9, "Default variant stink multiplier")
+		expectNear(mult.Stink, pet.Stink, 1e-9, "Default variant stink multiplier")
+		expect((mult :: any).Coins == nil, "PetMultipliers must expose only Stink")
 		local goldMult = ConfigLookup.GetPetMultipliers(pet.Id, "Golden")
-		expectNear(goldMult.Coins, pet.CoinMultiplier * 1.25, 1e-9, "Golden variant coin multiplier")
+		expectNear(goldMult.Stink, pet.Stink * PetConfig.Variants.Golden.Bonus, 1e-9, "Golden variant stink multiplier")
+		local stackedMult = ConfigLookup.GetPetMultipliers(pet.Id, "Default", PetConfig.StackCap)
+		expectNear(
+			stackedMult.Stink,
+			pet.Stink * (1 + PetConfig.StackBonus * PetConfig.StackCap),
+			1e-9,
+			"Full stacks stink multiplier for " .. pet.Id
+		)
 	end
 	local unknownMult = ConfigLookup.GetPetMultipliers("UnknownPet", "Default")
-	expectNear(unknownMult.Coins, 1, 1e-9, "Unknown pet neutral coin multiplier")
 	expectNear(unknownMult.Stink, 1, 1e-9, "Unknown pet neutral stink multiplier")
 
 	expect(ConfigLookup.GetNextVariant("Default") == "Golden", "Default -> Golden")
 	expect(ConfigLookup.GetNextVariant("Golden") == "Rainbow", "Golden -> Rainbow")
-	expect(ConfigLookup.GetNextVariant("Rainbow") == nil, "Rainbow is terminal")
+	expect(ConfigLookup.GetNextVariant("Rainbow") == "Stinky", "Rainbow -> Stinky")
+	expect(ConfigLookup.GetNextVariant("Stinky") == nil, "Stinky is terminal")
 	expect(ConfigLookup.GetNextVariant("Unknown") == nil, "Unknown variant returns nil")
 
 	expectNear(ConfigLookup.GetMaxEquippedSlots(0), PetConfig.BaseSlots, 0, "Base slots at 0 extra")
@@ -932,7 +932,14 @@ runTest("Hitbox_RotatedRoots_Yaw_WallPitch_Arbitrary3D", function()
 	end
 end)
 
-runTest("ConfigIntegrity_PetEggs_Pets_Rarities_Variants", function()
+runTest("ConfigIntegrity_Pets_Rarities_Variants", function()
+	expect(PetConfig.BaseSlots >= 1, "PetConfig.BaseSlots must be at least 1")
+	expect(PetConfig.InventoryCap > 0, "PetConfig.InventoryCap must be positive")
+	expect(PetConfig.StackCap > 0, "PetConfig.StackCap must be positive")
+	expect(PetConfig.StackBonus > 0, "PetConfig.StackBonus must be positive")
+	expect(PetConfig.PoopInterval > 0, "PetConfig.PoopInterval must be positive")
+	expect(PetConfig.PoopGemChance >= 0 and PetConfig.PoopGemChance <= 1, "PetConfig.PoopGemChance must be a chance")
+
 	for rarityId, rarity in PetConfig.Rarities do
 		expect(rarity.Id == rarityId, "Rarity key/Id mismatch: " .. tostring(rarityId))
 		expect(rarity.Weight > 0, "Rarity weight must be positive: " .. tostring(rarityId))
@@ -940,7 +947,7 @@ runTest("ConfigIntegrity_PetEggs_Pets_Rarities_Variants", function()
 
 	for variantId, variant in PetConfig.Variants do
 		expect(variant.Id == variantId, "Variant key/Id mismatch: " .. tostring(variantId))
-		expect(variant.Weight > 0, "Variant weight must be positive: " .. tostring(variantId))
+		expect(variant.DropOdds >= 0, "Variant DropOdds must not be negative: " .. tostring(variantId))
 		expect(variant.Bonus > 0, "Variant bonus must be positive: " .. tostring(variantId))
 		if variant.NextVariant ~= nil then
 			expect(
@@ -952,17 +959,8 @@ runTest("ConfigIntegrity_PetEggs_Pets_Rarities_Variants", function()
 	end
 	expect(PetConfig.Variants[PetConfig.GrantVariant] ~= nil, "PetConfig.GrantVariant must exist in Variants")
 
-	for eggId, egg in PetConfig.Eggs do
-		expect(egg.Id == eggId, "Egg key/Id mismatch: " .. tostring(eggId))
-		expect(
-			ConfigLookup.GetMap(egg.MapId) ~= nil,
-			string.format("Egg %s MapId %s does not exist in MapConfig", eggId, egg.MapId)
-		)
-		expect(egg.Price > 0, "Egg price must be positive: " .. eggId)
-		expect(#ConfigLookup.GetPetsForEgg(eggId) > 0, "Egg has no pets: " .. eggId)
-	end
-
 	local seenPetIds: { [string]: boolean } = {}
+	local exclusivesByMap: { [string]: number } = {}
 	for _, pet in PetConfig.Pets do
 		expect(not seenPetIds[pet.Id], "Duplicate pet Id: " .. pet.Id)
 		seenPetIds[pet.Id] = true
@@ -970,14 +968,35 @@ runTest("ConfigIntegrity_PetEggs_Pets_Rarities_Variants", function()
 			PetConfig.Rarities[pet.Rarity] ~= nil,
 			string.format("Pet %s references invalid rarity %s", pet.Id, pet.Rarity)
 		)
-		if pet.EggId ~= "" then
+		expect(pet.Stink > 0, "Pet Stink must be positive: " .. pet.Id)
+		expect(type(pet.ModelName) == "string", "Pet ModelName must be a string: " .. pet.Id)
+		if pet.MapId ~= "" then
 			expect(
-				PetConfig.Eggs[pet.EggId] ~= nil,
-				string.format("Pet %s references invalid EggId %s", pet.Id, pet.EggId)
+				ConfigLookup.GetMap(pet.MapId) ~= nil,
+				string.format("Pet %s references invalid MapId %s", pet.Id, pet.MapId)
 			)
 		end
-		expect(pet.CoinMultiplier > 0 and pet.StinkMultiplier > 0, "Pet multipliers must be positive: " .. pet.Id)
+		if pet.Exclusive then
+			expect(pet.MapId ~= "", "Exclusive pet needs a MapId: " .. pet.Id)
+			exclusivesByMap[pet.MapId] = (exclusivesByMap[pet.MapId] or 0) + 1
+		elseif pet.MapId ~= "" then
+			expect(pet.DropOdds > 0, "Droppable pet needs positive DropOdds: " .. pet.Id)
+		end
 	end
+
+	for _, map in ConfigLookup.GetSortedMaps() do
+		if map.Enabled then
+			expect((exclusivesByMap[map.Id] or 0) == 1, "Launch map needs exactly one exclusive pet: " .. map.Id)
+			local poolWeight = 0
+			for _, pet in ConfigLookup.GetPetsForMap(map.Id) do
+				poolWeight += 1 / pet.DropOdds
+			end
+			expect(poolWeight > 0, "Launch map pet pool weight must be positive: " .. map.Id)
+		end
+	end
+
+	expect(type(DataConfig.Template.PetIndex) == "table", "Template.PetIndex must be a table")
+	expect(type(DataConfig.Template.PetIndexClaimed) == "table", "Template.PetIndexClaimed must be a table")
 
 	local newbie = MonetizationConfig.DevProducts.NewbiePack
 	expect(ConfigLookup.GetPet(newbie.PetId) ~= nil, "NewbiePack PetId must exist in PetConfig.Pets")
@@ -988,6 +1007,9 @@ runTest("ConfigIntegrity_Maps_And_NpcPatrols", function()
 	expect(ConfigLookup.GetMap(MapConfig.DefaultMapId) ~= nil, "DefaultMapId must exist in MapConfig.Maps")
 	expect(ConfigLookup.GetMode(ModeConfig.DefaultModeId) ~= nil, "DefaultModeId must exist in ModeConfig.Modes")
 
+	local sorted = ConfigLookup.GetSortedMaps()
+	expect(sorted[1].Id == MapConfig.DefaultMapId, "DefaultMapId must be the first map in the unlock chain")
+
 	local seenIds: { [string]: boolean } = {}
 	local seenOrders: { [number]: boolean } = {}
 	for _, map in MapConfig.Maps do
@@ -995,6 +1017,9 @@ runTest("ConfigIntegrity_Maps_And_NpcPatrols", function()
 		expect(not seenOrders[map.Order], "Duplicate Map Order: " .. tostring(map.Order))
 		seenIds[map.Id] = true
 		seenOrders[map.Order] = true
+		if map.ComingSoon then
+			expect(map.Enabled == false, "ComingSoon map must also be disabled: " .. map.Id)
+		end
 
 		local patrols = RunConfig.NpcPatrols[map.Id]
 		expect(type(patrols) == "table" and #patrols > 0, "Map missing NpcPatrols entries: " .. map.Id)
@@ -1032,7 +1057,7 @@ runTest("ConfigIntegrity_RoomConfig", function()
 end)
 
 runTest("ConfigIntegrity_Potions_Quests_Powerups_Cosmetics_DataTemplate", function()
-	local validPotionStats = { Lifespan = true, Speed = true, StainSize = true }
+	local validPotionStats = { Lifespan = true, Speed = true, Stink = true }
 	for potionId, potion in PotionConfig.Potions do
 		expect(
 			validPotionStats[potion.Stat] == true,
@@ -1097,11 +1122,6 @@ runTest("ConfigIntegrity_Potions_Quests_Powerups_Cosmetics_DataTemplate", functi
 				expect(
 					CosmeticConfig.Skins[drop.Id] ~= nil,
 					"Crate drop references unknown Skin: " .. tostring(drop.Id)
-				)
-			elseif drop.Kind == "Trail" then
-				expect(
-					CosmeticConfig.Trails[drop.Id] ~= nil,
-					"Crate drop references unknown Trail: " .. tostring(drop.Id)
 				)
 			else
 				error("Unknown crate drop Kind: " .. tostring(drop.Kind))
@@ -1193,12 +1213,6 @@ runTest("ConfigIntegrity_UI_Swatches_Visuals_And_Rarities", function()
 		expect(
 			PetConfig.Rarities[skin.Rarity] ~= nil,
 			"Skin " .. skinId .. " references unknown rarity " .. tostring(skin.Rarity)
-		)
-	end
-	for trailId, trail in CosmeticConfig.Trails do
-		expect(
-			PetConfig.Rarities[trail.Rarity] ~= nil,
-			"Trail " .. trailId .. " references unknown rarity " .. tostring(trail.Rarity)
 		)
 	end
 end)
@@ -1550,7 +1564,7 @@ runTest("RoomService_ThreeMembers_Join_Ready_Start_Countdown_And_Run", function(
 	local p2 = h.makePlayer(102, "Bob")
 	local p3 = h.makePlayer(103, "Charlie")
 
-	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	h.RoomService.CreateRoom(p1, "Zone3", "Classic", 4, false)
 	local state1 = h.lastRoomState[p1]
 	expect(state1 ~= nil and state1.InRoom == true, "Host should be in room")
 	local roomId = state1.Id
@@ -1592,7 +1606,7 @@ runTest("RoomService_HostLeavesDuringCountdown_RevertsToWaiting_And_TransfersHos
 	local p2 = h.makePlayer(202, "Member2")
 	local p3 = h.makePlayer(203, "Member3")
 
-	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	h.RoomService.CreateRoom(p1, "Zone3", "Classic", 4, false)
 	local roomId = h.lastRoomState[p1].Id
 	h.RoomService.JoinRoom(p2, roomId)
 	h.RoomService.JoinRoom(p3, roomId)
@@ -1629,7 +1643,7 @@ runTest("RoomService_KickMember_And_BlockRejoin", function()
 	local p1 = h.makePlayer(301, "Host")
 	local p2 = h.makePlayer(302, "KickedGuy")
 
-	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	h.RoomService.CreateRoom(p1, "Zone3", "Classic", 4, false)
 	local roomId = h.lastRoomState[p1].Id
 	h.RoomService.JoinRoom(p2, roomId)
 	expect(#h.lastRoomState[p1].Members == 2, "p2 joined")
@@ -1661,7 +1675,7 @@ runTest("RoomService_FriendsOnly_RejectsStranger_AllowsFriend", function()
 	local friend = h.makePlayer(403, "Friend")
 	h.setFriends(host, friend, true)
 
-	h.RoomService.CreateRoom(host, "Zone1", "Classic", 4, true)
+	h.RoomService.CreateRoom(host, "Zone3", "Classic", 4, true)
 	local roomId = h.lastRoomState[host].Id
 
 	h.RoomService.WatchRooms(stranger, true)
@@ -1697,7 +1711,7 @@ runTest("RoomService_FullRoom_RejectsExtraJoin", function()
 	local p2 = h.makePlayer(502, "P2")
 	local p3 = h.makePlayer(503, "P3")
 
-	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 2, false)
+	h.RoomService.CreateRoom(p1, "Zone3", "Classic", 2, false)
 	local roomId = h.lastRoomState[p1].Id
 	h.RoomService.JoinRoom(p2, roomId)
 	expect(#h.lastRoomState[p1].Members == 2, "Room at capacity 2/2")
@@ -1717,7 +1731,7 @@ runTest("RoomService_StartRunFailsForOneMember_OthersContinueAndReleaseOnce", fu
 	local p3 = h.makePlayer(603, "P3")
 	h.startRunBehavior[p2] = "fail"
 
-	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	h.RoomService.CreateRoom(p1, "Zone3", "Classic", 4, false)
 	local roomId = h.lastRoomState[p1].Id
 	h.RoomService.JoinRoom(p2, roomId)
 	h.RoomService.JoinRoom(p3, roomId)
@@ -1751,7 +1765,7 @@ runTest("RoomService_MemberLeavesWhileStartRunYielding", function()
 	local p3 = h.makePlayer(703, "P3")
 	h.startRunBehavior[p2] = "yield_ok"
 
-	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	h.RoomService.CreateRoom(p1, "Zone3", "Classic", 4, false)
 	local roomId = h.lastRoomState[p1].Id
 	h.RoomService.JoinRoom(p2, roomId)
 	h.RoomService.JoinRoom(p3, roomId)
@@ -1782,7 +1796,7 @@ runTest("RoomService_EarlyFinishReturnsToLobby_LastFinishReleasesMapOnce", funct
 	local p2 = h.makePlayer(802, "FastRunner")
 	local p3 = h.makePlayer(803, "SlowRunner")
 
-	h.RoomService.CreateRoom(p1, "Zone1", "Classic", 4, false)
+	h.RoomService.CreateRoom(p1, "Zone3", "Classic", 4, false)
 	local roomId = h.lastRoomState[p1].Id
 	h.RoomService.JoinRoom(p2, roomId)
 	h.RoomService.JoinRoom(p3, roomId)
@@ -1825,7 +1839,7 @@ runTest("RoomService_PlayerRemoving_AllStates", function()
 
 	local w1 = h.makePlayer(901, "WaitHost")
 	local w2 = h.makePlayer(902, "WaitGuest")
-	h.RoomService.CreateRoom(w1, "Zone1", "Classic", 4, false)
+	h.RoomService.CreateRoom(w1, "Zone3", "Classic", 4, false)
 	local waitRoomId = h.lastRoomState[w1].Id
 	h.RoomService.JoinRoom(w2, waitRoomId)
 	h.removePlayer(w1)
@@ -1837,7 +1851,7 @@ runTest("RoomService_PlayerRemoving_AllStates", function()
 
 	local c1 = h.makePlayer(903, "CountHost")
 	local c2 = h.makePlayer(904, "CountGuest")
-	h.RoomService.CreateRoom(c1, "Zone1", "Classic", 4, false)
+	h.RoomService.CreateRoom(c1, "Zone3", "Classic", 4, false)
 	local countRoomId = h.lastRoomState[c1].Id
 	h.RoomService.JoinRoom(c2, countRoomId)
 	h.RoomService.SetReady(c2, true)
@@ -1852,7 +1866,7 @@ runTest("RoomService_PlayerRemoving_AllStates", function()
 
 	local r1 = h.makePlayer(905, "RunHost")
 	local r2 = h.makePlayer(906, "RunGuest")
-	h.RoomService.CreateRoom(r1, "Zone1", "Classic", 4, false)
+	h.RoomService.CreateRoom(r1, "Zone3", "Classic", 4, false)
 	local runRoomId = h.lastRoomState[r1].Id
 	h.RoomService.JoinRoom(r2, runRoomId)
 	h.RoomService.SetReady(r2, true)

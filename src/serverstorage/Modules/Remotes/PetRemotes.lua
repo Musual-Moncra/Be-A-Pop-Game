@@ -2,8 +2,8 @@
 
 --[[
 	PetRemotes
-	Inbound pet remotes: hatch an egg, equip/unequip a pet, delete a pet and merge
-	five identical pets. Every handler is rate limited and type checked by RemoteGuard.
+	Inbound pet remotes: equip/unequip a pet, delete a pet and merge five identical pets.
+	Every handler is rate limited and type checked by RemoteGuard.
 	Started by runFramework at Priority 5, after every service has loaded.
 
 	Dependencies: RemoteGuard, PetService, Net
@@ -17,10 +17,6 @@ local PetService = require(ServerStorage.Modules.Services.PetService)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 
 return function()
-	RemoteGuard.Bind(Net.HatchEgg, "HatchEgg", { "string" }, function(plr, eggId)
-		PetService.HatchEgg(plr, eggId)
-	end)
-
 	RemoteGuard.Bind(Net.EquipPet, "EquipPet", { "string" }, function(plr, uid)
 		PetService.Equip(plr, uid)
 	end)

@@ -13,7 +13,7 @@
 		MapProgressService.GetBest(plr, mapId) -> number     best saved percent, 0..100
 		MapProgressService.GetTotal(mapId) -> number         total targets used for the percent
 
-	Dependencies: RunService, DataService, MapInstanceService, Outbound, RunEvents, EventConfig,
+	Dependencies: RunService, DataService, MapInstanceService, PetService, Outbound, RunEvents, EventConfig,
 		MessageConfig, ConfigLookup, GameConfig
 ]]
 
@@ -24,6 +24,7 @@ local RunService = game:GetService("RunService")
 local RunServiceModule = require(script.Parent.RunService)
 local DataService = require(script.Parent.DataService)
 local MapInstanceService = require(script.Parent.MapInstanceService)
+local PetService = require(script.Parent.PetService)
 local RunEvents = require(script.Parent.Parent.Shared.RunEvents)
 local Outbound = require(script.Parent.Parent.Remotes.Outbound)
 local EventConfig = require(ReplicatedStorage.Modules.Config.EventConfig)
@@ -168,6 +169,7 @@ local function update(session: Session)
 
 	if percent >= 100 then
 		awardCompletion(session)
+		PetService.RollDrop(session.player, session.mapId)
 	elseif percent - session.saved >= EventConfig.MapProgress.SaveStepPercent then
 		checkpoint(session)
 	end
