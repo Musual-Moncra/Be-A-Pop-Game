@@ -20,10 +20,12 @@
 			Play: PLAY button in the play window
 			Upgrades: upgrades button in the lobby dock
 			Pets: pets button in the lobby dock
+			Menu: MENU button that opens the lobby dock row
 		Fallbacks: screen scale point used when the target GUI or prop is not on screen
 			Play / Upgrades / Pets / Soil: X and Y inside the safe area (scale 0..1)
 		PanelX / PanelY: hint panel centre on screen (scale 0..1)
 		PanelYInRun: hint panel centre while a run is active, above the bottom HUD (scale 0..1)
+		PanelYResult: hint panel centre on the result screen, below the result card (scale 0..1)
 		PanelWidth / PanelHeight: hint panel size (design pixels)
 		PanelMargin: smallest gap kept from the safe-area edge (design pixels)
 		PanelRadius / PanelPadding: corner radius and inner padding (design pixels)
@@ -71,6 +73,7 @@ return {
 		Play = { "OnboardingPlayButton", "PlayButton" },
 		Upgrades = { "OnboardingUpgradesButton", "UpgradesButton", "LobbyUpgradesButton" },
 		Pets = { "OnboardingPetsButton", "PetsButton", "LobbyPetsButton" },
+		Menu = { "OnboardingMenuButton", "MenuButton", "LobbyMenuButton" },
 	},
 
 	Fallbacks = {
@@ -83,6 +86,7 @@ return {
 	PanelX = 0.5,
 	PanelY = 0.82,
 	PanelYInRun = 0.6,
+	PanelYResult = 0.9,
 	PanelWidth = 620,
 	PanelHeight = 78,
 	PanelMargin = 16,

@@ -65,7 +65,7 @@ local function buildHint(step: number, data: any, route: string): any
 			return nil
 		end
 		if showResult then
-			return { Text = OnboardingConfig.Text.Lifespan, TargetKind = "UI", TargetKey = "Upgrades" }
+			return { Text = OnboardingConfig.Text.Lifespan, PanelY = OnboardingConfig.PanelYResult }
 		end
 		if not inRun and not reveal and route == LobbyState.Routes.None then
 			return { Text = OnboardingConfig.Text.Lifespan, TargetKind = "UI", TargetKey = "Upgrades" }
@@ -164,11 +164,18 @@ return function(props: any)
 		end
 		local target: GuiObject? = nil
 		local lastLookup = 0
+		local function findTarget(key: string): GuiObject?
+			local found = OnboardingController.FindTarget(key)
+			if found == nil and key ~= "Menu" then
+				found = OnboardingController.FindTarget("Menu")
+			end
+			return found
+		end
 		local connection = RunService.Heartbeat:Connect(function()
 			local now = os.clock()
 			if now - lastLookup >= OnboardingConfig.FollowUpdateSeconds then
 				lastLookup = now
-				target = if hint.TargetKind == "UI" then OnboardingController.FindTarget(hint.TargetKey) else nil
+				target = if hint.TargetKind == "UI" then findTarget(hint.TargetKey) else nil
 			end
 
 			local center: Vector2? = nil
