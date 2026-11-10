@@ -14,10 +14,15 @@
 		StainRayUpOffset: starting offset along character up axis for raycasts (studs)
 		StainRayLength: maximum raycast distance downward to detect surfaces (studs)
 		StainSurfaceOffset: offset along surface normal to prevent z-fighting (studs)
-		StainColor: visual color applied to stain parts (RGB color)
-		StainMaterial: material of stain parts (Enum.Material)
+		StainColors: brown tones a stain picks from, one per splat (RGB colors)
+		StainMaterial: material of the fallback stain part (Enum.Material)
 		StainThickness: extrusion height of stain parts perpendicular to surface (studs)
-		StainTransparency: visual transparency level of stain parts (0 to 1)
+		StainTransparency: transparency of the fallback stain part (0 to 1)
+		StainSizeJitter: random variation of the stain width, +- this fraction (0 to 1)
+		StainRotationDegrees: full range of random rotation around the surface normal (degrees)
+		StainDecalName: name of the splat Decal child on a textured stain part (string)
+		StainDecalTransparency: transparency of the splat Decal (0 to 1)
+		StainDecalPartTransparency: transparency of the part behind a splat Decal (0 to 1)
 		PracticeTimeLeft: time-left value sent to the client for untimed runs (seconds, -1 = no timer)
 		ComboStep: new stain cells needed for the next combo level (count)
 		ComboMax: highest combo level reachable (level)
@@ -41,10 +46,19 @@ return {
 	StainRayUpOffset = 2,
 	StainRayLength = 10,
 	StainSurfaceOffset = 0.05,
-	StainColor = Color3.fromRGB(112, 66, 20),
+	StainColors = {
+		Color3.fromRGB(112, 66, 20),
+		Color3.fromRGB(94, 54, 16),
+		Color3.fromRGB(132, 82, 30),
+	},
 	StainMaterial = Enum.Material.SmoothPlastic,
 	StainThickness = 0.08,
 	StainTransparency = 0.0,
+	StainSizeJitter = 0.15,
+	StainRotationDegrees = 360,
+	StainDecalName = "Splat",
+	StainDecalTransparency = 0,
+	StainDecalPartTransparency = 1,
 	PracticeTimeLeft = -1,
 	ComboStep = 12,
 	ComboMax = 5,

@@ -133,6 +133,11 @@ local function run()
 			table.insert(notes, "Animation " .. name .. " has no id yet")
 		end
 	end
+	for name, id in AssetConfig.Textures do
+		if id == "" then
+			table.insert(notes, "Texture " .. name .. " has no id yet")
+		end
+	end
 	local missingIds = {}
 	for key, pass in MonetizationConfig.Gamepasses do
 		if pass.Id == 0 then

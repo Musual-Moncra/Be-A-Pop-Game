@@ -23,7 +23,7 @@
 	Dependencies:
 		DataService, UpgradeService, PowerupService, PotionService, QuestService, MonetizationService,
 		EventService, PetService, GoldenTargetService, RebirthService, NpcService, RunEvents, Outbound, ConfigLookup, GameConfig,
-		ObjectConfig, MonetizationConfig, RunConfig, MessageConfig, DataConfig, Trove
+		ObjectConfig, MonetizationConfig, RunConfig, AssetConfig, MessageConfig, DataConfig, Trove
 ]]
 
 local Players = game:GetService("Players")
@@ -48,6 +48,7 @@ local RunEvents = require(ServerStorage.Modules.Shared.RunEvents)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local DataConfig = require(ServerStorage.Modules.Config.DataConfig)
 
+local AssetConfig = require(ReplicatedStorage.Modules.Config.AssetConfig)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local MonetizationConfig = require(ReplicatedStorage.Modules.Config.MonetizationConfig)
@@ -88,6 +89,7 @@ export type ActiveRun = {
 	comboCells: number,
 	comboLastCellTime: number,
 	stainParts: { BasePart },
+	stainDecals: { [BasePart]: Decal },
 	stainCursor: number,
 	stainFolder: Folder,
 	stainTimer: number,
@@ -160,12 +162,30 @@ local function findObjectType(hit: BasePart, props: Instance?, cache: { [Instanc
 	return nil, nil
 end
 
+local function addStainDecal(stain: BasePart, texture: string): Decal
+	local decal = Instance.new("Decal")
+	decal.Name = RunConfig.StainDecalName
+	decal.Face = Enum.NormalId.Top
+	decal.Texture = texture
+	decal.Transparency = RunConfig.StainDecalTransparency
+	decal.Parent = stain
+	return decal
+end
+
 local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stainSize: number, key: number)
 	local centerPos = position + normal * (RunConfig.StainThickness * 0.5 + RunConfig.StainSurfaceOffset)
-	local cframe = getSurfaceCFrame(centerPos, normal)
-	local size = Vector3.new(stainSize, RunConfig.StainThickness, stainSize)
+	local stainColor = RunConfig.StainColors[math.random(1, #RunConfig.StainColors)]
+	local jitter = 1 + (math.random() * 2 - 1) * RunConfig.StainSizeJitter
+	local width = stainSize * jitter
+	local size = Vector3.new(width, RunConfig.StainThickness, width)
+	local rotation = math.rad(math.random() * RunConfig.StainRotationDegrees)
+	local cframe = getSurfaceCFrame(centerPos, normal) * CFrame.Angles(0, rotation, 0)
+	local texture = AssetConfig.Textures.Splat
+	local textured = texture ~= ""
+	local transparency = if textured then RunConfig.StainDecalPartTransparency else RunConfig.StainTransparency
 
 	local stain: BasePart
+	local decal: Decal? = nil
 	if #run.stainParts >= GameConfig.MaxStainParts then
 		run.stainCursor += 1
 		if run.stainCursor > #run.stainParts then
@@ -181,6 +201,9 @@ local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stai
 			stain.Size = size
 		end
 		stain.CFrame = cframe
+		stain.Color = stainColor
+		stain.Transparency = transparency
+		decal = run.stainDecals[stain]
 	else
 		stain = Instance.new("Part")
 		stain.Name = "Stain"
@@ -190,13 +213,25 @@ local function addStain(run: ActiveRun, position: Vector3, normal: Vector3, stai
 		stain.CanQuery = false
 		stain.CastShadow = false
 		stain.Material = RunConfig.StainMaterial
-		stain.Color = RunConfig.StainColor
-		stain.Transparency = RunConfig.StainTransparency
+		stain.Color = stainColor
+		stain.Transparency = transparency
 		stain.Size = size
 		stain.CFrame = cframe
 		stain.Parent = run.stainFolder
 		table.insert(run.stainParts, stain)
 	end
+
+	if textured then
+		if decal == nil then
+			decal = addStainDecal(stain, texture)
+			run.stainDecals[stain] = decal
+		else
+			decal.Texture = texture
+		end
+		decal.Color3 = stainColor
+		decal.Transparency = RunConfig.StainDecalTransparency
+	end
+
 	run.stainKeys[stain] = key
 end
 
@@ -629,6 +664,7 @@ function RunService.StartRun(plr: Player, instance: MapInstance, modeDef: Config
 		comboCells = 0,
 		comboLastCellTime = 0,
 		stainParts = {},
+		stainDecals = {},
 		stainCursor = 0,
 		stainFolder = stainFolder,
 		stainTimer = 0,
