@@ -74,6 +74,7 @@
 		Tabs: tab strip at the top of feature windows
 			Height: tab button height (design pixels)
 			Gap: space between tabs (design pixels)
+			MaxWidth: maximum width of one tab button when there are few tabs (design pixels)
 		Card: item card used in shop and skins grids
 			Width / Height: card size (design pixels)
 			IconRatio: share of the card height used by the icon (0 to 1)
@@ -137,7 +138,7 @@
 			Card: pet card and grid cell size, padding, icon share, button, delete, tag and stacks-bar
 				heights (design pixels)
 			Index: Pet Index section look and text
-				Columns / TileWidth / TileHeight / TileIconSize: tile grid (count, design pixels)
+				Columns / PhoneColumns / TileWidth / TileHeight / TileIconSize: tile grid (count, count, design pixels)
 				ProgressHeight: progress bar height (design pixels)
 				TilePadding / IconWellHeight: icon well inset and height (design pixels)
 				MapComingSoonIcon: lock icon on a coming-soon map tab (text)
@@ -359,6 +360,7 @@ return {
 	Tabs = {
 		Height = 52,
 		Gap = 8,
+		MaxWidth = 240,
 	},
 
 	Card = {
@@ -533,6 +535,7 @@ return {
 		},
 		Index = {
 			Columns = 4,
+			PhoneColumns = 2,
 			TileWidth = 150,
 			TileHeight = 160,
 			TileIconSize = 64,

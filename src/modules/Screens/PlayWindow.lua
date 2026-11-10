@@ -193,7 +193,7 @@ local function MapCard(props: any)
 						props.onQuickPlay(map.Id)
 					end,
 					shine = true,
-					size = UDim2.fromOffset(Sizes.QuickPlayWidth, Sizes.QuickButtonHeight),
+					size = UDim2.new(Sizes.QuickPlayShare, -Gap / 4, 1, 0),
 					swatch = "Green",
 					text = Text.QuickPlay,
 					textSize = TextSizes.Title,
@@ -203,7 +203,7 @@ local function MapCard(props: any)
 					onActivated = function()
 						props.onFriends(map.Id)
 					end,
-					size = UDim2.fromOffset(Sizes.QuickFriendsWidth, Sizes.QuickButtonHeight),
+					size = UDim2.new(1 - Sizes.QuickPlayShare, -Gap / 4, 1, 0),
 					swatch = "Blue",
 					text = Text.PlayWithFriends,
 					textSize = TextSizes.Body,
@@ -944,7 +944,7 @@ end
 local function RoomView(props: any)
 	local room = props.room
 	local ui = props.ui
-	local width, height = WindowSize.fit(ui, Sizes.Width, Sizes.Height)
+	local width, height = WindowSize.fit(ui, RoomSizes.Width, RoomSizes.Height)
 	local localPlayer = Players.LocalPlayer
 	local isHost = room.HostId == localPlayer.UserId
 	local waiting = room.Status == "Waiting"
@@ -1047,54 +1047,60 @@ local function RoomView(props: any)
 			size = UDim2.new(1, 0, 0, RoomSizes.RowHeight),
 		}, {
 			Padding = Primitives.paddingXY(Gap, 0),
-			Layout = Primitives.list(
-				Enum.FillDirection.Horizontal,
-				Gap / 2,
-				Enum.HorizontalAlignment.Left,
-				Enum.VerticalAlignment.Center
-			),
 			Name = Primitives.text({
 				Fit = true,
-				LayoutOrder = 1,
-				Size = UDim2.new(0.38, 0, 1, 0),
+				Size = UDim2.new(RoomSizes.NameShare, 0, 1, 0),
 				Text = member.Name,
-				TextSize = TextSizes.Large,
+				TextSize = TextSizes.Body,
 				XAlign = Enum.TextXAlignment.Left,
 			}),
-			Level = e(Chip, {
-				height = Sizes.ChipHeight,
-				layoutOrder = 2,
-				swatch = "Blue",
-				text = string.format(Text.LevelFormat, member.Level),
-			}),
-			Host = if member.UserId == room.HostId
-				then e(Chip, {
+			Marks = e("Frame", {
+				AnchorPoint = Vector2.new(1, 0.5),
+				BackgroundTransparency = 1,
+				Position = UDim2.fromScale(1, 0.5),
+				Size = UDim2.new(1 - RoomSizes.NameShare, 0, 1, 0),
+			}, {
+				Layout = Primitives.list(
+					Enum.FillDirection.Horizontal,
+					Gap / 2,
+					Enum.HorizontalAlignment.Right,
+					Enum.VerticalAlignment.Center
+				),
+				Level = e(Chip, {
 					height = Sizes.ChipHeight,
-					layoutOrder = 3,
-					swatch = "Gold",
-					text = Text.HostMark,
-				})
-				else nil,
-			Ready = e(Chip, {
-				height = Sizes.ChipHeight,
-				layoutOrder = 4,
-				swatch = if member.Ready or member.UserId == room.HostId then "Green" else "Grey",
-				text = if member.Ready or member.UserId == room.HostId then Text.ReadyMark else Text.WaitingMark,
+					layoutOrder = 2,
+					swatch = "Blue",
+					text = string.format(Text.LevelFormat, member.Level),
+				}),
+				Host = if member.UserId == room.HostId
+					then e(Chip, {
+						height = Sizes.ChipHeight,
+						layoutOrder = 3,
+						swatch = "Gold",
+						text = Text.HostMark,
+					})
+					else nil,
+				Ready = e(Chip, {
+					height = Sizes.ChipHeight,
+					layoutOrder = 4,
+					swatch = if member.Ready or member.UserId == room.HostId then "Green" else "Grey",
+					text = if member.Ready or member.UserId == room.HostId then Text.ReadyMark else Text.WaitingMark,
+				}),
+				Kick = if isHost
+						and waiting
+						and member.UserId ~= localPlayer.UserId
+					then e(ChunkyButton, {
+						layoutOrder = 5,
+						onActivated = function()
+							Net.KickRoomMember:Fire(member.UserId)
+						end,
+						size = UDim2.fromOffset(RoomSizes.KickWidth, RoomSizes.KickHeight),
+						swatch = "Red",
+						text = Text.Kick,
+						textSize = TextSizes.Small,
+					})
+					else nil,
 			}),
-			Kick = if isHost
-					and waiting
-					and member.UserId ~= localPlayer.UserId
-				then e(ChunkyButton, {
-					layoutOrder = 5,
-					onActivated = function()
-						Net.KickRoomMember:Fire(member.UserId)
-					end,
-					size = UDim2.fromOffset(RoomSizes.KickWidth, RoomSizes.KickHeight),
-					swatch = "Red",
-					text = Text.Kick,
-					textSize = TextSizes.Small,
-				})
-				else nil,
 		})
 	end
 
@@ -1201,6 +1207,9 @@ local function RoomView(props: any)
 		})
 	end
 
+	local showEdit = isHost and waiting
+	local slots = if showEdit then 3 else 2
+	local slotSize = UDim2.new(1 / slots, -Gap * (slots - 1) / slots, 0, RoomSizes.JoinHeight)
 	local footerChildren: { [string]: any } = {
 		Hint = if hint ~= nil
 			then Primitives.text({
@@ -1218,17 +1227,17 @@ local function RoomView(props: any)
 				props.onClose()
 			end,
 			position = UDim2.fromScale(0, 1),
-			size = UDim2.new(0.3, 0, 0, RoomSizes.JoinHeight),
+			size = slotSize,
 			swatch = "Red",
 			text = Text.LeaveRoom,
 			textSize = TextSizes.Large,
 		}),
-		Edit = if isHost and waiting
+		Edit = if showEdit
 			then e(ChunkyButton, {
 				anchorPoint = Vector2.new(0.5, 1),
 				onActivated = props.onEdit,
 				position = UDim2.fromScale(0.5, 1),
-				size = UDim2.new(0.26, 0, 0, RoomSizes.JoinHeight),
+				size = slotSize,
 				swatch = "Blue",
 				text = Text.EditSettings,
 				textSize = TextSizes.Large,
@@ -1238,7 +1247,7 @@ local function RoomView(props: any)
 			AnchorPoint = Vector2.new(1, 1),
 			BackgroundTransparency = 1,
 			Position = UDim2.fromScale(1, 1),
-			Size = UDim2.new(0.32, 0, 0, RoomSizes.JoinHeight),
+			Size = slotSize,
 		}, {
 			Content = action,
 		}),
@@ -1288,7 +1297,15 @@ end
 local function PlayView(props: any)
 	local width, height = WindowSize.fit(props.ui, Sizes.Width, Sizes.Height)
 	local list = mapList(props.data, "", function() end, true, props.onQuickPlay, props.onFriends)
-	local listWidth = math.min(Sizes.MapColumnWidth, width)
+	local columns = if props.ui.mobile then Sizes.QuickPhoneColumns else Sizes.QuickColumns
+	local innerWidth = width - UIConfig.Sizes.Window.Padding * 2 - Shape.RimStroke * 4 - Shape.ScrollBar * 2
+	local cellWidth = math.floor((innerWidth - Gap * (columns - 1)) / columns)
+	list.Layout = e("UIGridLayout", {
+		CellPadding = UDim2.fromOffset(Gap, Gap),
+		CellSize = UDim2.fromOffset(cellWidth, Sizes.QuickCardHeight),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
 	local top = LobbyUIConfig.Tabs.Height + Gap
 	return e(Window, {
 		height = height,
@@ -1303,7 +1320,7 @@ local function PlayView(props: any)
 			anchorPoint = Vector2.new(0.5, 0),
 			clip = true,
 			position = UDim2.new(0.5, 0, 0, top),
-			size = UDim2.new(0, listWidth, 1, -top),
+			size = UDim2.new(1, 0, 1, -top),
 		}, {
 			Scroll = Primitives.scroll({}, list),
 		}),

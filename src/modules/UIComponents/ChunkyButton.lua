@@ -9,7 +9,7 @@
 	Props:
 		swatch: UIConfig.Swatches key (string), Grey when disabled
 		rarity: optional rarity id; draws that rarity gradient plus its animated shine/sparkles
-		size, position, anchorPoint, layoutOrder, zIndex
+		size, position, anchorPoint, layoutOrder, zIndex, maxSize
 		name: optional instance name (onboarding targets look buttons up by name)
 		round: true for a circle; radius overrides the corner for a rectangle
 		text, textSize, icon, iconSize: label and emoji; icon sits left of the text,
@@ -288,6 +288,7 @@ return function(props: any)
 	}
 
 	return e(if clickable then "TextButton" else "Frame", holderProps, {
+		Constraint = if props.maxSize ~= nil then e("UISizeConstraint", { MaxSize = props.maxSize }) else nil,
 		Scale = e("UIScale", { ref = scaleRef }),
 		Squash = e("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),

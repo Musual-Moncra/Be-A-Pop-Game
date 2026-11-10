@@ -5,19 +5,19 @@
 	Runs the client/server framework based on locations, takes in priorities.
 ]]
 
-return function(Locations: {Instance})
+return function(Locations: { Instance })
 	-- Lưu trữ dưới dạng mảng các object thay vì dictionary để dễ dàng sort
-	local ModulesToRun = {} 
+	local ModulesToRun = {}
 
 	for _, Location in Locations do
 		for _, Item in Location:GetDescendants() do
-			local Ancestor = Item:FindFirstAncestorWhichIsA("ModuleScript") 
-			local IsValidModule = Item:IsA("ModuleScript") 
+			local Ancestor = Item:FindFirstAncestorWhichIsA("ModuleScript")
+			local IsValidModule = Item:IsA("ModuleScript")
 				and not (Ancestor and not Ancestor:GetAttribute("Folder"))
 				and not Item:GetAttribute("Folder")
 
-			if not IsValidModule then 
-				continue 
+			if not IsValidModule then
+				continue
 			end
 
 			local Priority = Item:GetAttribute("Priority") or 999
@@ -25,7 +25,7 @@ return function(Locations: {Instance})
 			-- Đẩy thẳng vào mảng cùng với thông tin Priority
 			table.insert(ModulesToRun, {
 				Module = Item,
-				Priority = Priority
+				Priority = Priority,
 			})
 		end
 	end

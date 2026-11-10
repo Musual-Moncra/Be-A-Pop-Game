@@ -25,10 +25,13 @@ local KeyHint = require(ReplicatedStorage.Modules.UIComponents.KeyHint)
 
 local e = React.createElement
 local TabsConfig = LobbyUIConfig.Tabs
+local Shape = UIConfig.Shape
 
 return function(props: any)
 	local count = #props.tabs
 	local shortcuts = props.shortcuts ~= false and count > 1
+	local maxWidth = TabsConfig.MaxWidth or 240
+	local maxSize = Vector2.new(maxWidth, TabsConfig.Height)
 
 	local function step(direction: number)
 		local current = 1
@@ -48,20 +51,31 @@ return function(props: any)
 	end, shortcuts)
 
 	local children: { [string]: any } = {
-		Layout = Primitives.list(Enum.FillDirection.Horizontal, TabsConfig.Gap),
+		Layout = Primitives.list(
+			Enum.FillDirection.Horizontal,
+			TabsConfig.Gap,
+			Enum.HorizontalAlignment.Center,
+			Enum.VerticalAlignment.Center
+		),
 	}
 	for index, tab in props.tabs do
+		local isSelected = tab.Id == props.selected
 		children[tab.Id] = e(ChunkyButton, {
+			gloss = true,
 			icon = tab.Icon,
+			iconSize = UIConfig.TextSizes.Header,
 			layoutOrder = index,
+			maxSize = maxSize,
 			onActivated = function()
 				props.onSelect(tab.Id)
 			end,
-			size = UDim2.new(1 / count, -TabsConfig.Gap * (count - 1) / count, 1, 0),
 			overlay = if shortcuts and (index == 1 or index == count)
 				then e(KeyHint, { action = if index == 1 then "PrevTab" else "NextTab", zIndex = 8 })
 				else nil,
-			swatch = if tab.Id == props.selected then tab.Swatch else "Grey",
+			radius = Shape.Radius,
+			shine = isSelected,
+			size = UDim2.new(1 / count, -TabsConfig.Gap * (count - 1) / count, 1, 0),
+			swatch = if isSelected then tab.Swatch else "Grey",
 			text = tab.Label,
 			textSize = UIConfig.TextSizes.Large,
 		})

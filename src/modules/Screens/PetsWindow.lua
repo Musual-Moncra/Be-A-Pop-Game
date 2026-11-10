@@ -452,7 +452,7 @@ local function indexTile(pet: any, discovered: boolean, order: number): any
 			BackgroundColor3 = wellColor,
 			BorderSizePixel = 0,
 			Position = UDim2.fromOffset(Index.TilePadding, Index.TilePadding),
-			Size = UDim2.new(1, -Index.TilePadding * 2, 0, Index.IconWellHeight),
+			Size = UDim2.new(1, -Index.TilePadding * 2, 0.46, 0),
 			ZIndex = 3,
 		}, {
 			Corner = Primitives.corner(Shape.Radius),
@@ -466,25 +466,27 @@ local function indexTile(pet: any, discovered: boolean, order: number): any
 			}),
 		}),
 		Name = Primitives.text({
+			AnchorPoint = Vector2.new(0.5, 0),
 			Fit = true,
-			Position = UDim2.new(0.04, 0, 0, Index.TilePadding + Index.IconWellHeight + 4),
+			Position = UDim2.new(0.5, 0, 0.48, 2),
 			Size = UDim2.new(0.92, 0, 0, TextSizes.Body),
 			Text = name,
 			TextSize = TextSizes.Body,
 			ZIndex = 3,
 		}),
 		Rarity = e(Chip, {
-			anchorPoint = Vector2.new(0.5, 0),
+			anchorPoint = Vector2.new(0.5, 1),
 			height = 20,
-			position = UDim2.new(0.5, 0, 0, Index.TilePadding + Index.IconWellHeight + 28),
+			position = UDim2.new(0.5, 0, 1, -26),
 			swatch = swatchName,
 			text = rarityName,
 			textSize = TextSizes.Tiny,
 			zIndex = 4,
 		}),
 		Odds = Primitives.text({
+			AnchorPoint = Vector2.new(0.5, 1),
 			Color = Palette.TextSoft,
-			Position = UDim2.new(0.04, 0, 0, Index.TilePadding + Index.IconWellHeight + 52),
+			Position = UDim2.new(0.5, 0, 1, -4),
 			Size = UDim2.new(0.92, 0, 0, TextSizes.Small),
 			Text = oddsText,
 			TextSize = TextSizes.Small,
@@ -532,11 +534,12 @@ local function RewardBox(props: any): any
 	local scaleRef = React.useRef(nil)
 	useBreathe(scaleRef, Motion.BreatheRewardScale, Motion.BreatheRewardPeriod, 0.23, claimable)
 
+	local boxWidth = props.width or Index.RewardBoxWidth
 	return e("Frame", {
 		AnchorPoint = Vector2.new(1, 0.5),
 		BackgroundTransparency = 1,
 		Position = UDim2.new(1, 0, 0.5, 0),
-		Size = UDim2.fromOffset(Index.RewardBoxWidth, Index.RewardBoxHeight),
+		Size = UDim2.fromOffset(boxWidth, Index.RewardBoxHeight),
 	}, {
 		Scale = e("UIScale", { ref = scaleRef }),
 		Glow = if claimable
@@ -664,6 +667,7 @@ return function(props: any)
 		string.format(Pets.StinkHeaderFormat, PetView.TotalStink(data))
 	)
 
+	local innerWidth = width - UIConfig.Sizes.Window.Padding * 2
 	local body
 	if isIndex then
 		local tabs = mapTabs()
@@ -676,29 +680,38 @@ return function(props: any)
 			end
 		end
 		local total = #normal
+		local rewardBoxWidth = if narrow then 160 else Index.RewardBoxWidth
 		local progressChildren: { [string]: any } = {
 			Progress = e(Bar, {
 				anchorPoint = Vector2.new(0, 0.5),
 				position = UDim2.new(0, 0, 0.5, 0),
 				ratio = if total > 0 then discovered / total else 0,
-				size = UDim2.new(1, -(Index.RewardBoxWidth + Gap), 0, 30),
+				size = UDim2.new(1, -(rewardBoxWidth + Gap), 0, 30),
 				swatch = "Purple",
 				text = string.format(Index.ProgressFormat, discovered, total),
 				textSize = TextSizes.Body,
 			}),
-			Reward = if map ~= nil then e(RewardBox, { map = map, data = data }) else nil,
+			Reward = if map ~= nil then e(RewardBox, { data = data, map = map, width = rewardBoxWidth }) else nil,
 		}
+
+		local indexColumns = if narrow then (Index.PhoneColumns or 2) else Index.Columns
+		local indexUsableWidth = innerWidth - Shape.ScrollBar - 8
+		local indexTileWidth = math.floor((indexUsableWidth - Gap * (indexColumns - 1)) / indexColumns)
+		local indexTileHeight =
+			math.max(Index.TileHeight, math.floor(indexTileWidth * (Index.TileHeight / Index.TileWidth)))
+
 		local gridChildren: { [string]: any } = {
 			Grid = e("UIGridLayout", {
 				CellPadding = UDim2.fromOffset(Gap, Gap),
-				CellSize = UDim2.new(
-					1 / Index.Columns,
-					-Gap * (Index.Columns - 1) / Index.Columns,
-					0,
-					Index.TileHeight
-				),
-				HorizontalAlignment = Enum.HorizontalAlignment.Left,
+				CellSize = UDim2.fromOffset(indexTileWidth, indexTileHeight),
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
 				SortOrder = Enum.SortOrder.LayoutOrder,
+			}),
+			Padding = e("UIPadding", {
+				PaddingBottom = UDim.new(0, Shape.ShadowOffset * 2 + Gap),
+				PaddingLeft = UDim.new(0, 4),
+				PaddingRight = UDim.new(0, 4),
+				PaddingTop = UDim.new(0, 4),
 			}),
 		}
 		if map ~= nil and not isComingSoon(map) then
@@ -720,19 +733,24 @@ return function(props: any)
 			}, gridChildren),
 		}
 	else
+		local petColumns = if narrow then Pets.PhoneColumns else Pets.Columns
+		local petGridWidth = if narrow then innerWidth else (innerWidth - Pets.DetailsWidth - Pets.DetailsGap)
+		local petUsableWidth = petGridWidth - Shape.ScrollBar - 8
+		local petCardWidth = math.floor((petUsableWidth - Pets.CardGap * (petColumns - 1)) / petColumns)
+		local petCardHeight = math.floor(petCardWidth * (Pets.CardHeight / Pets.CardWidth))
+
 		local gridChildren: { [string]: any } = {
 			Grid = e("UIGridLayout", {
 				CellPadding = UDim2.fromOffset(Pets.CardGap, Pets.CardGap),
-				CellSize = UDim2.new(
-					1 / (if narrow then Pets.PhoneColumns else Pets.Columns),
-					-Pets.CardGap
-						* ((if narrow then Pets.PhoneColumns else Pets.Columns) - 1)
-						/ (if narrow then Pets.PhoneColumns else Pets.Columns),
-					0,
-					Pets.CardHeight
-				),
-				HorizontalAlignment = Enum.HorizontalAlignment.Left,
+				CellSize = UDim2.fromOffset(petCardWidth, petCardHeight),
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
 				SortOrder = Enum.SortOrder.LayoutOrder,
+			}),
+			Padding = e("UIPadding", {
+				PaddingBottom = UDim.new(0, Shape.ShadowOffset * 2 + Pets.CardGap),
+				PaddingLeft = UDim.new(0, 4),
+				PaddingRight = UDim.new(0, 4),
+				PaddingTop = UDim.new(0, 4),
 			}),
 		}
 		for index, entry in owned do
@@ -824,6 +842,12 @@ return function(props: any)
 						Position = UDim2.fromOffset(Gap, Pets.SheetCloseSize + Gap),
 						Size = UDim2.new(1, -Gap * 2, 1, -(Pets.SheetCloseSize + Gap * 2)),
 					}, {
+						Padding = e("UIPadding", {
+							PaddingBottom = UDim.new(0, Gap * 2),
+							PaddingLeft = UDim.new(0, 4),
+							PaddingRight = UDim.new(0, 4),
+							PaddingTop = UDim.new(0, 4),
+						}),
 						Details = e(PetDetails, {
 							confirm = confirmUid == selected.Uid,
 							copies = copies[selected.PetId .. "/" .. selected.Variant] or 0,

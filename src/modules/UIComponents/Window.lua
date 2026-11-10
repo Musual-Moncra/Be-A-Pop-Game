@@ -48,13 +48,19 @@ local function Window(props: any)
 	local hasFooter = props.footer ~= nil and footerHeight > 0
 	local bodyBottom = Sizes.Padding + (if hasFooter then footerHeight + Sizes.Gap else 0)
 
+	local swatch = Primitives.swatch(props.swatch)
+	local ribbonLip = swatch.Lip or swatch.Bottom
+	local ribbonWidth = Sizes.HeaderWidth
+	local ribbonWingWidth = 32
+	local ribbonWingHeight = headerHeight - 14
+
 	local sparkles = {}
 	for index, sparkle in Sizes.Sparkles do
 		sparkles["Sparkle" .. index] = e(Sparkle, {
 			delay = sparkle.Delay / Animation.SparkleSpeed,
 			position = UDim2.new(sparkle.X, 0, 0, headerHeight * sparkle.Y),
 			size = TextSizes[sparkle.Size],
-			zIndex = 5,
+			zIndex = 6,
 		})
 	end
 
@@ -127,7 +133,33 @@ local function Window(props: any)
 					Corner = Primitives.corner(Shape.WindowRadius - Shape.RimStroke),
 					Gradient = Primitives.gradient(Palette.PanelTop, Palette.PanelBottom),
 					Stroke = Primitives.stroke(Palette.Ink, Shape.Stroke),
+					Gloss = e("Frame", {
+						BackgroundColor3 = Palette.Text,
+						BorderSizePixel = 0,
+						Position = UDim2.fromOffset(Shape.GlossInset, Shape.GlossInset),
+						Size = UDim2.new(1, -Shape.GlossInset * 2, 0.35, -Shape.GlossInset),
+						ZIndex = 1,
+					}, {
+						Corner = Primitives.corner(Shape.WindowRadius - Shape.RimStroke - Shape.GlossInset),
+						Fade = e("UIGradient", {
+							Transparency = NumberSequence.new({
+								NumberSequenceKeypoint.new(0, Shape.GlossTransparency),
+								NumberSequenceKeypoint.new(1, 1),
+							}),
+						}),
+					}),
 				}),
+			}),
+			InnerWell = e("Frame", {
+				BackgroundColor3 = Palette.Inset,
+				BackgroundTransparency = 0.55,
+				BorderSizePixel = 0,
+				Position = UDim2.fromOffset(Sizes.Padding - 4, bodyTop - 4),
+				Size = UDim2.new(1, -(Sizes.Padding - 4) * 2, 1, -(bodyTop + bodyBottom - 8)),
+				ZIndex = 2,
+			}, {
+				Corner = Primitives.corner(Shape.Radius + 4),
+				Stroke = Primitives.stroke(Palette.InsetStroke, 2, 0.35),
 			}),
 			Content = e("Frame", {
 				BackgroundTransparency = 1,
@@ -143,13 +175,37 @@ local function Window(props: any)
 					ZIndex = 3,
 				}, { Content = props.footer })
 				else nil,
+			RibbonLeft = e("Frame", {
+				AnchorPoint = Vector2.new(1, 0.5),
+				BackgroundColor3 = ribbonLip,
+				BorderSizePixel = 0,
+				Position = UDim2.new(0.5 - ribbonWidth / 2, 14, 0, 6),
+				Size = UDim2.fromOffset(ribbonWingWidth, ribbonWingHeight),
+				ZIndex = 3,
+			}, {
+				Corner = Primitives.corner(Shape.Radius),
+				Stroke = Primitives.stroke(Palette.Ink, Shape.Stroke),
+				Gradient = Primitives.gradient(swatch.Bottom, ribbonLip),
+			}),
+			RibbonRight = e("Frame", {
+				AnchorPoint = Vector2.new(0, 0.5),
+				BackgroundColor3 = ribbonLip,
+				BorderSizePixel = 0,
+				Position = UDim2.new(0.5 + ribbonWidth / 2, -14, 0, 6),
+				Size = UDim2.fromOffset(ribbonWingWidth, ribbonWingHeight),
+				ZIndex = 3,
+			}, {
+				Corner = Primitives.corner(Shape.Radius),
+				Stroke = Primitives.stroke(Palette.Ink, Shape.Stroke),
+				Gradient = Primitives.gradient(swatch.Bottom, ribbonLip),
+			}),
 			Header = e(ChunkyButton, {
 				anchorPoint = Vector2.new(0.5, 0.5),
 				icon = props.icon,
 				iconSize = TextSizes.Header,
 				position = UDim2.fromScale(0.5, 0),
 				shine = true,
-				shineInterval = 5,
+				shineInterval = 4.5,
 				size = UDim2.new(Sizes.HeaderWidth, 0, 0, headerHeight),
 				stacked = false,
 				swatch = props.swatch,
@@ -179,13 +235,14 @@ local function Window(props: any)
 					anchorPoint = Vector2.new(0.5, 0.5),
 					onActivated = close,
 					overlay = e(KeyHint, { action = "Close", zIndex = 8 }),
-					position = UDim2.new(1, -closeSize * Sizes.CloseInset, 0, closeSize * Sizes.CloseInset),
-					radius = Shape.Radius,
+					position = UDim2.new(1, -closeSize * 0.28, 0, closeSize * 0.28),
+					round = true,
+					shine = true,
 					size = UDim2.fromOffset(closeSize, closeSize),
 					swatch = "Red",
 					text = UIConfig.Text.CloseIcon,
 					textSize = TextSizes.Header,
-					zIndex = 6,
+					zIndex = 7,
 				})
 				else nil,
 		}),

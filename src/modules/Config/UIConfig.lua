@@ -129,9 +129,10 @@
 		BurstStarText / BurstColors / MaxBurst: star glyph, candy piece colours and piece cap
 		CoinFlyCount / CoinFlyDuration / CoinFlyArc / CoinFlySize: coin fly pieces, time, arc height
 			and icon size (design pixels)
-		GlowPeriod / GlowScale: claimable glow breathe time and largest zoom (seconds, multiplier)
-		GlowExtend: how far the glow reaches beyond its target per side (share of the target)
-		GlowTransparencyMin / Max: glow transparency at its centre / at its top and bottom edges (0 to 1)
+		GlowPeriod: claimable glow breathe time (seconds)
+		GlowThickness: width of the glow ring drawn just outside the target edge (design pixels)
+		GlowLighten: how far the ring colour moves from the target swatch Top toward white (0 to 1)
+		GlowTransparencyMin / Max: ring transparency at its brightest / faintest point of the breath (0 to 1)
 		TickRate: how many times per second every cosmetic animation updates (Hz)
 		BreatheEpsilon: smallest breathing scale change worth writing (multiplier)
 		RainbowSeconds / RainbowColors: rotating rainbow rim speed and colours
@@ -150,12 +151,15 @@
 		Play.ChipHeight: height of info chips (size, rewards, rules)
 		Play.PlayButtonHeight: height of the PLAY and CONTINUE buttons
 		Play.QuickCardHeight / QuickIconSize: quick-play map card height and icon diameter (design pixels)
-		Play.QuickButtonHeight / QuickPlayWidth / QuickFriendsWidth: quick-play card button row height
-			and the widths of PLAY / PLAY WITH FRIENDS (design pixels)
+		Play.QuickButtonHeight: quick-play card button row height (design pixels)
+		Play.QuickPlayShare: share of the button row the PLAY button takes; PLAY WITH FRIENDS gets the rest (0 to 1)
+		Play.QuickColumns / QuickPhoneColumns: map cards per row on the PLAY tab on PC / phone (count)
 		Play.ActionButtonWidth / ActionButtonHeight: size of the UNLOCK price button; map card chips match its face height
 		Play.DescriptionLines: wrapped description lines a map or mode block makes room for (count)
 		Play.ModeColumns: mode tiles per row (count)
 		Play.NarrowWidth: windows narrower than this stack maps and modes in one scroll (design pixels)
+		Room.Width / Room.Height: your-room window size (shrinks to fit small screens)
+		Room.NameShare: share of a member row kept for the player name; the chips sit right-aligned in the rest (0 to 1)
 		Room.ActionHeight: height of the CREATE / SAVE action in the window footer
 		Room.RowHeight / FriendRowHeight: height of a member row / an invite friend row
 		Room.BrowseRowHeight / BrowseIconSize: height of a room browser row / its map icon diameter
@@ -435,10 +439,10 @@ return {
 		CoinFlyArc = 140,
 		CoinFlySize = 34,
 		GlowPeriod = 1.4,
-		GlowScale = 1.06,
-		GlowExtend = 0.18,
-		GlowTransparencyMin = 0.55,
-		GlowTransparencyMax = 0.85,
+		GlowThickness = 4,
+		GlowLighten = 0.45,
+		GlowTransparencyMin = 0.05,
+		GlowTransparencyMax = 0.6,
 		TickRate = 30,
 		BreatheEpsilon = 0.002,
 		RainbowSeconds = 3,
@@ -595,7 +599,7 @@ return {
 		PopOutTime = 0.18,
 		IdleBobHeight = 3,
 		IdleBobSeconds = 1.6,
-		BadgeBreatheScale = 1.06,
+		BadgeBreatheScale = 1.04,
 		BadgeBreatheSeconds = 1,
 		BarTween = 0.25,
 		SparkleSpeed = 0.7,
@@ -649,7 +653,7 @@ return {
 			Padding = 22,
 			Gap = 16,
 			HeaderWidth = 0.64,
-			CenterShift = 0.25,
+			CenterShift = 0,
 			CloseInset = 0.2,
 			Sparkles = {
 				{ X = 0.16, Y = -0.42, Size = "Large", Delay = 0 },
@@ -670,8 +674,9 @@ return {
 			QuickCardHeight = 210,
 			QuickIconSize = 84,
 			QuickButtonHeight = 56,
-			QuickPlayWidth = 170,
-			QuickFriendsWidth = 300,
+			QuickPlayShare = 0.45,
+			QuickColumns = 2,
+			QuickPhoneColumns = 1,
 			ActionButtonWidth = 130,
 			ActionButtonHeight = 44,
 			DescriptionLines = 2,
@@ -679,6 +684,9 @@ return {
 			NarrowWidth = 1000,
 		},
 		Room = {
+			Width = 760,
+			Height = 600,
+			NameShare = 0.42,
 			ActionHeight = 84,
 			RowHeight = 64,
 			FriendRowHeight = 56,
