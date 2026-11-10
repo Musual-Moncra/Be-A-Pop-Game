@@ -212,11 +212,12 @@ local function UpgradeRow(props: any)
 			XAlign = Enum.TextXAlignment.Left,
 		}),
 		Level = Primitives.text({
-			Color = Palette.TextSoft,
+			Color = Palette.Text,
 			Position = UDim2.fromOffset(left, 40),
-			Size = UDim2.fromOffset(96, TextSizes.Small),
+			Size = UDim2.fromOffset(96, Upgrade.LevelTextSize + 4),
+			StrokeSize = Shape.SmallTextStroke,
 			Text = string.format(Upgrade.LevelFormat, level, upgrade.MaxLevel),
-			TextSize = TextSizes.Small,
+			TextSize = Upgrade.LevelTextSize,
 			XAlign = Enum.TextXAlignment.Left,
 		}),
 		Pips = e("Frame", {
