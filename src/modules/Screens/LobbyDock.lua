@@ -2,15 +2,15 @@
 
 --[[
 	LobbyDock
-	The whole lobby HUD is one bouncing round MENU button at the bottom centre. Pressing it pops
-	a horizontal row of round buttons out above it (LobbyUIConfig.Dock.Items, springing out one
-	after another; Big items such as PLAY are larger and sit on a spinning sunburst). Picking a
-	button opens its LobbyState route and folds the row; pressing MENU again folds it too. A
-	pulsing badge shows on MENU and on the item while that feature has something to collect.
-	A row wider than the safe area (minus Margin) shrinks to fit.
+	Always-visible lobby layout: the 2-column icon grid at the left edge, the big pulsing PLAY
+	button at the right with its shine sweep, and the active potion / boost timers under PLAY.
+	There is no MENU fold-out any more; the PLAY button carries both onboarding names and every
+	tile opens its LobbyState route.
 
 	Props: data (DataController state), ui (useUIScale result)
-	Dependencies: React, UIConfig, LobbyUIConfig, LobbyState, Primitives, ChunkyButton, Rays, Badge
+	Dependencies: React, RunService, TweenService, UIConfig, LobbyUIConfig, LobbyState, ConfigLookup,
+		PotionConfig, UpgradeConfig, MonetizationConfig, Components (IconTile, ChunkyButton, Pill,
+		Primitives, Format)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,184 +20,265 @@ local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local LobbyState = require(ReplicatedStorage.Modules.UIs.LobbyState)
+local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local PotionConfig = require(ReplicatedStorage.Modules.Config.PotionConfig)
+local UpgradeConfig = require(ReplicatedStorage.Modules.Config.UpgradeConfig)
+local MonetizationConfig = require(ReplicatedStorage.Modules.Config.MonetizationConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
-local Badge = require(Components.Badge)
 local ChunkyButton = require(Components.ChunkyButton)
+local Format = require(Components.Format)
+local IconTile = require(Components.IconTile)
+local Pill = require(Components.Pill)
 local Primitives = require(Components.Primitives)
-local Rays = require(Components.Rays)
 
 local e = React.createElement
 local Dock = LobbyUIConfig.Dock
-local Animation = UIConfig.Animation
-local TextSizes = UIConfig.TextSizes
+local Routes = LobbyState.Routes
 
-local function hasBadge(route: string, data: any): boolean
-	if route == LobbyState.Routes.Daily then
-		return data.Daily ~= nil and data.Daily.CanClaim == true
+local SECONDS_PER_MINUTE = 60
+
+local function clock(seconds: number): string
+	local total = math.max(0, math.floor(seconds))
+	return string.format(Dock.TimerFormat, total // SECONDS_PER_MINUTE, total % SECONDS_PER_MINUTE)
+end
+
+local function canClaimDaily(data: any): boolean
+	return data.Daily ~= nil and data.Daily.CanClaim == true
+end
+
+local function canAffordUpgrade(data: any): boolean
+	for id, upgrade in UpgradeConfig.Upgrades do
+		local level = data.Upgrades[id] or 0
+		if level < upgrade.MaxLevel and data.Coins >= ConfigLookup.GetUpgradeCost(id, level) then
+			return true
+		end
 	end
 	return false
 end
 
-local function useLoop(ref: any, goal: { [string]: any }, seconds: number)
+local function canRebirth(data: any): boolean
+	return data.Coins >= ConfigLookup.GetRebirthCost(data.Rebirths)
+end
+
+local function badgeFor(id: string, data: any): any
+	if id == "Daily" and canClaimDaily(data) then
+		return true
+	elseif id == "Pets" and #data.PetDropQueue > 0 then
+		return true
+	elseif id == "Upgrades" and canAffordUpgrade(data) then
+		return true
+	elseif id == "Rebirth" and canRebirth(data) then
+		return true
+	end
+	return nil
+end
+
+local function activeTimers(data: any, now: number): { any }
+	local list = {}
+	for _, id in ConfigLookup.GetSortedPotionIds() do
+		local expiresAt = data.Potions[id] or 0
+		if expiresAt > now then
+			local potion = PotionConfig.Potions[id]
+			table.insert(list, {
+				ExpiresAt = expiresAt,
+				Icon = if potion ~= nil then potion.Icon else "🧪",
+				Swatch = Dock.PotionSwatch,
+				Value = clock(expiresAt - now),
+			})
+		end
+	end
+	if data.CoinBoostUntil > now then
+		local multiplier = MonetizationConfig.DevProducts.NewbiePack.CoinBoostMultiplier
+		table.insert(list, {
+			ExpiresAt = data.CoinBoostUntil,
+			Icon = Dock.CoinBoostIcon,
+			Swatch = Dock.CoinBoostSwatch,
+			Value = string.format(Dock.BoostFormat, Format.multiplier(multiplier), clock(data.CoinBoostUntil - now)),
+		})
+	end
+	for id, expiresAt in data.Boosts or {} do
+		if type(expiresAt) == "number" and expiresAt > now then
+			local boost = ConfigLookup.GetDailyBoost(id)
+			local multiplier = if boost ~= nil then boost.Multiplier else 0
+			table.insert(list, {
+				ExpiresAt = expiresAt,
+				Icon = Dock.BoostIcons[id] or "✨",
+				Swatch = Dock.BoostSwatch,
+				Value = if multiplier > 0
+					then string.format(Dock.BoostFormat, Format.multiplier(multiplier), clock(expiresAt - now))
+					else clock(expiresAt - now),
+			})
+		end
+	end
+	table.sort(list, function(a, b)
+		return a.ExpiresAt < b.ExpiresAt
+	end)
+	while #list > Dock.TimerMax do
+		table.remove(list)
+	end
+	return list
+end
+
+local function TimerColumn(props: any)
+	local now, setNow = React.useState(os.time())
+	local timers = activeTimers(props.data, now)
+
 	React.useEffect(function()
-		local target = ref.current
-		if target == nil then
+		local running = true
+		task.spawn(function()
+			while running do
+				task.wait(1)
+				if running then
+					setNow(os.time())
+				end
+			end
+		end)
+		return function()
+			running = false
+		end
+	end, {})
+
+	if #timers == 0 then
+		return nil
+	end
+
+	local mobile = props.ui.mobile
+	local width = if mobile then Dock.MobileTimerWidth else Dock.TimerWidth
+	local height = if mobile then Dock.MobileTimerHeight else Dock.TimerHeight
+	local iconSize = if mobile then Dock.MobileTimerIconSize else Dock.TimerIconSize
+	local textSize = if mobile then Dock.MobileTimerTextSize else Dock.TimerTextSize
+	local children: { [string]: any } = {
+		Layout = Primitives.list(Enum.FillDirection.Vertical, Dock.TimerGap, Enum.HorizontalAlignment.Right),
+	}
+	for index, timer in timers do
+		children["Timer" .. index] = e(Pill, {
+			height = height,
+			icon = timer.Icon,
+			iconSize = iconSize,
+			layoutOrder = index,
+			swatch = timer.Swatch,
+			textSize = textSize,
+			value = timer.Value,
+			width = width,
+		})
+	end
+	return e("Frame", {
+		AnchorPoint = props.layout.AnchorPoint,
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		Position = props.layout.Position,
+		Size = UDim2.fromOffset(width, 0),
+	}, children)
+end
+
+return function(props: any)
+	local dock = props.ui.mobile
+			and {
+				TileSize = Dock.MobileTileSize,
+				TileGap = Dock.MobileTileGap,
+				TileLabelHeight = Dock.MobileTileLabelHeight,
+				TileLabelSize = Dock.MobileTileLabelSize,
+				PlaySize = Dock.MobilePlaySize,
+				PlayIconSize = Dock.MobilePlayIconSize,
+				PlayTextSize = Dock.MobilePlayTextSize,
+			}
+		or {
+			TileSize = Dock.TileSize,
+			TileGap = Dock.TileGap,
+			TileLabelHeight = Dock.TileLabelHeight,
+			TileLabelSize = Dock.TileLabelSize,
+			PlaySize = Dock.PlaySize,
+			PlayIconSize = Dock.PlayIconSize,
+			PlayTextSize = Dock.PlayTextSize,
+		}
+	local layout = LobbyUIConfig.Layouts[if props.ui.mobile then "Mobile" else "PC"]
+	local gridWidth = Dock.TileColumns * dock.TileSize + (Dock.TileColumns - 1) * dock.TileGap
+
+	local tiles: { [string]: any } = {
+		Grid = e("UIGridLayout", {
+			CellPadding = UDim2.fromOffset(dock.TileGap, dock.TileGap),
+			CellSize = UDim2.fromOffset(dock.TileSize, dock.TileSize + dock.TileLabelHeight),
+			HorizontalAlignment = Enum.HorizontalAlignment.Left,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	}
+	for index, item in Dock.Items do
+		tiles[item.Id] = e(IconTile, {
+			badge = badgeFor(item.Id, props.data),
+			icon = item.Icon,
+			label = item.Label,
+			labelHeight = dock.TileLabelHeight,
+			labelTextSize = dock.TileLabelSize,
+			layoutOrder = index,
+			name = item.Name,
+			onActivated = function()
+				LobbyState.SetActive(item.Route)
+			end,
+			phase = index * 0.17,
+			size = dock.TileSize,
+			swatch = item.Swatch,
+			zIndex = UIConfig.Layers.LobbyMenu,
+		})
+	end
+
+	local playScaleRef = React.useRef(nil)
+	React.useEffect(function()
+		local scale = playScaleRef.current
+		if scale == nil then
 			return
 		end
 		local tween = TweenService:Create(
-			target,
-			TweenInfo.new(seconds, Animation.TwinkleStyle, Animation.TwinkleDirection, -1, true),
-			goal
+			scale,
+			TweenInfo.new(Dock.PlayPulseSeconds / 2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+			{ Scale = Dock.PlayPulseScale }
 		)
 		tween:Play()
 		return function()
 			tween:Cancel()
 		end
 	end, {})
-end
-
-local function itemSize(item: any): number
-	return if item.Big then Dock.ItemSize * Dock.BigScale else Dock.ItemSize
-end
-
-local function DockItem(props: any)
-	local item = props.item
-	local size = itemSize(item)
-	local scaleRef = React.useRef(nil)
-
-	React.useEffect(function()
-		local scale = scaleRef.current
-		if scale == nil then
-			return
-		end
-		scale.Scale = 0
-		TweenService:Create(
-			scale,
-			TweenInfo.new(Animation.Open, Animation.SpringStyle, Animation.SpringDirection, 0, false, props.delay),
-			{ Scale = 1 }
-		):Play()
-	end, {})
 
 	return e("Frame", {
 		BackgroundTransparency = 1,
-		LayoutOrder = props.layoutOrder,
-		Size = UDim2.fromOffset(size, size + Dock.LabelHeight),
+		Size = UDim2.fromScale(1, 1),
 	}, {
-		Scale = e("UIScale", { ref = scaleRef }),
-		Rays = if item.Big
-			then e(Rays, {
-				position = UDim2.fromOffset(size / 2, size / 2),
-				size = size * LobbyUIConfig.Rays.SizeRatio,
-				zIndex = 0,
-			})
-			else nil,
-		Button = e(ChunkyButton, {
-			icon = item.Icon,
-			iconSize = size * UIConfig.Shape.IconFill,
-			name = item.Name,
-			onActivated = function()
-				props.onPick(item.Route)
-			end,
-			overlay = if props.badge then e(Badge, { size = Dock.BadgeSize, zIndex = 3 }) else nil,
-			round = true,
-			size = UDim2.fromOffset(size, size),
-			swatch = item.Swatch,
-			zIndex = 2,
-		}),
-		Label = Primitives.text({
-			AnchorPoint = Vector2.new(0.5, 1),
-			Fit = true,
-			Position = UDim2.fromScale(0.5, 1),
-			Size = UDim2.new(1, Dock.Gap, 0, Dock.LabelHeight),
-			Text = item.Label,
-			TextSize = TextSizes.Body,
-		}),
-	})
-end
-
-return function(props: any)
-	local open, setOpen = React.useState(false)
-	local bounceRef = React.useRef(nil)
-	useLoop(bounceRef, { Scale = 1 + LobbyUIConfig.Bounce.Scale }, LobbyUIConfig.Bounce.Seconds)
-
-	local layout = LobbyUIConfig.Layouts[if props.ui.mobile then "Mobile" else "PC"].Dock
-	local anyBadge = false
-	local rowWidth, rowHeight = 0, 0
-	for _, item in Dock.Items do
-		local size = itemSize(item)
-		rowWidth += size
-		rowHeight = math.max(rowHeight, size + Dock.LabelHeight)
-		if hasBadge(item.Route, props.data) then
-			anyBadge = true
-		end
-	end
-	rowWidth += Dock.Gap * (#Dock.Items - 1)
-	local minFit = UIConfig.Scale.MinTouchTarget / Dock.ItemSize
-	local fit = math.max(minFit, math.min(1, (props.ui.safeWidth - Dock.Margin * 2) / rowWidth))
-
-	local function pick(route: string)
-		setOpen(false)
-		LobbyState.SetActive(route)
-	end
-
-	local row: { [string]: any }? = nil
-	if open then
-		row = {
-			Layout = e("UIListLayout", {
-				FillDirection = Enum.FillDirection.Horizontal,
-				HorizontalAlignment = Enum.HorizontalAlignment.Center,
-				Padding = UDim.new(0, Dock.Gap),
-				SortOrder = Enum.SortOrder.LayoutOrder,
-				VerticalAlignment = Enum.VerticalAlignment.Bottom,
-			}),
-			Fit = e("UIScale", { Scale = fit }),
-		}
-		local middle = (#Dock.Items + 1) / 2
-		for index, item in Dock.Items do
-			row[item.Id] = e(DockItem, {
-				badge = hasBadge(item.Route, props.data),
-				delay = math.abs(index - middle) * Dock.Stagger,
-				item = item,
-				layoutOrder = index,
-				onPick = pick,
-			})
-		end
-	end
-
-	return e("Frame", {
-		AnchorPoint = layout.AnchorPoint,
-		BackgroundTransparency = 1,
-		Position = layout.Position,
-		Size = UDim2.fromOffset(Dock.ButtonSize, Dock.ButtonSize),
-	}, {
-		Row = if row ~= nil
-			then e("Frame", {
-				AnchorPoint = Vector2.new(0.5, 1),
-				BackgroundTransparency = 1,
-				Position = UDim2.new(0.5, 0, 0, -Dock.Lift),
-				Size = UDim2.fromOffset(rowWidth, rowHeight),
-			}, row)
-			else nil,
-		Holder = e("Frame", {
+		Grid = e("Frame", {
+			AnchorPoint = layout.Grid.AnchorPoint,
+			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
-			Size = UDim2.fromScale(1, 1),
+			Position = layout.Grid.Position,
+			Size = UDim2.fromOffset(gridWidth, 0),
+			ZIndex = UIConfig.Layers.LobbyMenu,
+		}, tiles),
+		Play = e("Frame", {
+			AnchorPoint = layout.Play.AnchorPoint,
+			BackgroundTransparency = 1,
+			Position = layout.Play.Position,
+			Size = UDim2.fromOffset(dock.PlaySize, dock.PlaySize),
+			ZIndex = UIConfig.Layers.LobbyMenu,
 		}, {
-			Scale = e("UIScale", { ref = bounceRef }),
-			Menu = e(ChunkyButton, {
-				icon = if open then Dock.OpenIcon else Dock.Icon,
-				iconSize = TextSizes.BigIcon,
-				name = Dock.Name,
+			Scale = e("UIScale", { ref = playScaleRef }),
+			Button = e(ChunkyButton, {
+				icon = Dock.PlayIcon,
+				iconSize = dock.PlayIconSize,
+				name = "OnboardingPlayButton",
 				onActivated = function()
-					setOpen(not open)
+					LobbyState.SetActive(Routes.Play)
 				end,
-				overlay = if anyBadge and not open then e(Badge, { size = Dock.BadgeSize, zIndex = 3 }) else nil,
-				round = true,
+				overlay = e("Folder", {}, {
+					OnboardingMenuButton = e("Frame", {
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(1, 1),
+					}),
+				}),
+				shine = true,
 				size = UDim2.fromScale(1, 1),
-				stacked = true,
-				swatch = if open then Dock.OpenSwatch else Dock.Swatch,
-				text = Dock.Label,
-				textSize = TextSizes.Body,
+				swatch = Dock.PlaySwatch,
+				text = Dock.PlayLabel,
+				textSize = dock.PlayTextSize,
+				zIndex = UIConfig.Layers.LobbyMenu,
 			}),
 		}),
+		Timers = e(TimerColumn, { data = props.data, layout = layout.Timers, ui = props.ui }),
 	})
 end
