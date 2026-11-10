@@ -133,6 +133,13 @@ return function(props: any)
 	local variantName = if variant ~= nil then variant.DisplayName else drop.Variant
 	local raysColor = if rarity ~= nil then rarity.Color else Palette.Sparkle
 	local faceColor = if pet ~= nil then pet.Color else Palette.Ink
+	local petIcon = Reveal.PetIcon
+	if pet ~= nil then
+		local configured = (pet :: any).Icon
+		if type(configured) == "string" and configured ~= "" then
+			petIcon = configured
+		end
+	end
 	local cardWidth, cardHeight = WindowSize.fit(props.ui, Reveal.CardWidth, Reveal.CardHeight)
 	local flipped = phase == "flip" or phase == "revealed"
 	local revealed = phase == "revealed"
@@ -249,7 +256,7 @@ return function(props: any)
 					}, { Corner = Primitives.corner("Round") }),
 					Emoji = Primitives.text({
 						Stroke = false,
-						Text = if pet ~= nil then Reveal.PetIcon else Reveal.LockedIcon,
+						Text = if pet ~= nil then petIcon else Reveal.LockedIcon,
 						TextSize = Reveal.IconSize * Shape.IconFill,
 						ZIndex = 4,
 					}),

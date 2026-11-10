@@ -20,9 +20,12 @@
 		Meter: map stain bar under the Lifespan pill
 			Width / Height: bar size (design pixels)
 			Swatch: fill colour (UIConfig.Swatches key)
+			TrackTransparency: transparency of the Ink track behind the fill (0 to 1)
 			Format: bar text (format: percent with one decimal)
-			PoopIcon / PoopTextSize: icon riding the fill edge (text, design pixels)
-			PoopRise: how far the icon sits above the bar top (design pixels)
+			TextSize: bar label text size (design pixels)
+			PoopIcon / PoopTextSize: icon riding above the fill edge (text, design pixels)
+			PoopRise: gap between the bar top and the icon bottom (design pixels)
+			PoopMinPercent: lowest percent that shows the riding icon (percent)
 			Ticks: percent marks on the bar (percent)
 			TickWidth / TickHeightRatio: tick line width and height as a share of the bar height
 			TickColor / TickDoneColor: tick colour before / after the mark (RGB)
@@ -34,17 +37,19 @@
 				Format: chip text (format: best percent)
 			Gap: space between bar and chip (design pixels)
 		Stack: vertical spacing of the top centre run HUD (design pixels)
-			LifespanToMeter: gap under the Lifespan pill
+			LifespanToMeter: gap under the Lifespan pill, also the space the riding poop icon uses
 			MeterToCombo: gap under the map bar (also used by RunJuice)
 		Score: top-right score card
 			Width / MinHeight: card size (design pixels)
 			CaptionTextSize / ScoreTextSize: caption and score text (design pixels)
 			PunchScale / PunchTime: score punch on change (multiplier, seconds)
-			StinkHeight / StinkIconSize / StinkTextSize: Stink chip under the score (design pixels)
+			StinkWidth / StinkHeight: Stink chip under the score (design pixels)
+			StinkIconSize / StinkTextSize: Stink chip icon and label (design pixels)
 		Quests: quest panel below the score card
 			Width / RowHeight: panel width and one quest row height (design pixels)
 		Powerups: active food power-up column at the left edge
 			Size / Gap / TimerHeight: icon diameter, gap between slots and timer bar height (design pixels)
+			TimerTextSize: seconds label on the timer bar (design pixels)
 			Swatch / TimerSwatch: icon circle and timer bar colours (UIConfig.Swatches keys)
 		Leave: small LEAVE pill at the bottom right
 			Width / Height: pill size (design pixels)
@@ -115,12 +120,15 @@ return {
 
 	Meter = {
 		Width = 360,
-		Height = 30,
+		Height = 36,
 		Swatch = "Brown",
-		Format = "💩 MAP %.1f%%",
+		TrackTransparency = 0.35,
+		Format = "MAP %.1f%%",
+		TextSize = 20,
 		PoopIcon = "💩",
-		PoopTextSize = 28,
-		PoopRise = 6,
+		PoopTextSize = 20,
+		PoopRise = 0,
+		PoopMinPercent = 15,
 		Ticks = { 25, 50, 75 },
 		TickWidth = 3,
 		TickHeightRatio = 0.62,
@@ -139,7 +147,7 @@ return {
 	},
 
 	Stack = {
-		LifespanToMeter = 6,
+		LifespanToMeter = 24,
 		MeterToCombo = 2,
 	},
 
@@ -150,9 +158,10 @@ return {
 		ScoreTextSize = 64,
 		PunchScale = 1.25,
 		PunchTime = 0.25,
-		StinkHeight = 34,
-		StinkIconSize = 44,
-		StinkTextSize = 16,
+		StinkWidth = 150,
+		StinkHeight = 36,
+		StinkIconSize = 18,
+		StinkTextSize = 18,
 	},
 
 	Quests = {
@@ -163,7 +172,8 @@ return {
 	Powerups = {
 		Size = 64,
 		Gap = 8,
-		TimerHeight = 18,
+		TimerHeight = 22,
+		TimerTextSize = 18,
 		Swatch = "Purple",
 		TimerSwatch = "Gold",
 	},
@@ -244,13 +254,13 @@ return {
 
 	Layouts = {
 		PC = {
-			Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 190) },
+			Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 210) },
 			Powerups = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 24) },
 			Quests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 240) },
 			Revive = { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) },
 		},
 		Mobile = {
-			Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 176) },
+			Event = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 196) },
 			Powerups = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 12) },
 			Quests = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 220) },
 			Revive = { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) },
