@@ -5,7 +5,8 @@
 	Pulsing red notification dot pinned to the top-right corner of its parent
 	(LobbyUIConfig.Badge look and timing).
 
-	Props: size (diameter, design pixels), text (optional, defaults to LobbyUIConfig.Badge.Text), zIndex
+	Props: size (diameter, design pixels; defaults to LobbyUIConfig.Badge.Size),
+		text or count (optional, defaults to LobbyUIConfig.Badge.Text), zIndex
 	Dependencies: React, UIConfig, LobbyUIConfig, Primitives
 ]]
 
@@ -46,11 +47,13 @@ return function(props: any)
 	end, {})
 
 	local swatch = Primitives.swatch(BadgeConfig.Swatch)
+	local size = props.size or BadgeConfig.Size
+	local label = if props.count ~= nil then tostring(props.count) else (props.text or BadgeConfig.Text)
 	return e("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = swatch.Bottom,
-		Position = UDim2.new(1, -props.size * 0.15, 0, props.size * 0.15),
-		Size = UDim2.fromOffset(props.size, props.size),
+		Position = UDim2.new(1, -size * 0.15, 0, size * 0.15),
+		Size = UDim2.fromOffset(size, size),
 		ZIndex = props.zIndex,
 	}, {
 		Corner = Primitives.corner("Round"),
@@ -58,8 +61,8 @@ return function(props: any)
 		Stroke = Primitives.stroke(swatch.Stroke, UIConfig.Shape.Stroke),
 		Scale = e("UIScale", { ref = scaleRef }),
 		Label = Primitives.text({
-			Text = props.text or BadgeConfig.Text,
-			TextSize = props.size * UIConfig.Shape.IconFill,
+			Text = label,
+			TextSize = size * UIConfig.Shape.IconFill,
 			ZIndex = props.zIndex,
 		}),
 	})
