@@ -3,12 +3,12 @@
 --[[
 	RebirthWindow
 	Big spinning rebirth icon over a sunburst, the current rebirth count, the coin bonus now and
-	after rebirthing, the gem reward and the coin cost, and a REBIRTH button (Net.Rebirth) that
-	lights up once the player can afford it.
+	after rebirthing, the gem reward and the coin cost as glossy rows, and a large REBIRTH
+	button that lights up once the player can afford it.
 
 	Props: data (DataController state), ui (useUIScale result), onClose
-	Dependencies: React, Net, UIConfig, LobbyUIConfig, RebirthConfig, ConfigLookup, Format, Primitives,
-		ChunkyButton, Inset, Rays, Window, WindowSize
+	Dependencies: React, Net, UIConfig, LobbyUIConfig, RebirthConfig, ConfigLookup, Format,
+		Primitives, ChunkyButton, Inset, Rays, Window, WindowSize
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -31,16 +31,31 @@ local WindowSize = require(Components.WindowSize)
 local e = React.createElement
 local Rebirth = LobbyUIConfig.Rebirth
 local Gap = UIConfig.Sizes.Window.Gap
-local TextSizes = UIConfig.TextSizes
 local Palette = UIConfig.Palette
+local TextSizes = UIConfig.TextSizes
 
-local function line(order: number, text: string, color: Color3?)
-	return Primitives.text({
-		Color = color,
-		LayoutOrder = order,
-		Size = UDim2.new(1, 0, 0, TextSizes.Large + Gap / 2),
-		Text = text,
-		TextSize = TextSizes.Large,
+local function infoRow(order: number, icon: string, text: string, color: Color3?): any
+	return e(Inset, {
+		layoutOrder = order,
+		padding = Gap / 2,
+		size = UDim2.new(1, 0, 0, Rebirth.RowHeight),
+	}, {
+		Icon = Primitives.text({
+			Position = UDim2.fromOffset(0, 0),
+			Size = UDim2.fromOffset(40, Rebirth.RowHeight - Gap),
+			Stroke = false,
+			Text = icon,
+			TextSize = TextSizes.Icon,
+		}),
+		Label = Primitives.text({
+			Color = color,
+			Fit = true,
+			Position = UDim2.fromOffset(48, 0),
+			Size = UDim2.new(1, -48, 1, 0),
+			Text = text,
+			TextSize = TextSizes.Large,
+			XAlign = Enum.TextXAlignment.Left,
+		}),
 	})
 end
 
@@ -50,7 +65,29 @@ return function(props: any)
 	local rebirths = data.Rebirths or 0
 	local cost = ConfigLookup.GetRebirthCost(rebirths)
 	local canRebirth = (data.Coins or 0) >= cost
-	local iconSize = TextSizes.Huge * 2
+	local rowsTop = Rebirth.HeroSize + Gap
+
+	local rows: { [string]: any } = {
+		Layout = Primitives.list(Enum.FillDirection.Vertical, Rebirth.RowGap),
+		Count = infoRow(1, Rebirth.Icon, string.format(Rebirth.Lines.Count, rebirths)),
+		Multiplier = infoRow(
+			2,
+			"💰",
+			string.format(
+				Rebirth.Lines.Multiplier,
+				Format.multiplier(ConfigLookup.GetRebirthMultiplier(rebirths)),
+				Format.multiplier(ConfigLookup.GetRebirthMultiplier(rebirths + 1))
+			),
+			Palette.Sparkle
+		),
+		Gems = infoRow(3, "💎", string.format(Rebirth.Lines.Gems, RebirthConfig.GemsPerRebirth)),
+		Cost = infoRow(
+			4,
+			"🪙",
+			string.format(Rebirth.Lines.Cost, Format.commas(cost)),
+			if canRebirth then Palette.Sparkle else UIConfig.Swatches.Red.Top
+		),
+	}
 
 	return e(Window, {
 		height = height,
@@ -61,40 +98,26 @@ return function(props: any)
 	}, {
 		Hero = e("Frame", {
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 0, iconSize),
+			Size = UDim2.new(1, 0, 0, Rebirth.HeroSize),
 		}, {
-			Rays = e(Rays, { size = iconSize * LobbyUIConfig.Rays.SizeRatio, zIndex = 1 }),
+			Rays = e(Rays, { size = Rebirth.HeroSize * LobbyUIConfig.Rays.SizeRatio, zIndex = 1 }),
 			Icon = Primitives.text({
 				Stroke = false,
 				Text = Rebirth.Icon,
-				TextSize = iconSize,
+				TextSize = Rebirth.HeroSize,
 				ZIndex = 2,
 			}),
 		}),
-		Info = e(Inset, {
-			padding = Gap,
-			position = UDim2.fromOffset(0, iconSize + Gap),
-			size = UDim2.new(1, 0, 1, -(iconSize + Gap * 3 + TextSizes.Body + LobbyUIConfig.Daily.ClaimHeight)),
-		}, {
-			Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2),
-			Count = line(1, string.format(Rebirth.Lines.Count, rebirths)),
-			Multiplier = line(
-				2,
-				string.format(
-					Rebirth.Lines.Multiplier,
-					Format.multiplier(ConfigLookup.GetRebirthMultiplier(rebirths)),
-					Format.multiplier(ConfigLookup.GetRebirthMultiplier(rebirths + 1))
-				),
-				Palette.Sparkle
-			),
-			Gems = line(3, string.format(Rebirth.Lines.Gems, RebirthConfig.GemsPerRebirth)),
-			Cost = line(4, string.format(Rebirth.Lines.Cost, Format.commas(cost))),
-		}),
+		Rows = e("Frame", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(0, rowsTop),
+			Size = UDim2.new(1, 0, 1, -(rowsTop + Rebirth.ButtonHeight + Gap * 3 + TextSizes.Body)),
+		}, rows),
 		Warning = Primitives.text({
 			AnchorPoint = Vector2.new(0.5, 1),
 			Color = Palette.TextSoft,
 			Font = "Body",
-			Position = UDim2.new(0.5, 0, 1, -(LobbyUIConfig.Daily.ClaimHeight + Gap)),
+			Position = UDim2.new(0.5, 0, 1, -(Rebirth.ButtonHeight + Gap * 2)),
 			Size = UDim2.new(1, 0, 0, TextSizes.Body),
 			Text = Rebirth.Warning,
 			TextSize = TextSizes.Small,
@@ -106,8 +129,9 @@ return function(props: any)
 				Net.Rebirth:Fire()
 			end,
 			position = UDim2.fromScale(0.5, 1),
-			size = UDim2.new(0.6, 0, 0, LobbyUIConfig.Daily.ClaimHeight),
-			swatch = "Teal",
+			shine = canRebirth,
+			size = UDim2.fromOffset(Rebirth.ButtonWidth, Rebirth.ButtonHeight),
+			swatch = "Green",
 			text = Rebirth.Button,
 			textSize = TextSizes.Header,
 		}),
