@@ -191,6 +191,7 @@ local function MapCard(props: any)
 					onActivated = function()
 						props.onQuickPlay(map.Id)
 					end,
+					shine = true,
 					size = UDim2.fromOffset(Sizes.QuickPlayWidth, Sizes.QuickButtonHeight),
 					swatch = "Green",
 					text = Text.QuickPlay,
@@ -735,6 +736,7 @@ local function CreateView(props: any)
 		}, footerButtons),
 		footerHeight = RoomSizes.ActionHeight,
 		height = height,
+		icon = if editing then LobbyUIConfig.Play.EditIcon else LobbyUIConfig.Play.Icon,
 		onClose = props.onClose,
 		swatch = "Orange",
 		title = if editing then Text.RoomTitle else Text.PlayTitle,
@@ -855,6 +857,7 @@ local function BrowseView(props: any)
 
 	return e(Window, {
 		height = height,
+		icon = LobbyUIConfig.Play.BrowseIcon,
 		onClose = props.onClose,
 		swatch = "Blue",
 		title = Text.PlayTitle,
@@ -1263,6 +1266,7 @@ local function RoomView(props: any)
 		}, footerChildren),
 		footerHeight = RoomSizes.FooterHeight,
 		height = height,
+		icon = LobbyUIConfig.Play.RoomIcon,
 		onClose = props.onClose,
 		swatch = "Purple",
 		title = Text.RoomTitle,
@@ -1277,8 +1281,9 @@ local function PlayView(props: any)
 	local top = LobbyUIConfig.Tabs.Height + Gap
 	return e(Window, {
 		height = height,
+		icon = LobbyUIConfig.Play.Icon,
 		onClose = props.onClose,
-		swatch = "Orange",
+		swatch = LobbyUIConfig.Play.Swatch,
 		title = Text.PlayTitle,
 		width = width,
 	}, {

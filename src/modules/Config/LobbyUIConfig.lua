@@ -55,9 +55,11 @@
 			MaxActivationDistance: how close the player must be (studs)
 			KeyCode: keyboard key (Enum.KeyCode)
 		Daily: daily reward window
-			Width / Height: window size (design pixels)
-			Columns: day tiles per row (count)
-			TileHeight: height of one day tile (design pixels)
+			Width / Height / Icon: window size (design pixels) and header emoji
+			Columns / PhoneColumns: day tiles per row on PC / phone (count)
+			TileWidth / TileHeight / TileGap: day tile size and gap (design pixels)
+			DaySevenScale / DaySevenSwatch: width multiplier and colour of day 7 (multiplier, Swatches key)
+			TileIconSize: reward emoji size (design pixels)
 			ClaimHeight: height of the claim button (design pixels)
 			RaysRatio: size of the sunburst behind today's tile as a multiple of TileHeight (multiplier)
 			Swatch: window header colour (UIConfig.Swatches key)
@@ -80,7 +82,16 @@
 				action buttons as a share of the card width (0 to 1)
 		RarityColors: per rarity name, the colour of the rarity strip on cards (RGB)
 		Shop: shop window
-			Width / Height / Swatch / Title: window size (design pixels), header colour, title (text)
+			Width / Height / Swatch / Title / Icon: window size (design pixels), header colour, title, emoji
+			CardWidth / CardHeight / GridGap: product card size and gap between cards (design pixels)
+			PassRowHeight: height of one wide pass card (design pixels)
+			BestValue: product that gets the BEST VALUE ribbon per tab (pack index or product key)
+			BestValueText: ribbon text (text)
+			BonusFormat: gem pack bonus line (format: bonus percent)
+			CoinBonusText / OneShotText: bonus lines for coin packs and one-shot products (text)
+			PotionStatFormat: potion multiplier line (format: multiplier, stat)
+			NewbiePackText: Newbie Pack card title (text)
+			Perks: pass perk lines and separator (format: value; text)
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Passes", "Gems", "Coins", "Potions" or "Extras"
 			RobuxFormat: price text (format: robux)
 			OwnedText / SoonText / UseText: button text when owned / product id not set / potion use (text)
@@ -91,7 +102,19 @@
 			StainBombInfoFormat: Stain Bomb card line (format: area multiplier)
 			NewbiePackInfoFormat: Newbie Pack card line (format: pet name, gems, coins, coin boost)
 		Pets: pets window
-			Width / Height / Swatch / Title: window size, header colour, title
+			Width / Height / Swatch / Title / Icon: window size, header colour, title, emoji
+			CardWidth / CardHeight / CardGap / Columns / PhoneColumns: pet card size, gap and columns (design pixels / count)
+			CardIconSize: emoji size on a pet card (design pixels)
+			DetailsWidth / DetailsGap: right details panel width and gap to the grid (design pixels)
+			ActionHeight: EQUIP / EVOLVE / DELETE button height (design pixels)
+			HeaderLineHeight: equipped / Stink line height (design pixels)
+			StackBarHeight: stacks bar height (design pixels)
+			SheetHeight / SheetCloseSize: phone bottom sheet height and close button size (design pixels)
+			HeaderFormat: equipped / Stink line (format: used, total, stink)
+			DetailsEmptyText: details panel placeholder (text)
+			DetailsNameSize / DetailsIconSize: pet name and big icon sizes (design pixels)
+			EquippedIcon: check mark on an equipped pet card (text)
+			VariantSwatches: variant id -> UIConfig.Swatches key for the variant chip
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "MyPets" or "Index"
 			PetIcon: emoji shown on every pet card (text)
 			EquipText / UnequipText / EvolveText / DeleteText / DeleteConfirmText: pet card buttons (text)
@@ -107,6 +130,8 @@
 				heights (design pixels)
 			Index: Pet Index section look and text
 				Columns / TileWidth / TileHeight / TileIconSize: tile grid (count, design pixels)
+				ProgressHeight: progress bar height (design pixels)
+				RewardBoxHeight / RewardBoxWidth: exclusive reward box size (design pixels)
 				HeaderHeight / SectionGap / RewardHeight: section header, section gap, reward line (design pixels)
 				ProgressFormat: discovered / total line (format: found, total)
 				OddsFormat: drop odds line (format: drop odds denominator, decimal allowed)
@@ -114,12 +139,26 @@
 				RewardHeader / RewardFormat / RewardGemsFormat: reward preview (format: exclusive pet name, gems)
 				ClaimedText / ComingSoonText / NoPetsText: section states (text)
 		Skins: skins window
-			Width / Height / Swatch / Title: window size, header colour, title
+			Width / Height / Swatch / Title / Icon: window size, header colour, title, emoji
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Crates" or "Skins"
 			CrateIcon / SkinIcon: emoji for crates and skins (text)
 			OpenFormat: open button text (format: price, currency icon)
 			EquipText / EquippedText / LockedText: cosmetic card buttons (text)
 			LastCrateFormat: banner after a crate (format: item name)
+		Upgrade: upgrade window
+			Width / Height / Swatch / Title / Icon: window size, header colour, title, emoji
+			RowHeight / RowGap / RowPadding: one upgrade row and its gaps (design pixels)
+			IconSize: upgrade icon tile diameter (design pixels)
+			PipWidth / PipHeight / PipGap / PipRadius: level pips (design pixels)
+			BuyWidth / BuyHeight / MaxStampWidth: BUY and MAX control sizes (design pixels)
+			LevelFormat: level line (format: level, max level)
+
+		Play: play window header
+			Swatch / Title / Icon: header colour, title, emoji
+			EditIcon / BrowseIcon / RoomIcon: create, browse and room headers (text)
+
+		RaritySwatches: rarity id -> UIConfig.Swatches key for cards and chips
+
 		PetReveal: full-screen pet drop reveal (design pixels unless noted)
 			Width / Height / Swatch: card size and body colour (UIConfig.Swatches key)
 			OverlayTransparency: dimmer behind the card (0 to 1)
@@ -133,6 +172,8 @@
 			QueueToast: run toast when a pet drops and waits for the reveal (text)
 		Rebirth: rebirth window
 			Width / Height / Swatch / Title: window size, header colour, title
+			HeroSize / RowHeight / RowGap: hero icon, info row and row gap (design pixels)
+			ButtonWidth / ButtonHeight: REBIRTH button size (design pixels)
 			Icon: big emoji (text)
 			Lines: info lines
 				Count: rebirth count line (format: count)
@@ -266,13 +307,19 @@ return {
 	},
 
 	Daily = {
-		Width = 980,
-		Height = 600,
-		Columns = 4,
-		TileHeight = 170,
-		ClaimHeight = 80,
+		Width = 820,
+		Height = 560,
+		Columns = 7,
+		PhoneColumns = 4,
+		TileWidth = 96,
+		TileHeight = 130,
+		TileGap = 6,
+		DaySevenScale = 1.3,
+		DaySevenSwatch = "Gold",
+		TileIconSize = 52,
+		ClaimHeight = 76,
 		RaysRatio = 1.4,
-		Swatch = "Pink",
+		Swatch = "Orange",
 		KindVisuals = {
 			Coins = { Icon = "💰", Swatch = "Gold" },
 			Gems = { Icon = "💎", Swatch = "Purple" },
@@ -289,17 +336,28 @@ return {
 	},
 
 	Tabs = {
-		Height = 58,
-		Gap = 10,
+		Height = 52,
+		Gap = 8,
 	},
 
 	Card = {
-		Width = 196,
-		Height = 236,
+		Width = 180,
+		Height = 230,
 		IconRatio = 0.36,
 		ButtonHeight = 48,
 		SplitButtonWidth = 0.42,
 		SplitButtonInset = 0.07,
+	},
+
+	RaritySwatches = {
+		Common = "Grey",
+		Uncommon = "Green",
+		Rare = "Blue",
+		Epic = "Purple",
+		Legendary = "Gold",
+		Mythical = "Pink",
+		Secret = "Teal",
+		Darkness = "Grey",
 	},
 
 	RarityColors = {
@@ -314,16 +372,42 @@ return {
 	},
 
 	Shop = {
-		Width = 1100,
-		Height = 720,
+		Width = 820,
+		Height = 560,
 		Swatch = "Gold",
 		Title = "SHOP",
+		Icon = "🛒",
+		CardWidth = 180,
+		CardHeight = 230,
+		GridGap = 12,
+		PassRowHeight = 104,
+		BestValue = {
+			Gems = 4,
+			Coins = 4,
+			Potions = "StinkPotion",
+			Extras = "NewbiePack",
+			Passes = "DoubleCoins",
+		},
+		BestValueText = "BEST VALUE",
+		BonusFormat = "+%d%% BONUS",
+		CoinBonusText = "POOP COINS",
+		OneShotText = "ONE SHOT",
+		PotionStatFormat = "%dx %s",
+		NewbiePackText = "NEWBIE PACK",
+		Perks = {
+			Coins = "x%s coins",
+			Gems = "x%s gems",
+			PetSlots = "+%d pet slots",
+			Magnet = "wider snack pickup",
+			Vip = "VIP stainer look",
+			Separator = "  ·  ",
+		},
 		Tabs = {
-			{ Id = "Passes", Label = "PASSES", Icon = "⭐", Swatch = "Gold" },
 			{ Id = "Gems", Label = "GEMS", Icon = "💎", Swatch = "Purple" },
 			{ Id = "Coins", Label = "COINS", Icon = "💰", Swatch = "Orange" },
 			{ Id = "Potions", Label = "POTIONS", Icon = "🧪", Swatch = "Teal" },
 			{ Id = "Extras", Label = "EXTRAS", Icon = "🧨", Swatch = "Red" },
+			{ Id = "Passes", Label = "PASSES", Icon = "⭐", Swatch = "Gold" },
 		},
 		RobuxFormat = "R$ %d",
 		OwnedText = "OWNED",
@@ -339,12 +423,36 @@ return {
 	},
 
 	Pets = {
-		Width = 1100,
-		Height = 760,
-		Swatch = "Blue",
+		Width = 980,
+		Height = 620,
+		Swatch = "Pink",
 		Title = "PETS",
+		Icon = "🐾",
+		CardWidth = 120,
+		CardHeight = 140,
+		CardGap = 10,
+		Columns = 5,
+		PhoneColumns = 3,
+		CardIconSize = 56,
+		DetailsWidth = 260,
+		DetailsGap = 16,
+		ActionHeight = 48,
+		HeaderLineHeight = 24,
+		StackBarHeight = 16,
+		SheetHeight = 300,
+		SheetCloseSize = 44,
+		HeaderFormat = "Equipped %d/%d  ·  Stink x%s total",
+		DetailsEmptyText = "Tap a pet to see it here.",
+		DetailsNameSize = 34,
+		DetailsIconSize = 130,
+		EquippedIcon = "✔",
+		VariantSwatches = {
+			Golden = "Gold",
+			Rainbow = "Purple",
+			Stinky = "Brown",
+		},
 		Tabs = {
-			{ Id = "MyPets", Label = "MY PETS", Icon = "🐶", Swatch = "Blue" },
+			{ Id = "MyPets", Label = "MY PETS", Icon = "🐶", Swatch = "Pink" },
 			{ Id = "Index", Label = "PET INDEX", Icon = "📖", Swatch = "Purple" },
 		},
 		PetIcon = "🐾",
@@ -375,13 +483,16 @@ return {
 			StackBarHeight = 20,
 		},
 		Index = {
-			Columns = 5,
-			TileWidth = 176,
-			TileHeight = 174,
-			TileIconSize = 62,
+			Columns = 4,
+			TileWidth = 150,
+			TileHeight = 160,
+			TileIconSize = 64,
 			HeaderHeight = 52,
-			SectionGap = 18,
-			RewardHeight = 40,
+			SectionGap = 16,
+			RewardHeight = 56,
+			ProgressHeight = 22,
+			RewardBoxHeight = 76,
+			RewardBoxWidth = 220,
 			ProgressFormat = "%d/%d",
 			OddsFormat = "1/%s",
 			UnknownName = "???",
@@ -395,11 +506,32 @@ return {
 		},
 	},
 
+	Upgrade = {
+		Width = 820,
+		Height = 560,
+		Swatch = "Green",
+		Title = "UPGRADES",
+		Icon = "⚡",
+		RowHeight = 96,
+		RowGap = 10,
+		RowPadding = 12,
+		IconSize = 72,
+		PipWidth = 6,
+		PipHeight = 16,
+		PipGap = 3,
+		PipRadius = 4,
+		BuyWidth = 170,
+		BuyHeight = 54,
+		MaxStampWidth = 130,
+		LevelFormat = "Lv %d / %d",
+	},
+
 	Skins = {
-		Width = 1100,
-		Height = 720,
-		Swatch = "Purple",
+		Width = 820,
+		Height = 560,
+		Swatch = "Teal",
 		Title = "SKINS",
+		Icon = "🎨",
 		Tabs = {
 			{ Id = "Crates", Label = "CRATES", Icon = "📦", Swatch = "Gold" },
 			{ Id = "Skins", Label = "SKINS", Icon = "💩", Swatch = "Purple" },
@@ -411,6 +543,15 @@ return {
 		EquippedText = "EQUIPPED",
 		LockedText = "🔒",
 		LastCrateFormat = "You got %s!",
+	},
+
+	Play = {
+		Swatch = "Green",
+		Title = "PLAY",
+		Icon = "▶️",
+		EditIcon = "⚙️",
+		BrowseIcon = "🔎",
+		RoomIcon = "👥",
 	},
 
 	PetReveal = {
@@ -444,9 +585,14 @@ return {
 	},
 
 	Rebirth = {
-		Width = 640,
-		Height = 600,
-		Swatch = "Teal",
+		Width = 820,
+		Height = 560,
+		Swatch = "Blue",
+		HeroSize = 120,
+		RowHeight = 44,
+		RowGap = 6,
+		ButtonWidth = 360,
+		ButtonHeight = 64,
 		Title = "REBIRTH",
 		Icon = "🌀",
 		Lines = {

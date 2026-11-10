@@ -22,9 +22,9 @@ local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local CosmeticConfig = require(ReplicatedStorage.Modules.Config.CosmeticConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
 local CardGrid = require(Components.CardGrid)
+local Chip = require(Components.Chip)
 local Format = require(Components.Format)
 local ItemCard = require(Components.ItemCard)
-local Primitives = require(Components.Primitives)
 local Tabs = require(Components.Tabs)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
@@ -100,9 +100,10 @@ local function skinCards(data: any): ({ [string]: any }, number)
 			onButton = function()
 				Net.EquipCosmetic:Fire("Skin", id)
 			end,
+			rarity = item.Rarity,
 			rarityColor = LobbyUIConfig.RarityColors[item.Rarity],
 			selected = isEquipped,
-			swatch = if isOwned then "Purple" else "Grey",
+			swatch = if isOwned then (LobbyUIConfig.RaritySwatches[item.Rarity] or "Purple") else "Grey",
 			title = item.DisplayName,
 		})
 	end
@@ -131,19 +132,22 @@ return function(props: any)
 
 	return e(Window, {
 		height = height,
+		icon = Skins.Icon,
 		onClose = props.onClose,
 		swatch = Skins.Swatch,
 		title = Skins.Title,
 		width = width,
 	}, {
 		Tabs = e(Tabs, { onSelect = setTab, selected = tab, tabs = Skins.Tabs }),
-		Banner = Primitives.text({
-			Color = UIConfig.Palette.Sparkle,
-			Position = UDim2.fromOffset(0, LobbyUIConfig.Tabs.Height + Gap),
-			Size = UDim2.new(1, 0, 0, TextSizes.Large),
-			Text = banner,
-			TextSize = TextSizes.Large,
-		}),
+		Banner = if banner ~= ""
+			then e(Chip, {
+				anchorPoint = Vector2.new(0.5, 0),
+				position = UDim2.new(0.5, 0, 0, LobbyUIConfig.Tabs.Height + Gap),
+				swatch = "Gold",
+				text = banner,
+				textSize = TextSizes.Body,
+			})
+			else nil,
 		Grid = e(CardGrid, {
 			cards = cards,
 			count = count,
