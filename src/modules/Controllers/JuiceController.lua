@@ -573,6 +573,10 @@ Net.MapProgress.OnClientEvent:Connect(function(payload: any)
 	showMilestone(math.clamp(tonumber(payload.Percent) or 0, 0, 100))
 end)
 
+Net.PetDrop.OnClientEvent:Connect(function()
+	showMilestone(100)
+end)
+
 Net.ObjectSoiled.OnClientEvent:Connect(function(object: any, bonus: any)
 	if not runActive or typeof(object) ~= "Instance" then
 		return
