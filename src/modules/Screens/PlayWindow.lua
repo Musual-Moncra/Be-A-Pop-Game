@@ -153,6 +153,7 @@ local function MapCard(props: any)
 			onActivated = function()
 				Net.UnlockMap:Fire(map.Id)
 			end,
+			shine = true,
 			size = UDim2.fromOffset(Sizes.ActionButtonWidth, Sizes.ActionButtonHeight),
 			swatch = "Green",
 			text = string.format(Text.IconLabel, Text.CoinIcon, Format.compact(map.UnlockCost)),
@@ -228,6 +229,8 @@ local function MapCard(props: any)
 
 		return e(ChunkyButton, {
 			layoutOrder = map.Order,
+			popDelay = map.Order * UIConfig.Animation.CardStagger,
+			popIn = true,
 			size = UDim2.new(1, -Shape.RimStroke * 2, 0, Sizes.QuickCardHeight),
 			swatch = if status == "Soon" then "Grey" else visual.Swatch,
 		}, {
@@ -273,6 +276,8 @@ local function MapCard(props: any)
 			props.onSelect(map.Id)
 		end,
 		overlay = selectionRing(props.selected),
+		popDelay = map.Order * UIConfig.Animation.CardStagger,
+		popIn = true,
 		size = UDim2.new(1, -Shape.RimStroke * 2, 0, Sizes.MapCardHeight),
 		swatch = if status == "Soon" then "Grey" else visual.Swatch,
 	}, {
@@ -362,6 +367,8 @@ local function ModeTile(props: any)
 		icon = if locked then Text.LockIcon else visual.Icon,
 		iconSize = Sizes.ModeIconSize,
 		layoutOrder = mode.Order,
+		popDelay = mode.Order * UIConfig.Animation.CardStagger,
+		popIn = true,
 		onActivated = function()
 			props.onSelect(mode.Id)
 		end,
@@ -706,6 +713,7 @@ local function CreateView(props: any)
 				props.onSubmit(map.Id, mode.Id, maxPlayers, friendsOnly)
 			end
 		end,
+		shine = canPlay,
 		size = if editing
 			then UDim2.new(0.68, 0, 0, RoomSizes.ActionHeight)
 			else UDim2.new(1, 0, 0, RoomSizes.ActionHeight),
@@ -834,6 +842,7 @@ local function BrowseView(props: any)
 					props.onJoin(summary.Id)
 				end,
 				position = UDim2.fromScale(1, 0.5),
+				shine = not full,
 				size = UDim2.fromOffset(RoomSizes.JoinWidth, RoomSizes.JoinHeight),
 				swatch = "Green",
 				text = if full then Text.JoinFull else Text.Join,
@@ -1155,6 +1164,7 @@ local function RoomView(props: any)
 						Net.StartRoom:Fire()
 					end
 				end,
+				shine = canStart,
 				size = UDim2.fromScale(1, 1),
 				swatch = "Green",
 				text = Text.StartButton,
@@ -1166,6 +1176,7 @@ local function RoomView(props: any)
 				onActivated = function()
 					Net.SetRoomReady:Fire(not ready)
 				end,
+				shine = not ready,
 				size = UDim2.fromScale(1, 1),
 				swatch = if ready then "Grey" else "Green",
 				text = if ready then Text.UnreadyButton else Text.ReadyButton,

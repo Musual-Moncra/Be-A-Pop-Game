@@ -25,16 +25,21 @@ local PetConfig = require(ReplicatedStorage.Modules.Config.PetConfig)
 local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
 local Components = ReplicatedStorage.Modules.UIComponents
 local Bar = require(Components.Bar)
+local Burst = require(Components.Burst)
 local Chip = require(Components.Chip)
 local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
+local GlowRing = require(Components.GlowRing)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
 local Tabs = require(Components.Tabs)
+local Twinkle = require(Components.Twinkle)
+local useBreathe = require(Components.useBreathe)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
+local Motion = LobbyUIConfig.Motion
 local Pets = LobbyUIConfig.Pets
 local Index = Pets.Index
 local Palette = UIConfig.Palette
@@ -97,6 +102,34 @@ local function sortedOwned(data: any): { any }
 	return sorted
 end
 
+local function mapComplete(data: any, mapId: string): boolean
+	local normal = PetView.PoolForMap(mapId)
+	if #normal == 0 then
+		return false
+	end
+	for _, pet in normal do
+		if not PetView.IsDiscovered(data.Pets.Index, pet.Id) then
+			return false
+		end
+	end
+	return true
+end
+
+local function rarityOrder(pet: any): number
+	if pet == nil then
+		return 0
+	end
+	local rarity = ConfigLookup.GetRarity(pet.Rarity)
+	return if rarity ~= nil then rarity.Order else 0
+end
+
+local function twinkleRate(pet: any): number
+	if pet == nil then
+		return 0
+	end
+	return Motion.RarityTwinkleRates[pet.Rarity] or 0
+end
+
 local function raritySwatch(pet: any): string
 	if pet == nil then
 		return "Grey"
@@ -150,6 +183,7 @@ local function PetGridCard(props: any)
 		else Palette.Inset
 	local variant = props.variant
 	local variantName = if variant ~= nil and variant.Id ~= "Default" then variant.DisplayName else ""
+	local rate = twinkleRate(pet)
 
 	return e("Frame", {
 		BackgroundTransparency = 1,
@@ -165,6 +199,9 @@ local function PetGridCard(props: any)
 					Thickness = Shape.RimStroke,
 				})
 				else variantRim(props.variant),
+			popDelay = props.order * UIConfig.Animation.CardStagger,
+			popIn = true,
+			rainbow = rarityOrder(pet) >= Motion.RainbowMinOrder,
 			rarity = if pet ~= nil then pet.Rarity else nil,
 			size = UDim2.fromScale(1, 1),
 			swatch = raritySwatch(pet),
@@ -225,6 +262,7 @@ local function PetGridCard(props: any)
 					zIndex = 5,
 				})
 				else nil,
+			Twinkle = if rate > 0 then e(Twinkle, { clip = true, rate = rate, zIndex = 5 }) else nil,
 		}),
 	})
 end
@@ -365,6 +403,7 @@ local function PetDetails(props: any)
 			Evolve = e(ChunkyButton, {
 				enabled = canEvolve,
 				layoutOrder = 2,
+				shine = canEvolve,
 				onActivated = function()
 					Net.MergePet:Fire(entry.Uid)
 				end,
@@ -399,8 +438,13 @@ local function indexTile(pet: any, discovered: boolean, order: number): any
 		elseif rarity ~= nil then rarity.Color
 		else LobbyUIConfig.RarityColors[pet.Rarity] or Palette.Inset
 
+	local rate = if discovered then twinkleRate(pet) else 0
+
 	return e(ChunkyButton, {
 		layoutOrder = order,
+		popDelay = order * UIConfig.Animation.CardStagger,
+		popIn = true,
+		rainbow = discovered and rarityOrder(pet) >= Motion.RainbowMinOrder,
 		rarity = if discovered then pet.Rarity else nil,
 		swatch = swatchName,
 	}, {
@@ -447,6 +491,7 @@ local function indexTile(pet: any, discovered: boolean, order: number): any
 			XAlign = Enum.TextXAlignment.Center,
 			ZIndex = 3,
 		}),
+		Twinkle = if rate > 0 then e(Twinkle, { clip = true, rate = rate, zIndex = 5 }) else nil,
 	})
 end
 
@@ -465,7 +510,9 @@ local function mapTabs(): { any }
 	return tabs
 end
 
-local function RewardBox(map: any, data: any): any
+local function RewardBox(props: any): any
+	local map = props.map
+	local data = props.data
 	local exclusive = PetView.ExclusivePet(map.Id)
 	local claimed = data.Pets.IndexClaimed[map.Id] == true
 	local normal = PetView.PoolForMap(map.Id)
@@ -482,52 +529,72 @@ local function RewardBox(map: any, data: any): any
 		then string.format(Index.RewardGemsFormat, PetView.IndexGems())
 		elseif isComingSoon(map) then Index.ComingSoonText
 		else Index.NoPetsText
+	local scaleRef = React.useRef(nil)
+	useBreathe(scaleRef, Motion.BreatheRewardScale, Motion.BreatheRewardPeriod, 0.23, claimable)
 
-	return e(ChunkyButton, {
-		anchorPoint = Vector2.new(1, 0.5),
-		overlay = if claimable
-			then e("Frame", {
-				BackgroundTransparency = 1,
-				Size = UDim2.fromScale(1, 1),
-			}, {
-				Corner = Primitives.corner(Shape.Radius),
-				Stroke = Primitives.stroke(UIConfig.Swatches.Gold.Top, Shape.RimStroke),
-			})
-			else nil,
-		position = UDim2.new(1, 0, 0.5, 0),
-		shine = claimable,
-		size = UDim2.fromOffset(Index.RewardBoxWidth, Index.RewardBoxHeight),
-		swatch = "Gold",
-		zIndex = 3,
+	return e("Frame", {
+		AnchorPoint = Vector2.new(1, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, 0, 0.5, 0),
+		Size = UDim2.fromOffset(Index.RewardBoxWidth, Index.RewardBoxHeight),
 	}, {
-		Icon = Primitives.text({
-			Position = UDim2.fromScale(0, 0.1),
-			Size = UDim2.fromScale(0.5, 0.8),
-			Stroke = false,
-			Text = if exclusive ~= nil then (exclusive.Icon or Pets.PetIcon) else Index.LockedIcon,
-			TextSize = TextSizes.Icon,
-			ZIndex = 4,
-		}),
-		Label = Primitives.text({
-			Fit = true,
-			Position = UDim2.fromScale(0.42, 0),
-			Size = UDim2.fromScale(0.54, 1),
-			Text = text,
-			TextSize = TextSizes.Small,
-			Wrapped = true,
-			ZIndex = 4,
-		}),
-		Stamp = if earned
-			then e(Chip, {
-				anchorPoint = Vector2.new(0.5, 1),
-				height = 22,
-				position = UDim2.new(0.5, 0, 1, -2),
-				swatch = "Green",
-				text = Index.ClaimedText,
-				textSize = TextSizes.Tiny,
-				zIndex = 5,
+		Scale = e("UIScale", { ref = scaleRef }),
+		Glow = if claimable
+			then e(GlowRing, {
+				color = UIConfig.Swatches.Gold.Top,
+				size = Index.RewardBoxHeight * Motion.GlowSizeRatio,
+				zIndex = 1,
 			})
 			else nil,
+		Button = e(ChunkyButton, {
+			overlay = if claimable
+				then e("Frame", {
+					BackgroundTransparency = 1,
+					Size = UDim2.fromScale(1, 1),
+				}, {
+					Corner = Primitives.corner(Shape.Radius),
+					Stroke = Primitives.stroke(UIConfig.Swatches.Gold.Top, Shape.RimStroke),
+				})
+				else nil,
+			shine = claimable,
+			size = UDim2.fromScale(1, 1),
+			swatch = "Gold",
+			zIndex = 3,
+		}, {
+			Icon = Primitives.text({
+				Position = UDim2.fromScale(0, 0.1),
+				Size = UDim2.fromScale(0.5, 0.8),
+				Stroke = false,
+				Text = if exclusive ~= nil then (exclusive.Icon or Pets.PetIcon) else Index.LockedIcon,
+				TextSize = TextSizes.Icon,
+				ZIndex = 4,
+			}),
+			Label = Primitives.text({
+				Fit = true,
+				Position = UDim2.fromScale(0.42, 0),
+				Size = UDim2.fromScale(0.54, 1),
+				Text = text,
+				TextSize = TextSizes.Small,
+				Wrapped = true,
+				ZIndex = 4,
+			}),
+			Stamp = if earned
+				then e(Chip, {
+					anchorPoint = Vector2.new(0.5, 1),
+					height = 22,
+					position = UDim2.new(0.5, 0, 1, -2),
+					swatch = "Green",
+					text = Index.ClaimedText,
+					textSize = TextSizes.Tiny,
+					zIndex = 5,
+				})
+				else nil,
+			Twinkle = e(Twinkle, {
+				clip = true,
+				rate = Motion.RewardTwinkleRate,
+				zIndex = 5,
+			}),
+		}),
 	})
 end
 
@@ -541,6 +608,18 @@ return function(props: any)
 	local selectedMap, setSelectedMap = React.useState(ConfigLookup.GetSortedMaps()[1].Id)
 	local narrow = ui.mobile or ui.safeWidth < 900
 	local isIndex = tab == Pets.Tabs[2].Id
+	local burst, setBurst = React.useState(0)
+	local celebratedMaps = React.useRef({})
+
+	React.useEffect(function()
+		if not isIndex or celebratedMaps.current[selectedMap] or not mapComplete(data, selectedMap) then
+			return
+		end
+		celebratedMaps.current[selectedMap] = true
+		setBurst(function(count: number)
+			return count + 1
+		end)
+	end, { isIndex, selectedMap, data.Pets.Index } :: { any })
 
 	local function selectMap(id: string)
 		local map = ConfigLookup.GetMap(id)
@@ -607,7 +686,7 @@ return function(props: any)
 				text = string.format(Index.ProgressFormat, discovered, total),
 				textSize = TextSizes.Body,
 			}),
-			Reward = if map ~= nil then RewardBox(map, data) else nil,
+			Reward = if map ~= nil then e(RewardBox, { map = map, data = data }) else nil,
 		}
 		local gridChildren: { [string]: any } = {
 			Grid = e("UIGridLayout", {
@@ -807,6 +886,11 @@ return function(props: any)
 		width = width,
 	}, {
 		Tabs = e(Tabs, { onSelect = setTab, selected = tab, tabs = Pets.Tabs }),
+		Burst = e(Burst, {
+			origin = UDim2.fromScale(0.5, 0.5),
+			trigger = if burst > 0 then burst else nil,
+			zIndex = 20,
+		}),
 		Header = body.Header,
 		Body = if isIndex
 			then e("Frame", {

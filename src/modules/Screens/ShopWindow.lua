@@ -25,15 +25,19 @@ local MonetizationConfig = require(ReplicatedStorage.Modules.Config.Monetization
 local PotionConfig = require(ReplicatedStorage.Modules.Config.PotionConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local Components = ReplicatedStorage.Modules.UIComponents
+local Burst = require(Components.Burst)
 local ChunkyButton = require(Components.ChunkyButton)
+local GlowRing = require(Components.GlowRing)
 local Format = require(Components.Format)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
 local Tabs = require(Components.Tabs)
+local useBreathe = require(Components.useBreathe)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
+local Motion = LobbyUIConfig.Motion
 local Shop = LobbyUIConfig.Shop
 local Gap = UIConfig.Sizes.Window.Gap
 local Palette = UIConfig.Palette
@@ -88,6 +92,37 @@ local function ribbon(xScale: number, yScale: number): any
 	})
 end
 
+local function BreatheButton(props: any)
+	local scaleRef = React.useRef(nil)
+	useBreathe(scaleRef, Motion.BreatheButtonScale, Motion.BreatheButtonPeriod, props.phase or 0, props.active)
+
+	return e("Frame", {
+		AnchorPoint = props.anchorPoint,
+		BackgroundTransparency = 1,
+		Position = props.position,
+		Size = props.size,
+	}, {
+		Scale = e("UIScale", { ref = scaleRef }),
+		Glow = if props.active
+			then e(GlowRing, {
+				color = Primitives.swatch("Gold").Top,
+				size = props.glowSize,
+				zIndex = 1,
+			})
+			else nil,
+		Button = e(ChunkyButton, {
+			enabled = props.active,
+			onActivated = props.onActivated,
+			shine = props.active,
+			size = UDim2.fromScale(1, 1),
+			swatch = props.swatch,
+			text = props.text,
+			textSize = props.textSize,
+			zIndex = 3,
+		}),
+	})
+end
+
 local function ProductCard(props: any)
 	local hasSecond = props.secondText ~= nil
 	local tier = math.clamp(tonumber(props.tier) or 1, 1, 5)
@@ -121,22 +156,22 @@ local function ProductCard(props: any)
 	local children: { [string]: any } = {
 		Icons = e("Frame", {
 			BackgroundTransparency = 1,
-			Position = UDim2.fromScale(0, 0.03),
-			Size = UDim2.new(1, 0, 0.30, 0),
+			Position = UDim2.fromScale(0, 0.02),
+			Size = UDim2.new(1, 0, 0.23, 0),
 			ZIndex = 3,
 		}, icons),
 		Title = Primitives.text({
 			Fit = true,
-			Position = UDim2.new(0, 0, 0.35, 0),
-			Size = UDim2.new(1, 0, 0, TextSizes.Title),
+			Position = UDim2.new(0, 0, 0.25, 0),
+			Size = UDim2.new(1, 0, 0, TextSizes.Header),
 			Text = props.title,
-			TextSize = TextSizes.Title,
+			TextSize = TextSizes.Header,
 			ZIndex = 3,
 		}),
 		Bonus = Primitives.text({
 			Color = Palette.Sparkle,
 			Fit = true,
-			Position = UDim2.new(0, 0, 0.48, 0),
+			Position = UDim2.new(0, 0, 0.39, 0),
 			Size = UDim2.new(1, 0, 0, TextSizes.Body),
 			Text = props.bonus or "",
 			TextSize = TextSizes.Body,
@@ -144,26 +179,26 @@ local function ProductCard(props: any)
 		}),
 		Info = Primitives.text({
 			Color = Palette.Text,
-			Fit = true,
-			Position = UDim2.new(0, 0, 0.57, 0),
-			Size = UDim2.new(1, 0, 0, TextSizes.Small * 1.8),
+			Position = UDim2.new(0, 0, 0.48, 0),
+			Size = UDim2.new(1, 0, 0, TextSizes.Small * 2 * Shape.LineHeight),
 			StrokeSize = Shape.SmallTextStroke,
 			Text = props.info or "",
 			TextSize = TextSizes.Small,
 			Wrapped = true,
+			YAlign = Enum.TextYAlignment.Top,
 			ZIndex = 3,
 		}),
-		Buy = e(ChunkyButton, {
+		Buy = e(BreatheButton, {
+			active = props.buttonEnabled ~= false,
 			anchorPoint = buttonAnchor,
-			enabled = props.buttonEnabled ~= false,
+			glowSize = (if hasSecond then 42 else 52) * Motion.GlowSizeRatio,
 			onActivated = props.onButton,
+			phase = (props.order or 1) * 0.17,
 			position = buttonX,
-			shine = props.buttonEnabled ~= false,
 			size = UDim2.new(buttonWidth, 0, 0, if hasSecond then 42 else 52),
 			swatch = buttonSwatch,
 			text = props.buttonText,
 			textSize = if hasSecond then TextSizes.Small else TextSizes.Body,
-			zIndex = 4,
 		}),
 	}
 	if hasSecond then
@@ -187,6 +222,8 @@ local function ProductCard(props: any)
 		Size = UDim2.fromOffset(Shop.CardWidth, Shop.CardHeight),
 	}, {
 		Card = e(ChunkyButton, {
+			popDelay = (props.order or 1) * UIConfig.Animation.CardStagger,
+			popIn = true,
 			size = UDim2.fromScale(1, 1),
 			swatch = props.swatch,
 			zIndex = 2,
@@ -207,6 +244,8 @@ local function PassCard(props: any)
 		Size = UDim2.new(1, 0, 0, Shop.PassRowHeight),
 	}, {
 		Card = e(ChunkyButton, {
+			popDelay = (props.order or 1) * UIConfig.Animation.CardStagger,
+			popIn = true,
 			size = UDim2.fromScale(1, 1),
 			swatch = "Gold",
 			zIndex = 2,
@@ -340,7 +379,7 @@ local function potionCard(potion: any, index: number, data: any, tab: string): a
 		buttonSwatch = "Green",
 		buttonText = robux(potion.PriceRobux),
 		icon = potion.Icon,
-		info = potion.Description,
+		info = potion.Description .. Shop.Perks.Separator .. string.format(Shop.CountFormat, held),
 		onButton = function()
 			promptProduct(potion.ProductId)
 		end,
@@ -354,14 +393,31 @@ local function potionCard(potion: any, index: number, data: any, tab: string): a
 			then string.format(Shop.ActiveFormat, string.format(Shop.TimeFormat, left // 60, left % 60))
 			else Shop.UseText,
 		swatch = "Teal",
-		title = string.format(Shop.CountFormat, held),
+		title = potion.DisplayName,
 	})
 end
 
 return function(props: any)
 	local width, height = WindowSize.fit(props.ui, Shop.Width, Shop.Height)
 	local tab, setTab = React.useState(validTab(props.initialTab) or Shop.Tabs[1].Id)
+	local burst, setBurst = React.useState(0)
 	local data = props.data
+
+	React.useEffect(function()
+		local function purchased(player: Player, _id: number, wasPurchased: boolean)
+			if player == Players.LocalPlayer and wasPurchased then
+				setBurst(function(count: number)
+					return count + 1
+				end)
+			end
+		end
+		local productConnection = MarketplaceService.PromptProductPurchaseFinished:Connect(purchased)
+		local passConnection = MarketplaceService.PromptGamePassPurchaseFinished:Connect(purchased)
+		return function()
+			productConnection:Disconnect()
+			passConnection:Disconnect()
+		end
+	end, {})
 	local cards: { [string]: any } = {}
 	local count = 0
 
@@ -411,7 +467,7 @@ return function(props: any)
 			count += 1
 			cards.NewbiePack = e(ProductCard, {
 				best = bestValue(tab, "NewbiePack"),
-				bonus = petName,
+				bonus = Shop.NewbiePackBonus,
 				buttonEnabled = available,
 				buttonSwatch = "Green",
 				buttonText = robux(pack.PriceRobux),
@@ -506,6 +562,11 @@ return function(props: any)
 		width = width,
 	}, {
 		Tabs = e(Tabs, { onSelect = setTab, selected = tab, tabs = Shop.Tabs }),
+		Burst = e(Burst, {
+			origin = UDim2.fromScale(0.5, 0.55),
+			trigger = if burst > 0 then burst else nil,
+			zIndex = 20,
+		}),
 		Body = e("Frame", {
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(0, LobbyUIConfig.Tabs.Height + Gap),

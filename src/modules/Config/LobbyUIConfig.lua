@@ -95,7 +95,7 @@
 			BonusFormat: gem pack bonus line (format: bonus percent)
 			CoinBonusText / OneShotText: bonus lines for coin packs and one-shot products (text)
 			PotionStatFormat: potion multiplier line (format: multiplier, stat)
-			NewbiePackText: Newbie Pack card title (text)
+			NewbiePackText / NewbiePackBonus: Newbie Pack card title and bonus line (text)
 			Perks: pass perk lines and separator (format: value; text)
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Passes", "Gems", "Coins", "Potions" or "Extras"
 			RobuxFormat: price text (format: robux)
@@ -161,6 +161,16 @@
 			PipWidth / PipHeight / PipGap / PipRadius: level pips (design pixels)
 			BuyWidth / BuyHeight / MaxStampWidth: BUY and MAX control sizes (design pixels)
 			LevelFormat: level line (format: level, max level)
+
+		Motion: shared pass-2 sparkle tuning
+			BreatheButtonScale / BreatheButtonPeriod: idle zoom of affordable BUY buttons (multiplier, seconds)
+			BreatheTodayScale / BreatheTodayPeriod: today's Daily tile (multiplier, seconds)
+			BreatheRewardScale / BreatheRewardPeriod: claimable Index reward box (multiplier, seconds)
+			GlowSizeRatio: GlowRing diameter as a multiple of the thing it backs (multiplier)
+			RewardTwinkleRate / TodayTwinkleRate / HeroTwinkleRate: Twinkle stars per second on the
+				Index reward, today's Daily tile and the Rebirth hero (stars/second)
+			RarityTwinkleRates: Twinkle stars per second per rarity; 0 = no stars (stars/second)
+			RainbowMinOrder: lowest rarity Order that gets a RainbowRim (rarity Order)
 
 		Play: play window header
 			Swatch / Title / Icon: header colour, title, emoji
@@ -391,8 +401,8 @@ return {
 		GridGap = 12,
 		PassRowHeight = 104,
 		TierSwatches = { "Blue", "Purple", "Pink", "Gold", "Gold" },
-		TierIconBase = 64,
-		TierIconStep = 8,
+		TierIconBase = 50,
+		TierIconStep = 5,
 		RibbonWidth = 104,
 		RibbonHeight = 22,
 		RibbonRotation = -28,
@@ -413,6 +423,7 @@ return {
 		OneShotText = "ONE SHOT",
 		PotionStatFormat = "%dx %s",
 		NewbiePackText = "NEWBIE PACK",
+		NewbiePackBonus = "STARTER BUNDLE",
 		Perks = {
 			Coins = "x%s coins",
 			Gems = "x%s gems",
@@ -437,8 +448,8 @@ return {
 		CountFormat = "x%d",
 		StainBombIcon = "💣",
 		NewbiePackIcon = "🎁",
-		StainBombInfoFormat = "Splats everything within %d studs!",
-		NewbiePackInfoFormat = "%s + %s 💎 + %s 💰 + x%s coins",
+		StainBombInfoFormat = "Splats within %d studs!",
+		NewbiePackInfoFormat = "%s\n+%s💎 +%s💰 x%s",
 	},
 
 	Pets = {
@@ -580,6 +591,30 @@ return {
 		EquippedText = "EQUIPPED",
 		LockedText = "🔒",
 		LastCrateFormat = "You got %s!",
+	},
+
+	Motion = {
+		BreatheButtonScale = 1.05,
+		BreatheButtonPeriod = 1.4,
+		BreatheTodayScale = 1.06,
+		BreatheTodayPeriod = 1.2,
+		BreatheRewardScale = 1.06,
+		BreatheRewardPeriod = 1.4,
+		GlowSizeRatio = 1.45,
+		RewardTwinkleRate = 1.5,
+		TodayTwinkleRate = 1,
+		HeroTwinkleRate = 1.5,
+		RarityTwinkleRates = {
+			Common = 0,
+			Uncommon = 0,
+			Rare = 0.5,
+			Epic = 1,
+			Legendary = 2,
+			Mythical = 2,
+			Secret = 2,
+			Darkness = 2,
+		},
+		RainbowMinOrder = 5,
 	},
 
 	Play = {
