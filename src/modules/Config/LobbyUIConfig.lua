@@ -40,6 +40,7 @@
 			Scale: largest extra scale at the top of a bounce (multiplier)
 			Seconds: length of one bounce (seconds)
 		Badge: notification dot
+			Size: dot diameter (design pixels)
 			Text: text in the dot (text)
 			Swatch: dot colour (UIConfig.Swatches key)
 			PulseScale: largest scale of the pulse (multiplier)
@@ -209,10 +210,11 @@ return {
 	},
 
 	Badge = {
+		Size = 26,
 		Text = "!",
 		Swatch = "Red",
-		PulseScale = 1.18,
-		PulseSeconds = 0.7,
+		PulseScale = 1.15,
+		PulseSeconds = 1.2,
 	},
 
 	Layouts = {

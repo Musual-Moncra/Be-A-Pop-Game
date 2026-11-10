@@ -43,6 +43,8 @@
 		ShadowTransparency: drop shadow transparency (0 to 1)
 		Radius / WindowRadius: corner radius of buttons and cards / of windows
 		InsetTransparency: transparency of recessed boxes (0 to 1)
+		GlossHeightRatio / GlossTransparency / GlossInset: button gloss top share, its transparency
+			and its inset from the edge (0 to 1, 0 to 1, design pixels)
 		OverlayTransparency: transparency of the window dimmer (0 to 1)
 		LockedTransparency: transparency of lock overlays (0 to 1)
 		DisabledTransparency: extra transparency on disabled buttons (0 to 1)
@@ -62,10 +64,18 @@
 	Animation (seconds unless noted):
 		Press: button hover/press tween time
 		PressScale / HoverScale: button size while pressed / hovered (multiplier)
+		HoverRotate: how far a hovered button tilts (degrees)
 		HoverGrowMax / PressShrinkMax: most a button may grow on hover / shrink on press, so large
 			cards in lists never spill out of them (design pixels)
 		Open: window, toast and dock button pop-in time
 		OpenFromScale: size a window or toast starts at when it opens (multiplier)
+		Close / CloseFromScale: window close tween time and end scale (seconds, multiplier)
+		OverlayFade: window dimmer fade time (seconds)
+		ShineSeconds / ShineInterval: one shine sweep and the wait between sweeps (seconds)
+		ShineWidthRatio / ShineTransparency / ShineRotation: sweep bar width share, opacity and tilt
+		CountUpSeconds: currency count-up time (seconds)
+		NumberPunchScale / NumberPunchSeconds: currency punch size and time (multiplier, seconds)
+		IdleBobHeight / IdleBobSeconds: icon-tile bob height and cycle (design pixels, seconds)
 		BarTween: progress bar fill tween time
 		SparkleSpeed: sparkle twinkle cycles per second (cycles/second)
 		HudTick: how often power-up countdowns redraw
@@ -80,15 +90,14 @@
 		TwinkleStyle / TwinkleDirection: easing of sparkles (Enum.EasingStyle / Direction)
 
 	Sizes (design pixels unless noted):
-		Hud.Width: width of the wallet column (level, coins, gems)
-		Hud.BadgeSize: gold level badge diameter
-		Hud.XpBarHeight: XP bar height
-		Hud.PillHeight / Hud.PillIconSize: coin/gem pill height / round icon diameter
+		Hud.BadgeSize: level badge diameter in the lobby top bar (design pixels)
+		Hud.XpRingSize / XpRingThickness / XpRingSegments: XP ring diameter, band width and segment count
+		Hud.PillWidth / PillHeight / PillIconSize: coin and gem pill width, height and icon diameter
+		Hud.StinkWidth / StinkHeight / StinkIconSize: Stink pill width, height and icon diameter
+		Hud.PlusSize / PlusGap: green plus button size and its gap from the pill edge
 		Hud.StinkSwatch: Stink pill colour (UIConfig.Swatches key)
-		Hud.Gap: gap between wallet rows
-		Hud.XpBarLeftRatio / XpBarDropDivisor: XP bar start and vertical drop as fractions of BadgeSize
-		Hud.CaptionHeightRatio / CaptionHeightDivisor: level caption height as a fraction of BadgeSize
-		Hud.CaptionInsetRatio: caption lift as a fraction of Shape.Radius
+		Hud.Gap: gap between top-bar items
+		Hud.Mobile*: same fields scale for the phone top bar (sizes design pixels)
 		Window.HeaderHeight: height of the ribbon title
 		Window.CloseSize: red close button size
 		Window.Padding: space between the window edge and its content
@@ -98,6 +107,9 @@
 		Window.CloseInset: how far the close button sits inside the corner, fraction of its size (0 to 1)
 		Window.Sparkles: stars around the ribbon; X = fraction of window width, Y = fraction of header
 			height from the top edge, Size = TextSizes key, Delay = fraction of a twinkle cycle
+		RarityGradients: per rarity id, Top / Mid / Bottom / Lip colours of a rarity card
+		RarityEffects: per rarity id, RotateSeconds (animated gradient) / ShineSeconds / Sparkles count
+		RaritySparkles: star positions on a sparkled rarity card (X, Y, Size key, Delay)
 		Play.Width / Play.Height: play window size (shrinks to fit small screens)
 		Play.MapColumnWidth: width of the map list (at most half the window)
 		Play.MapCardHeight: height of a map card
@@ -154,7 +166,7 @@
 
 	Layouts.PC / Layouts.Mobile: where the big pieces sit. Each entry has AnchorPoint (fraction of its
 		own size) and Position (scale of the screen + design-pixel offset):
-		Wallet (level and currency), Toasts, RunTimer, RunScore, RunQuests, RunLeave, Popups,
+		Wallet (the centred lobby top bar), Toasts, RunTimer, RunScore, RunQuests, RunLeave, Popups,
 		RoomPills (room and invite prompts).
 		WindowMargin: gap kept between a window and the screen edge (design pixels)
 
@@ -227,7 +239,9 @@
 		ResultSoiled: soiled objects badge (format: count)
 		ResultPlus: reward amount (format: amount)
 		ResultStinkFormat: score and Stink line on the result window; the coin row below it is the server total (format: score, multiplier)
-		StinkIcon / StinkPillFormat: Stink pill icon and text (format: multiplier with two decimals)
+		StinkIcon / StinkPillFormat / StinkChipFormat: Stink pill icon and full / short text
+			(format: multiplier with two decimals)
+		PlusIcon: text on the small green plus button beside coins/gems (text)
 		Continue: result window button
 		PowerupPickedFormat: popup when food is eaten (format: food name)
 		ObjectSoiledFormat: popup when an object is fully soiled (format: object name, bonus points)
@@ -262,94 +276,173 @@ return {
 	},
 
 	Palette = {
-		Ink = Color3.fromRGB(16, 14, 38),
+		Ink = Color3.fromRGB(27, 20, 64),
 		Text = Color3.fromRGB(255, 255, 255),
-		TextSoft = Color3.fromRGB(186, 194, 240),
-		PanelTop = Color3.fromRGB(58, 64, 132),
-		PanelBottom = Color3.fromRGB(34, 36, 84),
-		PanelRim = Color3.fromRGB(112, 86, 230),
-		Inset = Color3.fromRGB(20, 20, 52),
-		InsetStroke = Color3.fromRGB(14, 12, 34),
-		Shadow = Color3.fromRGB(8, 6, 24),
-		Overlay = Color3.fromRGB(10, 8, 30),
+		TextSoft = Color3.fromRGB(92, 102, 150),
+		PanelTop = Color3.fromRGB(255, 255, 255),
+		PanelBottom = Color3.fromRGB(222, 232, 255),
+		PanelRim = Color3.fromRGB(27, 20, 64),
+		Inset = Color3.fromRGB(196, 210, 245),
+		InsetStroke = Color3.fromRGB(150, 165, 215),
+		Shadow = Color3.fromRGB(27, 20, 64),
+		Overlay = Color3.fromRGB(27, 20, 64),
 		Sparkle = Color3.fromRGB(255, 236, 140),
-		Locked = Color3.fromRGB(14, 12, 34),
+		Locked = Color3.fromRGB(27, 20, 64),
 	},
 
 	Swatches = {
 		Orange = {
-			Top = Color3.fromRGB(255, 170, 50),
-			Bottom = Color3.fromRGB(246, 106, 22),
-			Lip = Color3.fromRGB(178, 62, 10),
-			Stroke = Color3.fromRGB(90, 32, 8),
+			Top = Color3.fromRGB(255, 200, 90),
+			Mid = Color3.fromRGB(255, 150, 40),
+			Bottom = Color3.fromRGB(240, 100, 20),
+			Lip = Color3.fromRGB(170, 60, 10),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
 		Blue = {
-			Top = Color3.fromRGB(96, 200, 255),
-			Bottom = Color3.fromRGB(40, 128, 240),
-			Lip = Color3.fromRGB(22, 76, 170),
-			Stroke = Color3.fromRGB(14, 40, 100),
+			Top = Color3.fromRGB(120, 215, 255),
+			Mid = Color3.fromRGB(60, 165, 255),
+			Bottom = Color3.fromRGB(35, 110, 235),
+			Lip = Color3.fromRGB(20, 70, 170),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
 		Purple = {
-			Top = Color3.fromRGB(200, 120, 255),
-			Bottom = Color3.fromRGB(132, 64, 236),
-			Lip = Color3.fromRGB(84, 36, 168),
-			Stroke = Color3.fromRGB(46, 18, 100),
+			Top = Color3.fromRGB(205, 150, 255),
+			Mid = Color3.fromRGB(160, 95, 250),
+			Bottom = Color3.fromRGB(115, 55, 220),
+			Lip = Color3.fromRGB(75, 30, 160),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
 		Green = {
-			Top = Color3.fromRGB(150, 240, 80),
-			Bottom = Color3.fromRGB(64, 192, 46),
-			Lip = Color3.fromRGB(34, 128, 30),
-			Stroke = Color3.fromRGB(18, 70, 16),
+			Top = Color3.fromRGB(140, 255, 90),
+			Mid = Color3.fromRGB(70, 220, 60),
+			Bottom = Color3.fromRGB(30, 170, 40),
+			Lip = Color3.fromRGB(16, 110, 30),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
 		Red = {
-			Top = Color3.fromRGB(255, 110, 110),
-			Bottom = Color3.fromRGB(228, 44, 60),
-			Lip = Color3.fromRGB(150, 20, 36),
-			Stroke = Color3.fromRGB(84, 10, 20),
+			Top = Color3.fromRGB(255, 130, 130),
+			Mid = Color3.fromRGB(245, 70, 80),
+			Bottom = Color3.fromRGB(200, 35, 55),
+			Lip = Color3.fromRGB(140, 20, 35),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
 		Gold = {
-			Top = Color3.fromRGB(255, 232, 90),
-			Bottom = Color3.fromRGB(250, 172, 24),
-			Lip = Color3.fromRGB(190, 112, 10),
-			Stroke = Color3.fromRGB(100, 56, 6),
+			Top = Color3.fromRGB(255, 240, 120),
+			Mid = Color3.fromRGB(255, 205, 40),
+			Bottom = Color3.fromRGB(240, 150, 15),
+			Lip = Color3.fromRGB(175, 95, 5),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
 		Grey = {
-			Top = Color3.fromRGB(176, 184, 206),
-			Bottom = Color3.fromRGB(110, 118, 146),
-			Lip = Color3.fromRGB(70, 76, 100),
-			Stroke = Color3.fromRGB(34, 38, 56),
+			Top = Color3.fromRGB(235, 240, 250),
+			Mid = Color3.fromRGB(195, 205, 225),
+			Bottom = Color3.fromRGB(150, 160, 190),
+			Lip = Color3.fromRGB(105, 115, 145),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
 		Pink = {
-			Top = Color3.fromRGB(255, 150, 210),
-			Bottom = Color3.fromRGB(236, 80, 160),
-			Lip = Color3.fromRGB(164, 40, 110),
-			Stroke = Color3.fromRGB(90, 16, 60),
+			Top = Color3.fromRGB(255, 160, 220),
+			Mid = Color3.fromRGB(255, 100, 185),
+			Bottom = Color3.fromRGB(225, 55, 150),
+			Lip = Color3.fromRGB(160, 30, 105),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
 		Teal = {
-			Top = Color3.fromRGB(90, 240, 210),
-			Bottom = Color3.fromRGB(24, 180, 170),
-			Lip = Color3.fromRGB(10, 116, 112),
-			Stroke = Color3.fromRGB(6, 62, 60),
+			Top = Color3.fromRGB(120, 255, 225),
+			Mid = Color3.fromRGB(60, 220, 200),
+			Bottom = Color3.fromRGB(30, 180, 165),
+			Lip = Color3.fromRGB(15, 110, 100),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
 		Brown = {
-			Top = Color3.fromRGB(196, 132, 70),
-			Bottom = Color3.fromRGB(132, 80, 36),
-			Lip = Color3.fromRGB(86, 50, 20),
-			Stroke = Color3.fromRGB(48, 26, 10),
+			Top = Color3.fromRGB(200, 140, 90),
+			Mid = Color3.fromRGB(160, 100, 55),
+			Bottom = Color3.fromRGB(120, 70, 35),
+			Lip = Color3.fromRGB(80, 45, 20),
+			Stroke = Color3.fromRGB(27, 20, 64),
 		},
+	},
+
+	RarityGradients = {
+		Common = {
+			Top = Color3.fromRGB(225, 232, 245),
+			Mid = Color3.fromRGB(190, 200, 222),
+			Bottom = Color3.fromRGB(150, 160, 190),
+			Lip = Color3.fromRGB(105, 115, 145),
+		},
+		Uncommon = {
+			Top = Color3.fromRGB(165, 255, 150),
+			Mid = Color3.fromRGB(90, 220, 90),
+			Bottom = Color3.fromRGB(45, 170, 60),
+			Lip = Color3.fromRGB(25, 110, 40),
+		},
+		Rare = {
+			Top = Color3.fromRGB(150, 225, 255),
+			Mid = Color3.fromRGB(80, 165, 255),
+			Bottom = Color3.fromRGB(45, 105, 225),
+			Lip = Color3.fromRGB(25, 65, 160),
+		},
+		Epic = {
+			Top = Color3.fromRGB(225, 175, 255),
+			Mid = Color3.fromRGB(175, 115, 250),
+			Bottom = Color3.fromRGB(120, 60, 220),
+			Lip = Color3.fromRGB(80, 30, 150),
+		},
+		Legendary = {
+			Top = Color3.fromRGB(255, 250, 150),
+			Mid = Color3.fromRGB(255, 210, 60),
+			Bottom = Color3.fromRGB(240, 160, 20),
+			Lip = Color3.fromRGB(175, 95, 5),
+		},
+		Mythical = {
+			Top = Color3.fromRGB(255, 150, 220),
+			Mid = Color3.fromRGB(255, 110, 190),
+			Bottom = Color3.fromRGB(80, 230, 240),
+			Lip = Color3.fromRGB(50, 150, 160),
+		},
+		Secret = {
+			Top = Color3.fromRGB(35, 35, 45),
+			Mid = Color3.fromRGB(145, 145, 160),
+			Bottom = Color3.fromRGB(245, 245, 255),
+			Lip = Color3.fromRGB(60, 60, 75),
+		},
+		Darkness = {
+			Top = Color3.fromRGB(22, 12, 34),
+			Mid = Color3.fromRGB(78, 45, 110),
+			Bottom = Color3.fromRGB(42, 22, 72),
+			Lip = Color3.fromRGB(15, 6, 28),
+		},
+	},
+
+	RarityEffects = {
+		Epic = { ShineSeconds = 6 },
+		Legendary = { Sparkles = 3 },
+		Mythical = { RotateSeconds = 6, Sparkles = 4 },
+		Secret = { RotateSeconds = 6 },
+		Darkness = { RotateSeconds = 6 },
+	},
+
+	RaritySparkles = {
+		{ X = 0.2, Y = 0.24, Size = "Body", Delay = 0 },
+		{ X = 0.78, Y = 0.18, Size = "Large", Delay = 0.3 },
+		{ X = 0.5, Y = 0.5, Size = "Small", Delay = 0.55 },
+		{ X = 0.3, Y = 0.72, Size = "Body", Delay = 0.8 },
 	},
 
 	Shape = {
 		Stroke = 3,
-		RimStroke = 5,
-		TextStroke = 3,
-		SmallTextStroke = 2,
+		RimStroke = 4,
+		TextStroke = 2.5,
+		SmallTextStroke = 1.5,
 		Lip = 6,
-		ShadowOffset = 6,
-		ShadowTransparency = 0.45,
+		ShadowOffset = 4,
+		ShadowTransparency = 0.6,
 		Radius = 16,
-		WindowRadius = 26,
-		InsetTransparency = 0.15,
+		WindowRadius = 22,
+		InsetTransparency = 0,
+		GlossHeightRatio = 0.45,
+		GlossTransparency = 0.65,
+		GlossInset = 3,
 		OverlayTransparency = 0.45,
 		LockedTransparency = 0.35,
 		DisabledTransparency = 0.25,
@@ -364,7 +457,7 @@ return {
 
 	TextSizes = {
 		Huge = 64,
-		Title = 40,
+		Title = 36,
 		Header = 30,
 		Large = 26,
 		Body = 20,
@@ -376,13 +469,27 @@ return {
 	},
 
 	Animation = {
-		Press = 0.08,
+		Press = 0.18,
 		PressScale = 0.9,
-		HoverScale = 1.05,
+		HoverScale = 1.07,
+		HoverRotate = 2,
 		HoverGrowMax = 8,
 		PressShrinkMax = 10,
-		Open = 0.22,
-		OpenFromScale = 0.82,
+		Open = 0.32,
+		OpenFromScale = 0.75,
+		Close = 0.15,
+		CloseFromScale = 0.85,
+		OverlayFade = 0.2,
+		ShineSeconds = 0.6,
+		ShineInterval = 3.2,
+		ShineWidthRatio = 0.18,
+		ShineTransparency = 0.5,
+		ShineRotation = 20,
+		CountUpSeconds = 0.4,
+		NumberPunchScale = 1.25,
+		NumberPunchSeconds = 0.25,
+		IdleBobHeight = 3,
+		IdleBobSeconds = 1.6,
 		BarTween = 0.25,
 		SparkleSpeed = 0.7,
 		HudTick = 0.1,
@@ -403,30 +510,44 @@ return {
 
 	Sizes = {
 		Hud = {
-			Width = 330,
-			BadgeSize = 92,
-			XpBarHeight = 34,
-			PillHeight = 58,
-			PillIconSize = 74,
+			BadgeSize = 64,
+			XpRingSize = 72,
+			XpRingThickness = 6,
+			XpRingSegments = 36,
+			PillWidth = 220,
+			PillHeight = 52,
+			PillIconSize = 64,
+			StinkWidth = 150,
+			StinkHeight = 44,
+			StinkIconSize = 52,
+			PlusSize = 40,
+			PlusGap = 6,
 			StinkSwatch = "Brown",
-			Gap = 14,
-			XpBarLeftRatio = 0.5,
-			XpBarDropDivisor = 6,
-			CaptionHeightRatio = 0.5,
-			CaptionHeightDivisor = 4,
-			CaptionInsetRatio = 0.5,
+			Gap = 12,
+			MobileBadgeSize = 52,
+			MobileRingSize = 60,
+			MobileRingThickness = 5,
+			MobilePillWidth = 170,
+			MobilePillHeight = 44,
+			MobilePillIconSize = 54,
+			MobileStinkWidth = 120,
+			MobileStinkHeight = 38,
+			MobileStinkIconSize = 44,
+			MobilePlusSize = 32,
+			MobileGap = 8,
 		},
 		Window = {
-			HeaderHeight = 74,
-			CloseSize = 62,
+			HeaderHeight = 64,
+			CloseSize = 56,
 			Padding = 22,
 			Gap = 16,
-			HeaderWidth = 0.62,
+			HeaderWidth = 0.64,
 			CenterShift = 0.25,
 			CloseInset = 0.2,
 			Sparkles = {
-				{ X = 0.19, Y = -0.45, Size = "Large", Delay = 0 },
-				{ X = 0.81, Y = 0.4, Size = "Body", Delay = 0.33 },
+				{ X = 0.16, Y = -0.42, Size = "Large", Delay = 0 },
+				{ X = 0.84, Y = 0.36, Size = "Body", Delay = 0.33 },
+				{ X = 0.5, Y = -0.55, Size = "Small", Delay = 0.66 },
 			},
 		},
 		Play = {
@@ -519,7 +640,7 @@ return {
 
 	Layouts = {
 		PC = {
-			Wallet = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 24) },
+			Wallet = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12) },
 			Toasts = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 24) },
 			RunTimer = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 20) },
 			RunScore = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -28, 0, 20) },
@@ -530,7 +651,7 @@ return {
 			WindowMargin = 40,
 		},
 		Mobile = {
-			Wallet = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 12) },
+			Wallet = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8) },
 			Toasts = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 12) },
 			RunTimer = { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10) },
 			RunScore = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 10) },
@@ -696,6 +817,8 @@ return {
 		ResultStinkFormat = "Score %s × Stink x%s",
 		StinkIcon = "💩",
 		StinkPillFormat = "x%.2f Stink",
+		StinkChipFormat = "x%.2f",
+		PlusIcon = "+",
 		Continue = "CONTINUE",
 
 		PowerupPickedFormat = "Yum! %s",
