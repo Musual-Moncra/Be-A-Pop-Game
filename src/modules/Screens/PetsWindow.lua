@@ -42,6 +42,18 @@ local Shape = UIConfig.Shape
 local Gap = UIConfig.Sizes.Window.Gap
 local TextSizes = UIConfig.TextSizes
 
+local function validTab(requested: any): string?
+	if type(requested) ~= "string" then
+		return nil
+	end
+	for _, tab in Pets.Tabs do
+		if tab.Id == requested then
+			return requested
+		end
+	end
+	return nil
+end
+
 local function isComingSoon(map: any): boolean
 	local raw = map :: any
 	return map.Enabled == false or raw.ComingSoon == true
@@ -445,7 +457,7 @@ local function RewardBox(map: any, data: any): any
 		position = UDim2.new(1, 0, 0.5, 0),
 		shine = earned,
 		size = UDim2.fromOffset(Index.RewardBoxWidth, Index.RewardBoxHeight),
-		swatch = if earned then "Gold" else "Grey",
+		swatch = "Gold",
 		zIndex = 3,
 	}, {
 		Icon = Primitives.text({
@@ -483,7 +495,7 @@ return function(props: any)
 	local data = props.data
 	local ui = props.ui
 	local width, height = WindowSize.fit(ui, Pets.Width, Pets.Height)
-	local tab, setTab = React.useState(Pets.Tabs[1].Id)
+	local tab, setTab = React.useState(validTab(props.initialTab) or Pets.Tabs[1].Id)
 	local selectedUid, setSelectedUid = React.useState(nil :: string?)
 	local confirmUid, setConfirmUid = React.useState(nil :: string?)
 	local selectedMap, setSelectedMap = React.useState(ConfigLookup.GetSortedMaps()[1].Id)

@@ -32,6 +32,7 @@ local e = React.createElement
 local Rebirth = LobbyUIConfig.Rebirth
 local Gap = UIConfig.Sizes.Window.Gap
 local Palette = UIConfig.Palette
+local Text = UIConfig.Text
 local TextSizes = UIConfig.TextSizes
 
 local function infoRow(order: number, icon: string, text: string, color: Color3?): any
@@ -72,7 +73,7 @@ return function(props: any)
 		Count = infoRow(1, Rebirth.Icon, string.format(Rebirth.Lines.Count, rebirths)),
 		Multiplier = infoRow(
 			2,
-			"💰",
+			Text.CoinIcon,
 			string.format(
 				Rebirth.Lines.Multiplier,
 				Format.multiplier(ConfigLookup.GetRebirthMultiplier(rebirths)),
@@ -80,10 +81,10 @@ return function(props: any)
 			),
 			Palette.Sparkle
 		),
-		Gems = infoRow(3, "💎", string.format(Rebirth.Lines.Gems, RebirthConfig.GemsPerRebirth)),
+		Gems = infoRow(3, Text.GemIcon, string.format(Rebirth.Lines.Gems, RebirthConfig.GemsPerRebirth)),
 		Cost = infoRow(
 			4,
-			"🪙",
+			Text.CoinIcon,
 			string.format(Rebirth.Lines.Cost, Format.commas(cost)),
 			if canRebirth then Palette.Sparkle else UIConfig.Swatches.Red.Top
 		),

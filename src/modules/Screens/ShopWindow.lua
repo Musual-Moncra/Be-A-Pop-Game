@@ -54,6 +54,18 @@ local function bestValue(tab: string, key: any): boolean
 	return value ~= nil and value ~= "" and value == key
 end
 
+local function validTab(requested: any): string?
+	if type(requested) ~= "string" then
+		return nil
+	end
+	for _, tab in Shop.Tabs do
+		if tab.Id == requested then
+			return requested
+		end
+	end
+	return nil
+end
+
 local function ribbon(): any
 	local swatch = Primitives.swatch("Red")
 	return e("Frame", {
@@ -328,7 +340,7 @@ end
 
 return function(props: any)
 	local width, height = WindowSize.fit(props.ui, Shop.Width, Shop.Height)
-	local tab, setTab = React.useState(Shop.Tabs[1].Id)
+	local tab, setTab = React.useState(validTab(props.initialTab) or Shop.Tabs[1].Id)
 	local data = props.data
 	local cards: { [string]: any } = {}
 	local count = 0

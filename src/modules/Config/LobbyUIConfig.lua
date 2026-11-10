@@ -155,6 +155,7 @@
 
 		Play: play window header
 			Swatch / Title / Icon: header colour, title, emoji
+			EditIcon / BrowseIcon / RoomIcon: create, browse and room headers (text)
 
 		RaritySwatches: rarity id -> UIConfig.Swatches key for cards and chips
 
@@ -522,6 +523,9 @@ return {
 		Swatch = "Green",
 		Title = "PLAY",
 		Icon = "▶️",
+		EditIcon = "⚙️",
+		BrowseIcon = "🔎",
+		RoomIcon = "👥",
 	},
 
 	PetReveal = {
