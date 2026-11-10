@@ -13,9 +13,8 @@
 	Fields:
 		ReviveOfferAt: lifespan left when the revive popup appears (seconds)
 		ReviveWindow: how long the revive offer stays open; a run at zero is kept alive until it closes (seconds)
-		ReviveSeconds: lifespan added to the run when a revive is bought (seconds)
-		StainBombRadius: soils every prop within this distance of the poop, 3x the Mini Bomb
-			perk radius of 25 studs (studs)
+		StainBombBaseRadius: Stain Bomb radius at StainSize upgrade level 1; the live radius scales
+			by current stain size / level-1 stain size, so upgrades and power-ups grow it (studs)
 		MagnetPickupRadius: food pickup radius while the Magnet gamepass is owned (studs)
 		MaxPurchaseHistory: processed receipt ids kept per player for idempotency (count)
 		PassCacheSeconds: how long a gamepass ownership answer is trusted before it is re-asked
@@ -24,6 +23,8 @@
 			ReviveGranted: revive applied, %d = lifespan added (text)
 			StainBombUsed: stain bomb bought and nearby props soiled (text)
 			NewbiePackGranted: Newbie Pack contents delivered (text)
+			NewbiePackOwned: Newbie Pack bought again after it was already claimed (text)
+			PotionGranted: potion product delivered, %s = potion name (text)
 			PassPurchased: gamepass bought, %s = gamepass display name (text)
 		Gamepasses: one entry per gamepass, keyed by the pass key code uses
 			Id: gamepass asset id, 0 = not uploaded yet (asset id)
@@ -51,8 +52,9 @@
 				Id: product asset id, 0 = not uploaded yet (asset id)
 				DisplayName: name shown on the revive prompt (text)
 				PriceRobux: planned price for the shop copy, informational only (Robux)
-				Tier: 1-based offer position, the last tier repeats when bought again (tier)
-			StainBomb: one-shot product, soils every prop near the player (see StainBombRadius)
+				Tier: 1-based offer position, offers stop after the last tier (tier)
+				Seconds: lifespan added to the run when this tier is bought (seconds)
+			StainBomb: one-shot product, soils every prop near the player (see StainBombBaseRadius)
 				Id: product asset id, 0 = not uploaded yet (asset id)
 				DisplayName: name shown in the shop (text)
 				PriceRobux: planned price for the shop copy, informational only (Robux)
@@ -71,8 +73,7 @@
 return {
 	ReviveOfferAt = 5,
 	ReviveWindow = 8,
-	ReviveSeconds = 20,
-	StainBombRadius = 75,
+	StainBombBaseRadius = 43,
 	MagnetPickupRadius = 30,
 	MaxPurchaseHistory = 100,
 	PassCacheSeconds = 120,
@@ -81,6 +82,8 @@ return {
 		ReviveGranted = "Revived! +%ds",
 		StainBombUsed = "Stain Bomb! Nearby props are wrecked!",
 		NewbiePackGranted = "Newbie Pack unlocked!",
+		NewbiePackOwned = "Newbie Pack already claimed.",
+		PotionGranted = "%s added to your bag!",
 		PassPurchased = "%s activated!",
 	},
 
@@ -162,9 +165,9 @@ return {
 			{ Id = 0, DisplayName = "Truck of Coins", PriceRobux = 1499, Coins = 100000 },
 		},
 		Revive = {
-			{ Id = 0, DisplayName = "Revive", PriceRobux = 4, Tier = 1 },
-			{ Id = 0, DisplayName = "Revive Again", PriceRobux = 9, Tier = 2 },
-			{ Id = 0, DisplayName = "Last Revive", PriceRobux = 13, Tier = 3 },
+			{ Id = 0, DisplayName = "Revive", PriceRobux = 4, Tier = 1, Seconds = 20 },
+			{ Id = 0, DisplayName = "Revive Again", PriceRobux = 9, Tier = 2, Seconds = 20 },
+			{ Id = 0, DisplayName = "Last Revive", PriceRobux = 13, Tier = 3, Seconds = 30 },
 		},
 		StainBomb = {
 			Id = 0,

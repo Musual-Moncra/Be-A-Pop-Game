@@ -9,10 +9,10 @@
 
 	Checks: every enabled map has its template, spawn inside the map, its patrol NPCs and valid
 	ObjectType attributes on Props; every sound key has its Sound template; room sizes and default
-	are valid; pet MapIds point at real maps; CharacterConfig.RootWidth matches the StarterCharacter. Ids still at 0 and empty animations are listed as notes.
+	are valid; pet MapIds point at real maps; CharacterConfig.RootWidth matches the StarterCharacter. Ids still at 0, empty animations and empty sounds are listed as notes.
 
 	Dependencies: ServerStorage.Assets, ReplicatedStorage.Assets, ConfigLookup, AssetConfig,
-	MapConfig, MonetizationConfig, PetConfig, RoomConfig, RunConfig, SoundConfig
+	MapConfig, MonetizationConfig, PetConfig, PotionConfig, RoomConfig, RunConfig, SoundConfig
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -25,6 +25,7 @@ local CharacterConfig = require(Config.CharacterConfig)
 local MapConfig = require(Config.MapConfig)
 local MonetizationConfig = require(Config.MonetizationConfig)
 local PetConfig = require(Config.PetConfig)
+local PotionConfig = require(Config.PotionConfig)
 local RoomConfig = require(Config.RoomConfig)
 local RunConfig = require(Config.RunConfig)
 local SoundConfig = require(Config.SoundConfig)
@@ -121,10 +122,41 @@ local function run()
 			table.insert(notes, "Animation " .. name .. " has no id yet")
 		end
 	end
+	local missingIds = {}
 	for key, pass in MonetizationConfig.Gamepasses do
 		if pass.Id == 0 then
-			table.insert(notes, "Gamepass " .. key .. " has Id 0")
+			table.insert(missingIds, key)
 		end
+	end
+	for _, pack in MonetizationConfig.DevProducts.GemPacks do
+		if pack.Id == 0 then
+			table.insert(missingIds, pack.DisplayName)
+		end
+	end
+	for _, pack in MonetizationConfig.DevProducts.CoinPacks do
+		if pack.Id == 0 then
+			table.insert(missingIds, pack.DisplayName)
+		end
+	end
+	for _, tier in MonetizationConfig.DevProducts.Revive do
+		if tier.Id == 0 then
+			table.insert(missingIds, tier.DisplayName)
+		end
+	end
+	if MonetizationConfig.DevProducts.StainBomb.Id == 0 then
+		table.insert(missingIds, MonetizationConfig.DevProducts.StainBomb.DisplayName)
+	end
+	if MonetizationConfig.DevProducts.NewbiePack.Id == 0 then
+		table.insert(missingIds, MonetizationConfig.DevProducts.NewbiePack.DisplayName)
+	end
+	for _, potion in PotionConfig.Potions do
+		if potion.ProductId == 0 then
+			table.insert(missingIds, potion.DisplayName)
+		end
+	end
+	table.sort(missingIds)
+	if #missingIds > 0 then
+		table.insert(notes, "Product/gamepass Ids still 0: " .. table.concat(missingIds, ", "))
 	end
 
 	for _, text in problems do

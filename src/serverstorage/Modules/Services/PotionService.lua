@@ -6,6 +6,7 @@
 
 	API:
 		PotionService.UsePotion(plr: Player, potionId: string): (boolean, string?)
+		PotionService.GrantPotion(plr: Player, potionId: string): boolean
 		PotionService.GetActivePotions(plr: Player): { [string]: number }
 		PotionService.GetMultiplier(plr: Player, stat: string): number
 
@@ -59,6 +60,20 @@ function PotionService.GetMultiplier(plr: Player, stat: string): number
 		end
 	end
 	return mult
+end
+
+function PotionService.GrantPotion(plr: Player, potionId: string): boolean
+	local def = ConfigLookup.GetPotion(potionId)
+	local data = DataService.Get(plr)
+	if def == nil or data == nil then
+		return false
+	end
+	if data.PotionInventory == nil then
+		data.PotionInventory = {}
+	end
+	data.PotionInventory[potionId] = (data.PotionInventory[potionId] or 0) + 1
+	DataService.MarkChanged(plr)
+	return true
 end
 
 function PotionService.UsePotion(plr: Player, potionId: string): (boolean, string?)
