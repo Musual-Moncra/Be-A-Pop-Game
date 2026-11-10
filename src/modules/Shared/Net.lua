@@ -67,6 +67,7 @@
 		                                   Stink, Index = { { PetId, Variant } }, IndexClaimed = { mapId } }
 		PetDrop(petId, variant, isNew, converted)  pet rolled at 100% map clear, converted = gems if full
 		PetPoop(uid, gems)                 one equipped pet pooped during a run, client plays the puddle
+		PetStacks(uid, stacks)             low-bandwidth stack update after a poop, client re-derives Stink
 		LeaderboardData(Period, Entries)   Entries { { Rank, Name, Value } }, Period "Daily" | "Weekly" | "AllTime"
 
 	RunSummary:
@@ -214,6 +215,7 @@ Net.MergePet = Packet.new("MergePet", Packet.String)
 Net.PetInventory = Packet.new("PetInventory", PetInventoryState)
 Net.PetDrop = Packet.new("PetDrop", Packet.String, Packet.String, Packet.Boolean8, Packet.NumberU16)
 Net.PetPoop = Packet.new("PetPoop", Packet.String, Packet.NumberU8)
+Net.PetStacks = Packet.new("PetStacks", Packet.String, Packet.NumberU16)
 
 local RoomMember = {
 	UserId = Packet.NumberF64,

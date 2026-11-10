@@ -23,7 +23,7 @@ Khi nhấn Play trong Studio, Output in dòng `[ContentCheck]`: có `problems` >
 2. Tên Model trùng `ModelName` của pet trong `PetConfig`; mỗi pet đang dùng chính `Id` của nó (ví dụ `Snail`, `PersianCat`).
 3. Model phải có `PrimaryPart` (chọn một MeshPart làm gốc). Các part bên trong giữ weld nội bộ; game tự bỏ anchor, tắt va chạm/query/touch và bật `Massless` cho mọi part.
 4. Không cần đúng kích thước: game tự `ScaleTo` để cạnh dài nhất của model bằng `Size` của pet trong `PetConfig`.
-5. Pet Golden / Rainbow / Stinky được tô màu, thêm sparkle và viền theo `Variants` (`VfxColor`, `VfxRate`). Pet Default giữ màu model gốc.
+5. Pet Golden / Rainbow / Stinky được tô màu và thêm sparkle theo `Variants` (`VfxColor`, `VfxRate`). Pet Default giữ màu model gốc.
 6. Thiếu model thì pet vẫn chạy bằng quả bóng placeholder; `[ContentCheck]` liệt kê từng pet còn thiếu model.
 
 ## 2. Thêm hoặc sửa map

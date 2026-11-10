@@ -33,6 +33,7 @@
 		Outbound.PetInventory(plr, state)                coalesced, { Pets, Equipped, Slots, Stink, Index, IndexClaimed }
 		Outbound.PetDrop(plr, petId, variantId, isNew, converted)
 		Outbound.PetPoop(plr, uid, gems)
+		Outbound.PetStacks(plr, uid, stacks)
 		Outbound.LeaderboardData(plr, period, entries)
 		Outbound.RoomState(plr, payload)                 the room this client is in
 		Outbound.RoomList(plr, rooms)                    joinable rooms, while watching
@@ -210,6 +211,12 @@ end
 function Outbound.PetPoop(plr: Player, uid: string, gems: number)
 	if connected(plr) then
 		Net.PetPoop:FireClient(plr, uid, math.clamp(math.floor(gems), 0, 255))
+	end
+end
+
+function Outbound.PetStacks(plr: Player, uid: string, stacks: number)
+	if connected(plr) then
+		Net.PetStacks:FireClient(plr, uid, math.clamp(math.floor(stacks), 0, 65535))
 	end
 end
 

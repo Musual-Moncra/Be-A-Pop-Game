@@ -27,6 +27,7 @@ for name in ConfigLookup Hitbox; do
 done
 
 ARGS+=("ServerServices.RoomService" "$(cat "$ROOT_DIR/src/serverstorage/Modules/Services/RoomService.lua")")
+ARGS+=("ServerServices.MapProgressService" "$(cat "$ROOT_DIR/src/serverstorage/Modules/Services/MapProgressService.lua")")
 
 "$LUAU_BIN" "$ROOT_DIR/tools/tests/suite.lua" -a "${ARGS[@]}"
 python3 "$ROOT_DIR/tools/tests/run_rooms.py"
