@@ -79,10 +79,14 @@ local function App(props: any)
 	local ui = useUIScale(props.screenGui, props.safeGui)
 	local data, setData = React.useState(DataController.Get())
 	local route, setRoute = React.useState(LobbyState.Get())
+	local tab, setTab = React.useState(LobbyState.GetTab())
 
 	React.useEffect(function()
 		local dataConnection = DataController.Changed:Connect(setData)
-		local routeConnection = LobbyState.Changed:Connect(setRoute)
+		local routeConnection = LobbyState.Changed:Connect(function(nextRoute: string, nextTab: string?)
+			setRoute(nextRoute)
+			setTab(nextTab)
+		end)
 		return function()
 			dataConnection:Disconnect()
 			routeConnection:Disconnect()
@@ -121,9 +125,9 @@ local function App(props: any)
 		elseif route == Routes.Daily then
 			lobbyWindow = e(DailyWindow, { data = data, ui = ui, onClose = close })
 		elseif route == Routes.Shop then
-			lobbyWindow = e(ShopWindow, { data = data, ui = ui, onClose = close })
+			lobbyWindow = e(ShopWindow, { data = data, initialTab = tab, ui = ui, onClose = close })
 		elseif route == Routes.Pets then
-			lobbyWindow = e(PetsWindow, { data = data, ui = ui, onClose = close })
+			lobbyWindow = e(PetsWindow, { data = data, initialTab = tab, ui = ui, onClose = close })
 		elseif route == Routes.Skins then
 			lobbyWindow = e(SkinsWindow, { data = data, ui = ui, onClose = close })
 		elseif route == Routes.Rebirth then
