@@ -177,8 +177,8 @@ return {
 	PowerupFovId = "SpeedBoost",
 
 	SquashParts = { "node_0", "node_0.002" },
-	SquashLandScale = Vector3.new(1.16, 0.74, 1.16),
-	SquashJumpScale = Vector3.new(0.88, 1.18, 0.88),
+	SquashLandScale = Vector3.new(1.08, 0.88, 1.08),
+	SquashJumpScale = Vector3.new(0.94, 1.08, 0.94),
 	SquashProbeDistance = 3,
 	SquashAirTime = 0.12,
 	SquashInTime = 0.08,
