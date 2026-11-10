@@ -18,6 +18,7 @@
 		AirControl: fraction of walking speed the player can steer with while airborne (0 to 1)
 		MoveInputDeadzone: smallest stick/thumbstick magnitude treated as movement (0 to 1)
 		MoveSmoothingSpeed: how quickly the poop reaches its walking velocity (1/s, larger = snappier)
+		BodyTurnSpeed: how quickly the body turns to face the direction it moves (1/s, larger = snappier)
 		NormalLerpSpeed: how quickly GravityUp blends toward a new surface normal (1/s)
 		AlignmentResponsiveness: how quickly the body twists to match GravityUp (Roblox AlignOrientation units)
 		AlignmentTorquePerMass: torque limit of the body alignment, per unit of character mass (torque/mass)
@@ -70,6 +71,7 @@ return {
 	AirControl = 0.45,
 	MoveInputDeadzone = 0.08,
 	MoveSmoothingSpeed = 18,
+	BodyTurnSpeed = 14,
 	NormalLerpSpeed = 7,
 	AlignmentResponsiveness = 90,
 	AlignmentTorquePerMass = 8000,
