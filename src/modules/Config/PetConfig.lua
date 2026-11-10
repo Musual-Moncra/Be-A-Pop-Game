@@ -2,20 +2,28 @@
 
 --[[
 	PetConfig
-	Eggs, pets, rarities, variants and follower visuals for the pet system. Pure data, no functions.
+	Pets, rarities, variants and follower visuals for the pet system. Pure data, no functions.
 
-	Rules:
-		Every hatchable pet belongs to exactly one egg through EggId. A pet with EggId = ""
-		is never hatched and only arrives from a developer product or a legacy save grant.
-		An egg belongs to one map through MapId, so buying an egg requires that map unlocked.
-		Hatch rarity is weighted by the rarity Weight of the pets in the egg.
-		Merge chain is Variants[id].NextVariant; a variant without NextVariant cannot be merged.
+	Pets drop when a run reaches 100% map stain; there are no eggs. A pet belongs to one map
+	through MapId and rolls with weight 1/DropOdds inside that map's pool. Exclusive pets are
+	never rolled: each launch map grants its exclusive once when the map's Pet Index is complete.
+	Stink is the single player-facing multiplier:
+		PetStink = Stink x variant Bonus x (1 + StackBonus x min(Stacks, StackCap))
+	Pet poop adds Stacks during a run; stacks are saved on the pet entry.
 
 	Fields:
-		BaseSlots: equip slots every player has before ExtraSlots gamepasses (slots)
+		BaseSlots: equip slots every player has before ExtraPetSlots gamepasses (slots)
 		GrantVariant: variant used when a product or save grant names only a pet id (variant id)
 		MaxMergedFrom: number of identical pets consumed by one merge (count)
-		FollowFolderName: Workspace folder that holds the placeholder pet followers (string)
+		InventoryCap: most pets one player may own; a drop at the cap pays FullInventoryGems (count)
+		FullInventoryGems: gems paid instead of a pet when the inventory is full (gems)
+		IndexGems: gems paid when a map's Pet Index is complete (gems)
+		PoopInterval: seconds between two poops of one equipped pet during a run (seconds)
+		PoopGemChance: chance that one pet poop pays PoopGems (0 to 1)
+		PoopGems: gems paid by a successful pet poop (gems)
+		StackBonus: Stink added per stack, as a share of the pet's base Stink (multiplier)
+		StackCap: most stacks one pet may hold (count)
+		FollowFolderName: Workspace folder that holds the pet followers (string)
 		FollowModelPrefix: name prefix of every follower model (string)
 		FollowSpawnDelay: wait after a character spawns before followers are rebuilt (seconds)
 		FollowShape: shape of the placeholder follower body (Enum.PartType)
@@ -33,39 +41,40 @@
 			Id: unique rarity id saved inside pet definitions (string)
 			DisplayName: name shown in the UI (text)
 			Order: position in the rarity list, 1 = most common (number)
-			Weight: hatch weight compared to other rarities in the same egg, higher = more common (number)
+			Weight: rarity weight compared to the other rarities (number)
 			Color: colour used for the rarity label (RGB)
 		Variants: one table per variant, keyed by variant id
 			Id: unique variant id saved with every owned pet (string)
 			DisplayName: name shown in the UI (text)
-			Bonus: multiplies the pet's coin and stink multipliers (multiplier)
-			Weight: hatch weight compared to the other variants, higher = more common (number)
+			Bonus: multiplies the pet's Stink (multiplier)
+			DropOdds: 1/N chance to roll this variant, 0 = never rolled, Default takes the rest (number)
 			NextVariant: variant a merge turns this one into, missing = final variant (variant id)
 			Color: follower body colour override for this variant (RGB)
-		Eggs: one table per egg, keyed by egg id
-			Id: unique egg id used by the hatch remote (string)
-			MapId: map that must be unlocked before the egg can be bought (map id)
-			DisplayName: name shown on the egg card (text)
-			Price: coins paid for one hatch (coins)
-			BaseSlots: equip slots advertised with this egg (slots)
-			InventoryCap: most pets one player may own before hatching is blocked (count)
-			Order: position in the egg list, 1 = first (number)
-			Color: egg card colour (RGB)
 		Pets: list of pets, one table per pet
 			Id: unique pet id saved in player data (string)
 			DisplayName: name shown in the UI (text)
-			EggId: egg this pet hatches from, "" = never hatched (egg id)
+			MapId: map whose 100% clear rolls this pet, "" = never rolled (map id)
 			Rarity: rarity id from Rarities (rarity id)
-			CoinMultiplier: coins earned while equipped are multiplied by this (multiplier)
-			StinkMultiplier: stain score earned while equipped is multiplied by this (multiplier)
+			Stink: base Stink multiplier of the pet (multiplier)
+			Exclusive: true = Pet Index reward, never rolled (true/false)
+			DropOdds: 1/N weight inside the map pool, 0 = not rolled (number)
 			Size: placeholder follower body width, height and depth (studs)
 			Color: placeholder follower body colour (RGB)
+			ModelName: follower model name for the art pass, "" = placeholder ball (string)
 ]]
 
 return {
-	BaseSlots = 3,
+	BaseSlots = 1,
 	GrantVariant = "Default",
 	MaxMergedFrom = 5,
+	InventoryCap = 50,
+	FullInventoryGems = 25,
+	IndexGems = 100,
+	PoopInterval = 6,
+	PoopGemChance = 0.1,
+	PoopGems = 1,
+	StackBonus = 0.01,
+	StackCap = 100,
 	FollowFolderName = "PetFollowers",
 	FollowModelPrefix = "Pet_",
 	FollowSpawnDelay = 0.4,
@@ -154,327 +163,215 @@ return {
 			Id = "Default",
 			DisplayName = "Default",
 			Bonus = 1,
-			Weight = 88,
+			DropOdds = 0,
 			NextVariant = "Golden",
 			Color = Color3.fromRGB(150, 110, 70),
 		},
 		Golden = {
 			Id = "Golden",
 			DisplayName = "Golden",
-			Bonus = 1.25,
-			Weight = 8,
+			Bonus = 1.5,
+			DropOdds = 8,
 			NextVariant = "Rainbow",
 			Color = Color3.fromRGB(255, 205, 60),
 		},
 		Rainbow = {
 			Id = "Rainbow",
 			DisplayName = "Rainbow",
-			Bonus = 1.5,
-			Weight = 3,
+			Bonus = 2.25,
+			DropOdds = 60,
+			NextVariant = "Stinky",
 			Color = Color3.fromRGB(255, 120, 220),
 		},
 		Stinky = {
 			Id = "Stinky",
 			DisplayName = "Stinky",
-			Bonus = 1.4,
-			Weight = 1,
+			Bonus = 3.5,
+			DropOdds = 400,
 			Color = Color3.fromRGB(120, 160, 60),
-		},
-	},
-
-	Eggs = {
-		KitchenEgg = {
-			Id = "KitchenEgg",
-			MapId = "Zone1",
-			DisplayName = "Kitchen Egg",
-			Price = 500,
-			BaseSlots = 3,
-			InventoryCap = 100,
-			Order = 1,
-			Color = Color3.fromRGB(235, 220, 190),
-		},
-		LivingRoomEgg = {
-			Id = "LivingRoomEgg",
-			MapId = "Zone2",
-			DisplayName = "Mall Egg",
-			Price = 2500,
-			BaseSlots = 3,
-			InventoryCap = 100,
-			Order = 2,
-			Color = Color3.fromRGB(190, 205, 235),
-		},
-		RestaurantEgg = {
-			Id = "RestaurantEgg",
-			MapId = "Zone3",
-			DisplayName = "Park Egg",
-			Price = 15000,
-			BaseSlots = 3,
-			InventoryCap = 100,
-			Order = 3,
-			Color = Color3.fromRGB(235, 190, 170),
-		},
-		MallEgg = {
-			Id = "MallEgg",
-			MapId = "Zone4",
-			DisplayName = "Hotel Egg",
-			Price = 75000,
-			BaseSlots = 3,
-			InventoryCap = 100,
-			Order = 4,
-			Color = Color3.fromRGB(200, 170, 240),
 		},
 	},
 
 	Pets = {
 		{
-			Id = "Crumb",
-			DisplayName = "Crumb",
-			EggId = "KitchenEgg",
+			Id = "Snail",
+			DisplayName = "Snail",
+			MapId = "Zone3",
 			Rarity = "Common",
-			CoinMultiplier = 1.05,
-			StinkMultiplier = 1.03,
+			Stink = 1.1,
+			Exclusive = false,
+			DropOdds = 2,
 			Size = 1.1,
-			Color = Color3.fromRGB(190, 160, 120),
+			Color = Color3.fromRGB(176, 150, 118),
+			ModelName = "",
 		},
 		{
-			Id = "DishSponge",
-			DisplayName = "Dish Sponge",
-			EggId = "KitchenEgg",
-			Rarity = "Common",
-			CoinMultiplier = 1.06,
-			StinkMultiplier = 1.02,
-			Size = 1.3,
-			Color = Color3.fromRGB(255, 220, 90),
-		},
-		{
-			Id = "ButterButt",
-			DisplayName = "Butter Butt",
-			EggId = "KitchenEgg",
+			Id = "Parrot",
+			DisplayName = "Parrot",
+			MapId = "Zone3",
 			Rarity = "Uncommon",
-			CoinMultiplier = 1.12,
-			StinkMultiplier = 1.07,
-			Size = 1.2,
-			Color = Color3.fromRGB(255, 245, 160),
+			Stink = 1.2,
+			Exclusive = false,
+			DropOdds = 4,
+			Size = 1.3,
+			Color = Color3.fromRGB(84, 190, 110),
+			ModelName = "",
 		},
 		{
-			Id = "GreaseGoblin",
-			DisplayName = "Grease Goblin",
-			EggId = "KitchenEgg",
+			Id = "Bulldog",
+			DisplayName = "Bulldog",
+			MapId = "Zone3",
+			Rarity = "Uncommon",
+			Stink = 1.2,
+			Exclusive = false,
+			DropOdds = 4,
+			Size = 1.5,
+			Color = Color3.fromRGB(170, 160, 150),
+			ModelName = "",
+		},
+		{
+			Id = "Raccoon",
+			DisplayName = "Raccoon",
+			MapId = "Zone3",
+			Rarity = "Uncommon",
+			Stink = 1.2,
+			Exclusive = false,
+			DropOdds = 5,
+			Size = 1.3,
+			Color = Color3.fromRGB(120, 125, 135),
+			ModelName = "",
+		},
+		{
+			Id = "Pelican",
+			DisplayName = "Pelican",
+			MapId = "Zone3",
 			Rarity = "Rare",
-			CoinMultiplier = 1.22,
-			StinkMultiplier = 1.14,
-			Size = 1.4,
-			Color = Color3.fromRGB(120, 130, 90),
-		},
-		{
-			Id = "FridgeFury",
-			DisplayName = "Fridge Fury",
-			EggId = "KitchenEgg",
-			Rarity = "Epic",
-			CoinMultiplier = 1.38,
-			StinkMultiplier = 1.28,
+			Stink = 1.35,
+			Exclusive = false,
+			DropOdds = 6.5,
 			Size = 1.6,
-			Color = Color3.fromRGB(210, 235, 245),
+			Color = Color3.fromRGB(238, 238, 228),
+			ModelName = "",
 		},
 		{
-			Id = "KitchenKing",
-			DisplayName = "Kitchen King",
-			EggId = "KitchenEgg",
-			Rarity = "Legendary",
-			CoinMultiplier = 1.55,
-			StinkMultiplier = 1.45,
-			Size = 1.9,
-			Color = Color3.fromRGB(255, 170, 70),
-		},
-		{
-			Id = "DustBunny",
-			DisplayName = "Dust Bunny",
-			EggId = "LivingRoomEgg",
-			Rarity = "Common",
-			CoinMultiplier = 1.08,
-			StinkMultiplier = 1.04,
-			Size = 1.1,
-			Color = Color3.fromRGB(180, 175, 165),
-		},
-		{
-			Id = "SockSnake",
-			DisplayName = "Sock Snake",
-			EggId = "LivingRoomEgg",
-			Rarity = "Common",
-			CoinMultiplier = 1.09,
-			StinkMultiplier = 1.05,
-			Size = 1.2,
-			Color = Color3.fromRGB(225, 225, 235),
-		},
-		{
-			Id = "CouchPotato",
-			DisplayName = "Couch Potato",
-			EggId = "LivingRoomEgg",
-			Rarity = "Uncommon",
-			CoinMultiplier = 1.15,
-			StinkMultiplier = 1.1,
-			Size = 1.5,
-			Color = Color3.fromRGB(200, 150, 95),
-		},
-		{
-			Id = "LampLicker",
-			DisplayName = "Lamp Licker",
-			EggId = "LivingRoomEgg",
-			Rarity = "Rare",
-			CoinMultiplier = 1.26,
-			StinkMultiplier = 1.18,
-			Size = 1.3,
-			Color = Color3.fromRGB(255, 235, 150),
-		},
-		{
-			Id = "TvToad",
-			DisplayName = "TV Toad",
-			EggId = "LivingRoomEgg",
+			Id = "HomelessGuy",
+			DisplayName = "Homeless Guy",
+			MapId = "Zone3",
 			Rarity = "Epic",
-			CoinMultiplier = 1.42,
-			StinkMultiplier = 1.3,
-			Size = 1.5,
-			Color = Color3.fromRGB(90, 200, 180),
-		},
-		{
-			Id = "SofaLord",
-			DisplayName = "Sofa Lord",
-			EggId = "LivingRoomEgg",
-			Rarity = "Legendary",
-			CoinMultiplier = 1.6,
-			StinkMultiplier = 1.48,
-			Size = 2,
-			Color = Color3.fromRGB(150, 110, 220),
-		},
-		{
-			Id = "MenuMuncher",
-			DisplayName = "Menu Muncher",
-			EggId = "RestaurantEgg",
-			Rarity = "Common",
-			CoinMultiplier = 1.12,
-			StinkMultiplier = 1.06,
-			Size = 1.1,
-			Color = Color3.fromRGB(245, 240, 225),
-		},
-		{
-			Id = "NapkinNibbler",
-			DisplayName = "Napkin Nibbler",
-			EggId = "RestaurantEgg",
-			Rarity = "Common",
-			CoinMultiplier = 1.13,
-			StinkMultiplier = 1.07,
-			Size = 1.2,
-			Color = Color3.fromRGB(250, 250, 250),
-		},
-		{
-			Id = "PepperPooper",
-			DisplayName = "Pepper Pooper",
-			EggId = "RestaurantEgg",
-			Rarity = "Uncommon",
-			CoinMultiplier = 1.2,
-			StinkMultiplier = 1.14,
-			Size = 1.3,
-			Color = Color3.fromRGB(200, 70, 70),
-		},
-		{
-			Id = "BuffetBeast",
-			DisplayName = "Buffet Beast",
-			EggId = "RestaurantEgg",
-			Rarity = "Rare",
-			CoinMultiplier = 1.32,
-			StinkMultiplier = 1.22,
+			Stink = 1.6,
+			Exclusive = false,
+			DropOdds = 12,
 			Size = 1.7,
-			Color = Color3.fromRGB(230, 160, 90),
+			Color = Color3.fromRGB(110, 88, 64),
+			ModelName = "",
 		},
 		{
-			Id = "ChefCurse",
-			DisplayName = "Chef's Curse",
-			EggId = "RestaurantEgg",
-			Rarity = "Mythical",
-			CoinMultiplier = 1.85,
-			StinkMultiplier = 1.7,
-			Size = 1.8,
-			Color = Color3.fromRGB(255, 90, 130),
-		},
-		{
-			Id = "RestaurantRoyalty",
-			DisplayName = "Restaurant Royalty",
-			EggId = "RestaurantEgg",
+			Id = "ParkKing",
+			DisplayName = "Park King",
+			MapId = "Zone3",
 			Rarity = "Legendary",
-			CoinMultiplier = 1.7,
-			StinkMultiplier = 1.55,
+			Stink = 2.2,
+			Exclusive = true,
+			DropOdds = 0,
 			Size = 2,
-			Color = Color3.fromRGB(255, 205, 80),
+			Color = Color3.fromRGB(255, 190, 60),
+			ModelName = "",
 		},
 		{
-			Id = "MallRat",
-			DisplayName = "Mall Rat",
-			EggId = "MallEgg",
-			Rarity = "Rare",
-			CoinMultiplier = 1.4,
-			StinkMultiplier = 1.25,
-			Size = 1.3,
-			Color = Color3.fromRGB(140, 140, 150),
+			Id = "PersianCat",
+			DisplayName = "Persian Cat",
+			MapId = "Zone2",
+			Rarity = "Common",
+			Stink = 1.25,
+			Exclusive = false,
+			DropOdds = 3,
+			Size = 1.2,
+			Color = Color3.fromRGB(236, 228, 214),
+			ModelName = "",
 		},
 		{
-			Id = "EscalatorEel",
-			DisplayName = "Escalator Eel",
-			EggId = "MallEgg",
-			Rarity = "Rare",
-			CoinMultiplier = 1.42,
-			StinkMultiplier = 1.27,
+			Id = "CyberDog",
+			DisplayName = "Cyber Dog",
+			MapId = "Zone2",
+			Rarity = "Uncommon",
+			Stink = 1.4,
+			Exclusive = false,
+			DropOdds = 4,
 			Size = 1.4,
-			Color = Color3.fromRGB(110, 190, 200),
+			Color = Color3.fromRGB(80, 220, 230),
+			ModelName = "",
 		},
 		{
-			Id = "MannequinMenace",
-			DisplayName = "Mannequin Menace",
-			EggId = "MallEgg",
+			Id = "LivingTeddyBear",
+			DisplayName = "Living Teddy Bear",
+			MapId = "Zone2",
+			Rarity = "Uncommon",
+			Stink = 1.4,
+			Exclusive = false,
+			DropOdds = 5,
+			Size = 1.5,
+			Color = Color3.fromRGB(168, 120, 78),
+			ModelName = "",
+		},
+		{
+			Id = "PuppyHotdog",
+			DisplayName = "Puppy Hotdog",
+			MapId = "Zone2",
+			Rarity = "Rare",
+			Stink = 1.6,
+			Exclusive = false,
+			DropOdds = 7,
+			Size = 1.5,
+			Color = Color3.fromRGB(214, 120, 80),
+			ModelName = "",
+		},
+		{
+			Id = "GummyBear",
+			DisplayName = "Gummy Bear",
+			MapId = "Zone2",
 			Rarity = "Epic",
-			CoinMultiplier = 1.6,
-			StinkMultiplier = 1.4,
-			Size = 1.6,
-			Color = Color3.fromRGB(235, 225, 215),
+			Stink = 1.9,
+			Exclusive = false,
+			DropOdds = 12,
+			Size = 1.7,
+			Color = Color3.fromRGB(255, 120, 190),
+			ModelName = "",
 		},
 		{
-			Id = "SaleShark",
-			DisplayName = "Sale Shark",
-			EggId = "MallEgg",
-			Rarity = "Legendary",
-			CoinMultiplier = 1.8,
-			StinkMultiplier = 1.6,
+			Id = "MallCop",
+			DisplayName = "Mall Cop",
+			MapId = "Zone2",
+			Rarity = "Epic",
+			Stink = 1.9,
+			Exclusive = false,
+			DropOdds = 15,
 			Size = 1.8,
-			Color = Color3.fromRGB(120, 175, 235),
+			Color = Color3.fromRGB(64, 84, 140),
+			ModelName = "",
 		},
 		{
-			Id = "DepartmentDemon",
-			DisplayName = "Department Demon",
-			EggId = "MallEgg",
-			Rarity = "Secret",
-			CoinMultiplier = 2.2,
-			StinkMultiplier = 1.9,
-			Size = 2.1,
-			Color = Color3.fromRGB(70, 235, 220),
-		},
-		{
-			Id = "VoidVendor",
-			DisplayName = "Void Vendor",
-			EggId = "MallEgg",
-			Rarity = "Darkness",
-			CoinMultiplier = 2.6,
-			StinkMultiplier = 2.3,
-			Size = 2.3,
-			Color = Color3.fromRGB(55, 35, 80),
+			Id = "MallMonarch",
+			DisplayName = "Mall Monarch",
+			MapId = "Zone2",
+			Rarity = "Legendary",
+			Stink = 2.8,
+			Exclusive = true,
+			DropOdds = 0,
+			Size = 2,
+			Color = Color3.fromRGB(255, 210, 90),
+			ModelName = "",
 		},
 		{
 			Id = "GoldenPoopDoge",
 			DisplayName = "Golden Poop Doge",
-			EggId = "",
+			MapId = "",
 			Rarity = "Legendary",
-			CoinMultiplier = 1.5,
-			StinkMultiplier = 1.5,
+			Stink = 1.5,
+			Exclusive = false,
+			DropOdds = 0,
 			Size = 1.8,
 			Color = Color3.fromRGB(255, 205, 60),
+			ModelName = "",
 		},
 	},
 }

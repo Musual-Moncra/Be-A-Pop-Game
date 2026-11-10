@@ -2,38 +2,45 @@
 
 --[[
 	PetService
-	Owns every player's pet inventory, equipped pets, egg hatching, merging and the
-	placeholder pet followers that trail the character. Rolls and prices come from
-	PetConfig through ConfigLookup; the server never trusts a client roll or price.
+	Owns every player's pet inventory, equipped pets, map-clear drops, stink stacks, merging,
+	the Pet Index and the placeholder followers that trail the character. Rolls, odds and every
+	price come from PetConfig through ConfigLookup; the server never trusts a client roll.
 
-	Hatch flow: validate egg -> map unlocked -> inventory cap -> spend coins -> weighted
-	pet roll -> weighted variant roll -> add entry -> publish + PetInventory + HatchResult.
-	Multipliers are additive around 1: equipped pets contribute (pet * variant bonus - 1).
+	Drop flow: a run reaches 100% map stain -> RollDrop -> weighted pet roll by 1/DropOdds ->
+	weighted variant roll by 1/DropOdds -> add entry or pay FullInventoryGems when the
+	inventory is full -> PetDrop. Pet poop during a run adds Stacks and pays PoopGems.
+
+	Pet Index: every obtained pet marks its variant discovered. When all non-exclusive pets of a
+	map are discovered, the map's exclusive pet and IndexGems are paid once.
 
 	Equip slots are PetConfig.BaseSlots plus Pets.ExtraSlots plus the live Extra Pet Slots
 	gamepass, so buying the pass raises the cap without writing anything into the save.
 
 	API:
-		PetService.HatchEgg(plr, eggId) -> boolean
+		PetService.RollDrop(plr, mapId) -> boolean
 		PetService.Equip(plr, uid) -> boolean
 		PetService.Unequip(plr, uid) -> boolean
 		PetService.Delete(plr, uid) -> boolean
 		PetService.Merge(plr, uid) -> boolean
-		PetService.GetMultipliers(plr) -> { Coins: number, Stink: number }
+		PetService.GetMultipliers(plr) -> { Stink: number }
 		PetService.HasPet(plr, petId, variantId) -> boolean
 		PetService.GrantPet(plr, petId, variantId) -> boolean
 		PetService.Sync(plr)            re-send the PetInventory packet
 
-	Dependencies: DataService, Outbound, ConfigLookup, CharacterConfig, PetConfig, MessageConfig, MonetizationService
+	Dependencies: DataService, MonetizationService, PotionService, Outbound, RunEvents,
+		ConfigLookup, CharacterConfig, PetConfig, MessageConfig
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+local Heartbeat = game:GetService("RunService").Heartbeat
 
 local DataService = require(script.Parent.DataService)
 local MonetizationService = require(script.Parent.MonetizationService)
+local PotionService = require(script.Parent.PotionService)
 local Outbound = require(script.Parent.Parent.Remotes.Outbound)
+local RunEvents = require(script.Parent.Parent.Shared.RunEvents)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local CharacterConfig = require(ReplicatedStorage.Modules.Config.CharacterConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
@@ -41,11 +48,12 @@ local PetConfig = require(ReplicatedStorage.Modules.Config.PetConfig)
 
 local PetService = {}
 
-local NEUTRAL_MULTIPLIERS: ConfigLookup.PetMultipliers = table.freeze({ Coins = 1, Stink = 1 })
+local NEUTRAL_MULTIPLIERS: ConfigLookup.PetMultipliers = table.freeze({ Stink = 1 })
 
 local followers: { [Player]: { Instance } } = {}
 local synced: { [Player]: boolean } = {}
-local multiplierCache: { [Player]: ConfigLookup.PetMultipliers } = {}
+local poopPlayers: { [Player]: boolean } = {}
+local poopAccumulator = 0
 local uidCounter = 0
 
 local function getPets(plr: Player): any
@@ -67,7 +75,35 @@ local function getPets(plr: Player): any
 	if type(pets.ExtraSlots) ~= "number" then
 		pets.ExtraSlots = 0
 	end
+	for _, entry in pets.Inventory do
+		if type(entry) == "table" and type(entry.Stacks) ~= "number" then
+			entry.Stacks = 0
+		end
+	end
 	return pets
+end
+
+local function getIndex(data: any): (any, any)
+	local index = data.PetIndex
+	if type(index) ~= "table" then
+		index = {}
+		data.PetIndex = index
+	end
+	local claimed = data.PetIndexClaimed
+	if type(claimed) ~= "table" then
+		claimed = {}
+		data.PetIndexClaimed = claimed
+	end
+	return index, claimed
+end
+
+local function markDiscovered(index: any, petId: string, variantId: string)
+	local variants = index[petId]
+	if type(variants) ~= "table" then
+		variants = {}
+		index[petId] = variants
+	end
+	variants[variantId] = true
 end
 
 local function findIndex(pets: any, uid: string): number?
@@ -92,11 +128,63 @@ local function newUid(pets: any): string
 	return string.format("pet%d", uidCounter)
 end
 
-local function buildState(pets: any, slots: number): any
+local function addPet(pets: any, petId: string, variantId: string, stacks: number): any
+	local entry = { Uid = newUid(pets), PetId = petId, Variant = variantId, Stacks = stacks }
+	table.insert(pets.Inventory, entry)
+	return entry
+end
+
+local function recordIndex(plr: Player, pets: any, petId: string, variantId: string)
+	local data = DataService.Get(plr)
+	if data == nil then
+		return
+	end
+	local index, claimed = getIndex(data)
+	markDiscovered(index, petId, variantId)
+
+	local pet = ConfigLookup.GetPet(petId)
+	if pet == nil or pet.MapId == "" or pet.Exclusive then
+		return
+	end
+	if claimed[pet.MapId] == true then
+		return
+	end
+
+	for _, poolPet in ConfigLookup.GetPetsForMap(pet.MapId) do
+		local variants = index[poolPet.Id]
+		if type(variants) ~= "table" or next(variants) == nil then
+			return
+		end
+	end
+
+	claimed[pet.MapId] = true
+	local exclusive = ConfigLookup.GetExclusivePet(pet.MapId)
+	if exclusive ~= nil then
+		addPet(pets, exclusive.Id, PetConfig.GrantVariant, 0)
+		markDiscovered(index, exclusive.Id, PetConfig.GrantVariant)
+	end
+	if PetConfig.IndexGems > 0 then
+		DataService.AddGems(plr, PetConfig.IndexGems)
+	end
+	if exclusive ~= nil then
+		Outbound.Notify(
+			plr,
+			"Success",
+			string.format(MessageConfig.PetIndexComplete, exclusive.DisplayName, PetConfig.IndexGems)
+		)
+	end
+end
+
+local function buildState(plr: Player, pets: any, slots: number, stink: number): any
 	local entries = {}
 	for _, entry in pets.Inventory do
 		if type(entry) == "table" and type(entry.Uid) == "string" then
-			table.insert(entries, { Uid = entry.Uid, PetId = entry.PetId, Variant = entry.Variant })
+			table.insert(entries, {
+				Uid = entry.Uid,
+				PetId = entry.PetId,
+				Variant = entry.Variant,
+				Stacks = math.max(0, math.floor(entry.Stacks or 0)),
+			})
 		end
 	end
 	local equipped = {}
@@ -105,10 +193,35 @@ local function buildState(pets: any, slots: number): any
 			table.insert(equipped, uid)
 		end
 	end
+
+	local indexPayload = {}
+	local claimedPayload = {}
+	local data = DataService.Get(plr)
+	if data ~= nil then
+		local index, claimed = getIndex(data)
+		for petId, variants in pairs(index) do
+			if type(petId) == "string" and type(variants) == "table" then
+				for variantId in pairs(variants) do
+					if type(variantId) == "string" then
+						table.insert(indexPayload, { PetId = petId, Variant = variantId })
+					end
+				end
+			end
+		end
+		for mapId in pairs(claimed) do
+			if type(mapId) == "string" then
+				table.insert(claimedPayload, mapId)
+			end
+		end
+	end
+
 	return {
 		Pets = entries,
 		Equipped = equipped,
 		Slots = slots,
+		Stink = stink,
+		Index = indexPayload,
+		IndexClaimed = claimedPayload,
 	}
 end
 
@@ -257,7 +370,6 @@ local function rebuild(plr: Player)
 end
 
 local function publish(plr: Player)
-	multiplierCache[plr] = nil
 	DataService.MarkChanged(plr)
 	PetService.Sync(plr)
 end
@@ -267,34 +379,27 @@ function PetService.Sync(plr: Player)
 	if pets == nil then
 		return
 	end
-	Outbound.PetInventory(plr, buildState(pets, getSlotCount(plr, pets)))
+	local stink = PetService.GetMultipliers(plr).Stink
+	Outbound.PetInventory(plr, buildState(plr, pets, getSlotCount(plr, pets), stink))
 end
 
 function PetService.GetMultipliers(plr: Player): ConfigLookup.PetMultipliers
-	local cached = multiplierCache[plr]
-	if cached ~= nil then
-		return cached
-	end
 	local pets = getPets(plr)
 	if pets == nil then
 		return NEUTRAL_MULTIPLIERS
 	end
-	local coins = 0
-	local stink = 0
+	local stink = 1
 	for _, uid in pets.Equipped do
 		if type(uid) == "string" then
 			local index = findIndex(pets, uid)
 			if index ~= nil then
 				local entry = pets.Inventory[index]
-				local multipliers = ConfigLookup.GetPetMultipliers(entry.PetId, entry.Variant)
-				coins += multipliers.Coins - 1
-				stink += multipliers.Stink - 1
+				stink *= ConfigLookup.GetPetMultipliers(entry.PetId, entry.Variant, entry.Stacks).Stink
 			end
 		end
 	end
-	local result = { Coins = 1 + coins, Stink = 1 + stink }
-	multiplierCache[plr] = result
-	return result
+	stink *= PotionService.GetMultiplier(plr, "Stink")
+	return { Stink = stink }
 end
 
 function PetService.HasPet(plr: Player, petId: string, variantId: string): boolean
@@ -321,7 +426,8 @@ function PetService.GrantPet(plr: Player, petId: string, variantId: string): boo
 		return false
 	end
 
-	table.insert(pets.Inventory, { Uid = newUid(pets), PetId = petId, Variant = variantId })
+	addPet(pets, petId, variantId, 0)
+	recordIndex(plr, pets, petId, variantId)
 	publish(plr)
 	return true
 end
@@ -345,44 +451,34 @@ local function migrateGrantedPets(plr: Player, data: any)
 	end
 end
 
-function PetService.HatchEgg(plr: Player, eggId: string): boolean
-	local egg = ConfigLookup.GetEgg(eggId)
+function PetService.RollDrop(plr: Player, mapId: string): boolean
 	local pets = getPets(plr)
-	if egg == nil or pets == nil then
+	if pets == nil then
 		return false
 	end
-
-	if not DataService.IsMapUnlocked(plr, egg.MapId) then
-		local mapDef = ConfigLookup.GetMap(egg.MapId)
-		local mapName = if mapDef ~= nil then mapDef.DisplayName else egg.MapId
-		Outbound.Notify(plr, "Error", string.format(MessageConfig.PetEggLocked, mapName))
-		return false
-	end
-
-	if #pets.Inventory >= egg.InventoryCap then
-		Outbound.Notify(plr, "Error", MessageConfig.PetInventoryFull)
-		return false
-	end
-
-	local pet = ConfigLookup.RollPet(egg.Id, math.random())
+	local pet = ConfigLookup.RollPet(mapId, math.random())
 	local variant = ConfigLookup.RollVariant(math.random())
 	if pet == nil or variant == nil then
 		return false
 	end
 
-	if not DataService.SpendCoins(plr, egg.Price) then
-		Outbound.Notify(plr, "Error", MessageConfig.NotEnoughCoins)
-		return false
+	local converted = 0
+	local isNew = false
+	if #pets.Inventory >= PetConfig.InventoryCap then
+		converted = PetConfig.FullInventoryGems
+		if converted > 0 then
+			DataService.AddGems(plr, converted)
+		end
+		Outbound.Notify(plr, "Info", string.format(MessageConfig.PetConverted, converted))
+	else
+		isNew = not PetService.HasPet(plr, pet.Id, variant.Id)
+		addPet(pets, pet.Id, variant.Id, 0)
+		recordIndex(plr, pets, pet.Id, variant.Id)
+		DataService.MarkChanged(plr)
 	end
 
-	table.insert(pets.Inventory, { Uid = newUid(pets), PetId = pet.Id, Variant = variant.Id })
-	publish(plr)
-	Outbound.HatchResult(plr, pet.Id, variant.Id)
-
-	local text = if variant.Id == "Default"
-		then string.format(MessageConfig.PetHatched, pet.DisplayName)
-		else string.format(MessageConfig.PetHatchedVariant, pet.DisplayName, variant.DisplayName)
-	Outbound.Notify(plr, "Success", text)
+	Outbound.PetDrop(plr, pet.Id, variant.Id, isNew, converted)
+	PetService.Sync(plr)
 	return true
 end
 
@@ -502,7 +598,8 @@ function PetService.Merge(plr: Player, uid: string): boolean
 			end
 		end
 	end
-	table.insert(pets.Inventory, { Uid = newUid(pets), PetId = entry.PetId, Variant = nextVariant })
+	addPet(pets, entry.PetId, nextVariant, 0)
+	recordIndex(plr, pets, entry.PetId, nextVariant)
 	if equippedChanged then
 		publish(plr)
 		rebuild(plr)
@@ -515,6 +612,38 @@ function PetService.Merge(plr: Player, uid: string): boolean
 	local variantName = if variantDef ~= nil then variantDef.DisplayName else nextVariant
 	Outbound.Notify(plr, "Success", string.format(MessageConfig.PetMerged, pet.DisplayName, variantName))
 	return true
+end
+
+local function poop(plr: Player)
+	local pets = getPets(plr)
+	if pets == nil then
+		return
+	end
+	local gain = math.max(1, math.floor(DataService.GetBoostMultiplier(plr, "Stacks")))
+	local changed = false
+	for _, uid in pets.Equipped do
+		if type(uid) == "string" then
+			local index = findIndex(pets, uid)
+			if index ~= nil then
+				local entry = pets.Inventory[index]
+				local stacks = (tonumber(entry.Stacks) or 0) + gain
+				entry.Stacks = math.min(stacks, PetConfig.StackCap)
+				local gems = 0
+				if math.random() < PetConfig.PoopGemChance then
+					gems = PetConfig.PoopGems
+					if gems > 0 then
+						DataService.AddGems(plr, gems)
+					end
+				end
+				Outbound.PetPoop(plr, uid, gems)
+				changed = true
+			end
+		end
+	end
+	if changed then
+		DataService.MarkChanged(plr)
+		PetService.Sync(plr)
+	end
 end
 
 local function onCharacterSpawn(plr: Player)
@@ -538,6 +667,31 @@ local function onPlayerAdded(plr: Player)
 	PetService.Sync(plr)
 end
 
+RunEvents.RunStarted:Connect(function(plr: Player)
+	poopPlayers[plr] = true
+end)
+
+RunEvents.RunEnded:Connect(function(plr: Player)
+	poopPlayers[plr] = nil
+end)
+
+Heartbeat:Connect(function(dt)
+	if next(poopPlayers) == nil then
+		poopAccumulator = 0
+		return
+	end
+	poopAccumulator += dt
+	if poopAccumulator < PetConfig.PoopInterval then
+		return
+	end
+	poopAccumulator %= PetConfig.PoopInterval
+	for plr in pairs(poopPlayers) do
+		if plr.Parent == Players then
+			poop(plr)
+		end
+	end
+end)
+
 DataService.Changed:Connect(function(plr, data)
 	if type(data) ~= "table" or type(data.Pets) ~= "table" then
 		return
@@ -559,7 +713,7 @@ Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(function(plr)
 	clearFollowers(plr)
 	synced[plr] = nil
-	multiplierCache[plr] = nil
+	poopPlayers[plr] = nil
 end)
 
 for _, plr in Players:GetPlayers() do

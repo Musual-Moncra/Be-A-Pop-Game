@@ -9,7 +9,7 @@
 
 	Checks: every enabled map has its template, spawn inside the map, its patrol NPCs and valid
 	ObjectType attributes on Props; every sound key has its Sound template; room sizes and default
-	are valid; pet eggs point at real maps; CharacterConfig.RootWidth matches the StarterCharacter. Ids still at 0 and empty animations are listed as notes.
+	are valid; pet MapIds point at real maps; CharacterConfig.RootWidth matches the StarterCharacter. Ids still at 0 and empty animations are listed as notes.
 
 	Dependencies: ServerStorage.Assets, ReplicatedStorage.Assets, ConfigLookup, AssetConfig,
 	MapConfig, MonetizationConfig, PetConfig, RoomConfig, RunConfig, SoundConfig
@@ -107,9 +107,9 @@ local function run()
 		problem("RoomConfig.DefaultMaxPlayers %d is not in PlayerOptions", RoomConfig.DefaultMaxPlayers)
 	end
 
-	for _, egg in ConfigLookup.GetSortedEggs() do
-		if ConfigLookup.GetMap(egg.MapId) == nil then
-			problem("Egg %s points at unknown map %s", egg.Id, egg.MapId)
+	for _, pet in PetConfig.Pets do
+		if pet.MapId ~= "" and ConfigLookup.GetMap(pet.MapId) == nil then
+			problem("Pet %s points at unknown map %s", pet.Id, pet.MapId)
 		end
 	end
 	if PetConfig.BaseSlots < 1 then

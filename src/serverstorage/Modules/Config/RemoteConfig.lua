@@ -22,8 +22,7 @@
 			ClaimDaily: claiming the daily login reward
 			Rebirth: executing a rebirth
 			OpenCrate: opening a cosmetic crate
-			EquipCosmetic: equipping or unequipping a skin or trail
-			HatchEgg: opening one egg
+			EquipCosmetic: equipping or unequipping a skin
 			EquipPet: equipping one owned pet
 			UnequipPet: unequipping one owned pet
 			DeletePet: deleting one owned pet
@@ -50,7 +49,6 @@ return {
 		Rebirth = 0.5,
 		OpenCrate = 0.3,
 		EquipCosmetic = 0.2,
-		HatchEgg = 0.5,
 		EquipPet = 0.1,
 		UnequipPet = 0.1,
 		DeletePet = 0.2,

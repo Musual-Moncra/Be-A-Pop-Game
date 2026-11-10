@@ -4,6 +4,8 @@
 	MapConfig
 	Playable maps, their unlock price and reward scaling. Pure data, no functions.
 	Maps unlock in Order: a map can be bought only after the map before it is unlocked.
+	Park is map 1 and Mall map 2; Kitchen and Grand Hotel are marked ComingSoon and disabled.
+	Ids are stable for saves: only Order, unlock tuning and the flags changed.
 
 	Fields:
 		DefaultMapId: map every new player owns and the fallback selection (map id)
@@ -11,7 +13,7 @@
 			Id: unique map id, also the key saved in player data (string)
 			DisplayName: name shown on the map card (text)
 			Description: one short line shown under the name on the map card (text)
-			ModelName: name of the Model in Workspace that holds the map geometry (string)
+			ModelName: name of the Model in ServerStorage.Assets.Maps (string)
 			Spawn: where the poop appears when a run starts (studs, world position)
 			Order: position in the map list and in the unlock chain, 1 = first (number)
 			UnlockCost: coins needed to unlock the map, 0 = free (coins)
@@ -19,28 +21,30 @@
 			RewardMultiplier: multiplies coins and xp earned on this map (multiplier)
 			SizeLabel: size text shown on the map card (text)
 			Enabled: false hides the map as COMING SOON and blocks play (true/false)
+			ComingSoon: true shows the map as COMING SOON in the UI; pair with Enabled = false (true/false)
 			CompletionGems: gems paid the first time this map is stained to 100% (gems)
 			RequirePreviousComplete: true means the map before it must be at 100% before this map can be unlocked (true/false)
 ]]
 
 return {
-	DefaultMapId = "Zone1",
+	DefaultMapId = "Zone3",
 
 	Maps = {
 		{
-			Id = "Zone1",
-			DisplayName = "Kitchen",
-			Description = "Stud-tiled kitchen with a stove, a fridge, chefs and a sneaky cat.",
-			ModelName = "Zone1",
-			Spawn = Vector3.new(500, 5, 0),
+			Id = "Zone3",
+			DisplayName = "Park",
+			Description = "Open-air park with a fountain, a statue, benches, trees and a golden toilet.",
+			ModelName = "Park",
+			Spawn = Vector3.new(1629.4, 20, -285.75),
 			Order = 1,
 			UnlockCost = 0,
 			RequiredLevel = 1,
-			RewardMultiplier = 1,
-			SizeLabel = "S",
+			RewardMultiplier = 6,
+			SizeLabel = "L",
 			Enabled = true,
-			CompletionGems = 5,
-			RequirePreviousComplete = false,
+			ComingSoon = false,
+			CompletionGems = 40,
+			RequirePreviousComplete = true,
 		},
 		{
 			Id = "Zone2",
@@ -49,28 +53,30 @@ return {
 			ModelName = "Zone2",
 			Spawn = Vector3.new(1000, 5, 0),
 			Order = 2,
-			UnlockCost = 5000,
-			RequiredLevel = 5,
+			UnlockCost = 0,
+			RequiredLevel = 1,
 			RewardMultiplier = 2.5,
 			SizeLabel = "M",
 			Enabled = true,
+			ComingSoon = false,
 			CompletionGems = 15,
-			RequirePreviousComplete = false,
+			RequirePreviousComplete = true,
 		},
 		{
-			Id = "Zone3",
-			DisplayName = "Park",
-			Description = "Open-air park with a fountain, a statue, benches, trees and a golden toilet.",
-			ModelName = "Park",
-			Spawn = Vector3.new(1629.4, 20, -285.75),
+			Id = "Zone1",
+			DisplayName = "Kitchen",
+			Description = "Stud-tiled kitchen with a stove, a fridge, chefs and a sneaky cat.",
+			ModelName = "Zone1",
+			Spawn = Vector3.new(500, 5, 0),
 			Order = 3,
-			UnlockCost = 40000,
-			RequiredLevel = 15,
-			RewardMultiplier = 6,
-			SizeLabel = "L",
-			Enabled = true,
-			CompletionGems = 40,
-			RequirePreviousComplete = false,
+			UnlockCost = 0,
+			RequiredLevel = 1,
+			RewardMultiplier = 1,
+			SizeLabel = "S",
+			Enabled = false,
+			ComingSoon = true,
+			CompletionGems = 5,
+			RequirePreviousComplete = true,
 		},
 		{
 			Id = "Zone4",
@@ -83,9 +89,10 @@ return {
 			RequiredLevel = 30,
 			RewardMultiplier = 15,
 			SizeLabel = "XL",
-			Enabled = true,
+			Enabled = false,
+			ComingSoon = true,
 			CompletionGems = 100,
-			RequirePreviousComplete = false,
+			RequirePreviousComplete = true,
 		},
 	},
 }
