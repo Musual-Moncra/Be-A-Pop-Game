@@ -888,7 +888,7 @@ return function(props: any)
 		Tabs = e(Tabs, { onSelect = setTab, selected = tab, tabs = Pets.Tabs }),
 		Burst = e(Burst, {
 			origin = UDim2.fromScale(0.5, 0.5),
-			trigger = burst,
+			trigger = if burst > 0 then burst else nil,
 			zIndex = 20,
 		}),
 		Header = body.Header,

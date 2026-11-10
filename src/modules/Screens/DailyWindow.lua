@@ -273,7 +273,7 @@ return function(props: any)
 	}, {
 		Burst = e(Burst, {
 			origin = UDim2.fromScale(0.5, 0.5),
-			trigger = burst,
+			trigger = if burst > 0 then burst else nil,
 			zIndex = 20,
 		}),
 		Row = e("Frame", {

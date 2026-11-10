@@ -157,7 +157,7 @@ local function ProductCard(props: any)
 		Icons = e("Frame", {
 			BackgroundTransparency = 1,
 			Position = UDim2.fromScale(0, 0.02),
-			Size = UDim2.new(1, 0, 0.24, 0),
+			Size = UDim2.new(1, 0, 0.23, 0),
 			ZIndex = 3,
 		}, icons),
 		Title = Primitives.text({
@@ -379,7 +379,7 @@ local function potionCard(potion: any, index: number, data: any, tab: string): a
 		buttonSwatch = "Green",
 		buttonText = robux(potion.PriceRobux),
 		icon = potion.Icon,
-		info = potion.Description,
+		info = potion.Description .. Shop.Perks.Separator .. string.format(Shop.CountFormat, held),
 		onButton = function()
 			promptProduct(potion.ProductId)
 		end,
@@ -393,7 +393,7 @@ local function potionCard(potion: any, index: number, data: any, tab: string): a
 			then string.format(Shop.ActiveFormat, string.format(Shop.TimeFormat, left // 60, left % 60))
 			else Shop.UseText,
 		swatch = "Teal",
-		title = string.format(Shop.CountFormat, held),
+		title = potion.DisplayName,
 	})
 end
 
@@ -564,7 +564,7 @@ return function(props: any)
 		Tabs = e(Tabs, { onSelect = setTab, selected = tab, tabs = Shop.Tabs }),
 		Burst = e(Burst, {
 			origin = UDim2.fromScale(0.5, 0.55),
-			trigger = burst,
+			trigger = if burst > 0 then burst else nil,
 			zIndex = 20,
 		}),
 		Body = e("Frame", {

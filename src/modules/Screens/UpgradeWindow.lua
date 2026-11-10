@@ -266,8 +266,7 @@ return function(props: any)
 	for index, id in ids do
 		rows[id] = e(PopInRow, {
 			order = index,
-		}, {
-			Row = e(UpgradeRow, {
+			row = e(UpgradeRow, {
 				coins = data.Coins,
 				id = id,
 				level = data.Upgrades[id] or 0,
@@ -288,7 +287,7 @@ return function(props: any)
 		Rows = Primitives.scroll({ Size = UDim2.fromScale(1, 1) }, rows),
 		Burst = e(Burst, {
 			origin = UDim2.fromScale(0.5, 0.5),
-			trigger = burst,
+			trigger = if burst > 0 then burst else nil,
 			zIndex = 20,
 		}),
 	})

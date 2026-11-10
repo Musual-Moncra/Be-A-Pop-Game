@@ -94,7 +94,7 @@ local function PopIn(props: any)
 		Twinkle = if (props.twinkleRate or 0) > 0
 			then e(Twinkle, { clip = true, rate = props.twinkleRate, zIndex = 10 })
 			else nil,
-		Content = props.children,
+		Card = props.card,
 	})
 end
 
@@ -115,10 +115,7 @@ local function crateCards(data: any): ({ [string]: any }, number)
 		local usesGems = crate.CostType == "Gems"
 		local balance = if usesGems then data.Gems or 0 else data.Coins or 0
 		cards[id] = e(PopIn, {
-			delay = index * UIConfig.Animation.CardStagger,
-			layoutOrder = index,
-		}, {
-			Card = e(ItemCard, {
+			card = e(ItemCard, {
 				buttonEnabled = balance >= crate.Cost,
 				buttonSwatch = if usesGems then "Purple" else "Gold",
 				buttonText = string.format(
@@ -135,6 +132,8 @@ local function crateCards(data: any): ({ [string]: any }, number)
 				swatch = if usesGems then "Purple" else "Gold",
 				title = crate.DisplayName,
 			}),
+			delay = index * UIConfig.Animation.CardStagger,
+			layoutOrder = index,
 		})
 	end
 	return cards, #keys
@@ -157,12 +156,7 @@ local function skinCards(data: any): ({ [string]: any }, number)
 		local rarity = ConfigLookup.GetRarity(item.Rarity)
 		local order = if rarity ~= nil then rarity.Order else 0
 		cards[id] = e(PopIn, {
-			delay = index * UIConfig.Animation.CardStagger,
-			layoutOrder = index,
-			rainbow = order >= Motion.RainbowMinOrder,
-			twinkleRate = Motion.RarityTwinkleRates[item.Rarity] or 0,
-		}, {
-			Card = e(ItemCard, {
+			card = e(ItemCard, {
 				buttonEnabled = isOwned and not isEquipped,
 				buttonSwatch = if isEquipped then "Teal" else "Green",
 				buttonText = if not isOwned
@@ -182,6 +176,10 @@ local function skinCards(data: any): ({ [string]: any }, number)
 				swatch = if isOwned then (LobbyUIConfig.RaritySwatches[item.Rarity] or "Purple") else "Grey",
 				title = item.DisplayName,
 			}),
+			delay = index * UIConfig.Animation.CardStagger,
+			layoutOrder = index,
+			rainbow = order >= Motion.RainbowMinOrder,
+			twinkleRate = Motion.RarityTwinkleRates[item.Rarity] or 0,
 		})
 	end
 	return cards, #keys
@@ -231,7 +229,7 @@ return function(props: any)
 		Tabs = e(Tabs, { onSelect = setTab, selected = tab, tabs = Skins.Tabs }),
 		Burst = e(Burst, {
 			origin = UDim2.fromScale(0.5, 0.5),
-			trigger = burst,
+			trigger = if burst > 0 then burst else nil,
 			zIndex = 20,
 		}),
 		Banner = if banner ~= ""

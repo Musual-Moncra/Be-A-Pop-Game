@@ -95,7 +95,7 @@
 			BonusFormat: gem pack bonus line (format: bonus percent)
 			CoinBonusText / OneShotText: bonus lines for coin packs and one-shot products (text)
 			PotionStatFormat: potion multiplier line (format: multiplier, stat)
-			NewbiePackText: Newbie Pack card title (text)
+			NewbiePackText / NewbiePackBonus: Newbie Pack card title and bonus line (text)
 			Perks: pass perk lines and separator (format: value; text)
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "Passes", "Gems", "Coins", "Potions" or "Extras"
 			RobuxFormat: price text (format: robux)
@@ -161,6 +161,16 @@
 			PipWidth / PipHeight / PipGap / PipRadius: level pips (design pixels)
 			BuyWidth / BuyHeight / MaxStampWidth: BUY and MAX control sizes (design pixels)
 			LevelFormat: level line (format: level, max level)
+
+		Motion: shared pass-2 sparkle tuning
+			BreatheButtonScale / BreatheButtonPeriod: idle zoom of affordable BUY buttons (multiplier, seconds)
+			BreatheTodayScale / BreatheTodayPeriod: today's Daily tile (multiplier, seconds)
+			BreatheRewardScale / BreatheRewardPeriod: claimable Index reward box (multiplier, seconds)
+			GlowSizeRatio: GlowRing diameter as a multiple of the thing it backs (multiplier)
+			RewardTwinkleRate / TodayTwinkleRate / HeroTwinkleRate: Twinkle stars per second on the
+				Index reward, today's Daily tile and the Rebirth hero (stars/second)
+			RarityTwinkleRates: Twinkle stars per second per rarity; 0 = no stars (stars/second)
+			RainbowMinOrder: lowest rarity Order that gets a RainbowRim (rarity Order)
 
 		Play: play window header
 			Swatch / Title / Icon: header colour, title, emoji
@@ -391,7 +401,7 @@ return {
 		GridGap = 12,
 		PassRowHeight = 104,
 		TierSwatches = { "Blue", "Purple", "Pink", "Gold", "Gold" },
-		TierIconBase = 52,
+		TierIconBase = 50,
 		TierIconStep = 5,
 		RibbonWidth = 104,
 		RibbonHeight = 22,
