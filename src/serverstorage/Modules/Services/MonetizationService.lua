@@ -61,7 +61,6 @@ local passFetchedAt: { [Player]: number } = {}
 local activeRuns: { [Player]: boolean } = {}
 local reviveCount: { [Player]: number } = {}
 local pendingReviveSeconds: { [Player]: number } = {}
-local pendingStainBombs: { [Player]: number } = {}
 
 local function collectOwnedPasses(cache: PassCache): { string }
 	local owned = {}
@@ -185,7 +184,12 @@ GrantProduct.StainBomb = function(plr: Player, _entry: any, _purchaseId: string)
 		RunEvents.StainBomb:Fire(plr)
 		Outbound.Notify(plr, "Success", MonetizationConfig.Messages.StainBombUsed)
 	else
-		pendingStainBombs[plr] = (pendingStainBombs[plr] or 0) + 1
+		local data = DataService.Get(plr)
+		if data == nil then
+			return false
+		end
+		data.StainBombs = (tonumber(data.StainBombs) or 0) + 1
+		DataService.MarkChanged(plr)
 	end
 	return true
 end
@@ -279,9 +283,11 @@ RunEvents.RunStarted:Connect(function(plr: Player)
 	activeRuns[plr] = true
 	reviveCount[plr] = 0
 
-	local bombs = pendingStainBombs[plr] or 0
-	if bombs > 0 then
-		pendingStainBombs[plr] = bombs - 1
+	local data = DataService.Get(plr)
+	local bombs = if data ~= nil then tonumber(data.StainBombs) or 0 else 0
+	if data ~= nil and bombs > 0 then
+		data.StainBombs = bombs - 1
+		DataService.MarkChanged(plr)
 		RunEvents.StainBomb:Fire(plr)
 	end
 end)
@@ -325,7 +331,6 @@ Players.PlayerRemoving:Connect(function(plr: Player)
 	activeRuns[plr] = nil
 	reviveCount[plr] = nil
 	pendingReviveSeconds[plr] = nil
-	pendingStainBombs[plr] = nil
 end)
 
 return MonetizationService

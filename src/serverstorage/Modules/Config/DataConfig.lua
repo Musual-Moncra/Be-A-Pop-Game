@@ -34,6 +34,7 @@
 				(purchase ids, oldest first)
 			GrantedPets: pet ids delivered by a developer product, read by the pet system
 				(pet ids)
+			StainBombs: Stain Bombs bought outside a run, each one fires at the start of the next run (count)
 			NewbiePackClaimed: true once the Newbie Pack was granted; the pack pays only once (boolean)
 			CoinBoostUntil: unix time the purchased coin boost stops working, 0 = no boost
 				(unix seconds)
@@ -91,6 +92,7 @@ return {
 		Purchases = {},
 		GrantedPets = {},
 		NewbiePackClaimed = false,
+		StainBombs = 0,
 		CoinBoostUntil = 0,
 		MapProgress = {},
 		Potions = {},
