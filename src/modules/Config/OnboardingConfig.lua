@@ -16,18 +16,16 @@
 		FollowUpdateSeconds: how often a UI target is looked up again (seconds)
 		WorldTargetRefresh: how often the nearest soilable prop is recomputed (seconds)
 		Text: every hint line and the skip label (text)
-			PlayMenu: step 1 while the PLAY button is still hidden behind the dock (text)
 		InterfaceNames: candidate GUI names per target, first visible one wins (names)
 			Play: PLAY button in the play window
 			Upgrades: upgrades button in the lobby dock
 			Pets: pets button in the lobby dock
-			Menu: MENU button that opens the lobby dock row
 		Fallbacks: screen scale point used when the target GUI or prop is not on screen
 			Play / Upgrades / Pets / Soil: X and Y inside the safe area (scale 0..1)
 		PanelX: hint panel horizontal centre on screen (scale 0..1)
+		PanelYLobby: hint panel centre in the lobby (scale 0..1)
 		PanelYInRun: hint panel centre while a run is active (scale 0..1)
 		PanelYResult: hint panel centre on the result screen (scale 0..1)
-		PanelDockGap: gap kept above MENU when the dock row is closed, or above the open row (design pixels)
 		PanelWidth / PanelHeight: hint panel size (design pixels)
 		PanelMargin: smallest gap kept from the safe-area edge (design pixels)
 		PanelRadius / PanelPadding: corner radius and inner padding (design pixels)
@@ -63,8 +61,7 @@ return {
 	WorldTargetRefresh = 0.3,
 
 	Text = {
-		Play = "Tap PLAY to become a poop!",
-		PlayMenu = "Tap MENU, then PLAY!",
+		Play = "Tap PLAY!",
 		Stain = "Roll over the floor to stain it!",
 		Splat = "Splat people for big points!",
 		Lifespan = "Upgrade Lifespan in the lobby to play longer",
@@ -76,20 +73,19 @@ return {
 		Play = { "OnboardingPlayButton", "PlayButton" },
 		Upgrades = { "OnboardingUpgradesButton", "UpgradesButton", "LobbyUpgradesButton" },
 		Pets = { "OnboardingPetsButton", "PetsButton", "LobbyPetsButton" },
-		Menu = { "OnboardingMenuButton", "MenuButton", "LobbyMenuButton" },
 	},
 
 	Fallbacks = {
-		Play = { X = 0.5, Y = 0.9 },
-		Upgrades = { X = 0.5, Y = 0.86 },
-		Pets = { X = 0.5, Y = 0.86 },
+		Play = { X = 0.82, Y = 0.55 },
+		Upgrades = { X = 0.27, Y = 0.5 },
+		Pets = { X = 0.27, Y = 0.3 },
 		Soil = { X = 0.5, Y = 0.42 },
 	},
 
 	PanelX = 0.5,
+	PanelYLobby = 0.72,
 	PanelYInRun = 0.6,
 	PanelYResult = 0.9,
-	PanelDockGap = 20,
 	PanelWidth = 620,
 	PanelHeight = 92,
 	PanelMargin = 16,
@@ -101,8 +97,8 @@ return {
 	PanelStrokeThickness = 3,
 	TextSize = 22,
 	TextColor = Color3.fromRGB(255, 255, 255),
-	SkipWidth = 86,
-	SkipHeight = 38,
+	SkipWidth = 92,
+	SkipHeight = 44,
 	SkipRadius = 20,
 	SkipTextSize = 16,
 	SkipGap = 12,

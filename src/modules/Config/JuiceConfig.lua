@@ -15,8 +15,12 @@
 			ComboWidth / ComboHeight: label box size (design pixels)
 			ComboPunchScale: size the meter jumps to on a level up (multiplier)
 			ComboPunchTime: time of the level-up punch (seconds)
-			ComboShakeDegrees / ComboShakeSpeed: rotation wobble at max combo (degrees, cycles/second)
+			ComboTiltDegrees: resting rotation of the label (degrees)
+			ComboWobbleDegrees / ComboWobbleSpeed: gentle rotation wobble while active (degrees, cycles/second)
+			ComboShakeDegrees / ComboShakeSpeed: stronger rotation shake at max combo (degrees, cycles/second)
 			ComboColors: label colour per combo level, index 1 = level 1 (RGB)
+			ComboMaxGradient: rainbow colour sequence used on the label at max combo (ColorSequence)
+			ComboGradientRotationSeconds: time for one full rainbow rotation (seconds)
 		Floating numbers on the poop:
 			FloatFormat: score popup text, %s = amount (format)
 			FloatLifetime: how long a popup lives (seconds)
@@ -101,21 +105,33 @@
 return {
 	ComboFormat = "x%d COMBO!",
 	ComboMinLevel = 2,
-	ComboTextSize = 22,
+	ComboTextSize = 44,
 	ComboOffsetY = 0,
-	ComboWidth = 420,
-	ComboHeight = 22,
+	ComboWidth = 520,
+	ComboHeight = 56,
 	ComboPunchScale = 1.35,
 	ComboPunchTime = 0.18,
+	ComboTiltDegrees = -6,
+	ComboWobbleDegrees = 1.5,
+	ComboWobbleSpeed = 1.6,
 	ComboShakeDegrees = 6,
-	ComboShakeSpeed = 18,
+	ComboShakeSpeed = 10,
 	ComboColors = {
 		Color3.fromRGB(255, 255, 255),
-		Color3.fromRGB(150, 240, 80),
-		Color3.fromRGB(96, 200, 255),
-		Color3.fromRGB(200, 120, 255),
-		Color3.fromRGB(255, 214, 40),
+		Color3.fromRGB(255, 236, 80),
+		Color3.fromRGB(255, 150, 40),
+		Color3.fromRGB(255, 100, 185),
+		Color3.fromRGB(255, 255, 255),
 	},
+	ComboMaxGradient = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 120, 120)),
+		ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 236, 80)),
+		ColorSequenceKeypoint.new(0.4, Color3.fromRGB(140, 255, 90)),
+		ColorSequenceKeypoint.new(0.6, Color3.fromRGB(120, 215, 255)),
+		ColorSequenceKeypoint.new(0.8, Color3.fromRGB(205, 150, 255)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 120, 120)),
+	}),
+	ComboGradientRotationSeconds = 3,
 
 	FloatFormat = "+%s",
 	FloatLifetime = 0.9,
@@ -126,9 +142,9 @@ return {
 	FloatMaxDistance = 300,
 	FloatTiers = {
 		{ Min = 0, TextSize = 22, Color = Color3.fromRGB(255, 255, 255) },
-		{ Min = 100, TextSize = 28, Color = Color3.fromRGB(150, 240, 80) },
-		{ Min = 500, TextSize = 34, Color = Color3.fromRGB(96, 200, 255) },
-		{ Min = 2000, TextSize = 42, Color = Color3.fromRGB(255, 214, 40) },
+		{ Min = 100, TextSize = 28, Color = Color3.fromRGB(140, 255, 90) },
+		{ Min = 500, TextSize = 34, Color = Color3.fromRGB(120, 215, 255) },
+		{ Min = 2000, TextSize = 42, Color = Color3.fromRGB(255, 205, 40) },
 	},
 	FloatSoilFormat = "+%s\n%s splatted!",
 	FloatSoilTextSize = 38,

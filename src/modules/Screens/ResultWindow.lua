@@ -2,13 +2,13 @@
 
 --[[
 	ResultWindow
-	End-of-run window: score and coins count up together over ResultCountSeconds; the score,
-	the Stink multiplier line, coin / gem / XP reward rows, badges for level up, target
-	reached, quests done and objects soiled, and a CONTINUE button that clears the result.
+	End-of-run window: a Gold banner with a rotating sunburst, the score counting up, a
+	Score x Stink chip, glossy Coins / Gems / XP reward pills, a NEW BEST stamp when the run
+	beat the previous best, result badges and a shiny CONTINUE button.
 
 	Props: data (DataController state with LastRun), ui (useUIScale result)
-	Dependencies: React, RunService, UIConfig, DataController, PetView, Primitives, ChunkyButton, Chip, Inset,
-		Window, WindowSize, Format
+	Dependencies: React, RunService, UIConfig, RunUIConfig, DataController, PetView,
+		Components (Chip, ChunkyButton, Format, Primitives, Rays, Window, WindowSize)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,53 +16,61 @@ local RunService = game:GetService("RunService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
+local RunUIConfig = require(ReplicatedStorage.Modules.Config.RunUIConfig)
 local DataController = require(ReplicatedStorage.Modules.Controllers.DataController)
 local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
 local Components = ReplicatedStorage.Modules.UIComponents
 local Chip = require(Components.Chip)
 local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
-local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
+local Rays = require(Components.Rays)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
 local Palette = UIConfig.Palette
 local Shape = UIConfig.Shape
-local Sizes = UIConfig.Sizes.Result
 local Gap = UIConfig.Sizes.Window.Gap
 local Text = UIConfig.Text
 local TextSizes = UIConfig.TextSizes
+local Config = RunUIConfig.Result
 
-local function rewardRow(order: number, icon: string, label: string, amount: number, swatchName: string)
-	local swatch = Primitives.swatch(swatchName)
-	return e(Inset, {
+local function rewardPill(order: number, icon: string, label: string, amount: string, swatchName: string)
+	return e(ChunkyButton, {
+		gloss = true,
 		layoutOrder = order,
-		size = UDim2.new(1, 0, 0, Sizes.RowHeight),
+		size = UDim2.new(1, 0, 0, Config.RowHeight),
+		swatch = swatchName,
 	}, {
-		Padding = Primitives.paddingXY(Gap, 0),
-		Icon = Primitives.text({
-			Size = UDim2.new(0, Sizes.RowHeight, 1, 0),
-			Stroke = false,
-			Text = icon,
-			TextSize = TextSizes.Icon,
-			XAlign = Enum.TextXAlignment.Left,
+		Icon = e(ChunkyButton, {
+			gloss = true,
+			icon = icon,
+			iconSize = Config.RowIconSize * Shape.IconFill,
+			position = UDim2.fromOffset(10, (Config.RowHeight - Config.RowIconSize) / 2),
+			round = true,
+			size = UDim2.fromOffset(Config.RowIconSize, Config.RowIconSize),
+			swatch = Config.RowIconSwatch,
+			zIndex = 3,
 		}),
 		Label = Primitives.text({
-			Position = UDim2.fromOffset(Sizes.RowHeight, 0),
-			Size = UDim2.new(0.5, -Sizes.RowHeight, 1, 0),
+			Color = Palette.Text,
+			Position = UDim2.fromOffset(Config.RowIconSize + 22, 0),
+			Size = UDim2.new(1, -(Config.RowIconSize + 22), 1, 0),
 			Text = label,
 			TextSize = TextSizes.Large,
 			XAlign = Enum.TextXAlignment.Left,
+			ZIndex = 3,
 		}),
 		Amount = Primitives.text({
 			AnchorPoint = Vector2.new(1, 0),
-			Color = swatch.Top,
-			Position = UDim2.fromScale(1, 0),
-			Size = UDim2.fromScale(0.5, 1),
-			Text = string.format(Text.ResultPlus, Format.commas(amount)),
+			Color = Palette.Text,
+			Position = UDim2.new(1, -16, 0, 0),
+			Size = UDim2.new(0.5, 0, 1, 0),
+			Text = string.format(Text.ResultPlus, amount),
 			TextSize = TextSizes.Header,
+			YAlign = Enum.TextYAlignment.Center,
+			ZIndex = 3,
 			XAlign = Enum.TextXAlignment.Right,
 		}),
 	})
@@ -73,6 +81,8 @@ return function(props: any)
 	local ui = props.ui
 	local displayScore, setDisplayScore = React.useState(0)
 	local displayCoins, setDisplayCoins = React.useState(0)
+	local bestBefore = React.useRef(props.data.Stats.BestScore)
+	local newBest = summary ~= nil and summary.Score > bestBefore.current
 
 	React.useEffect(function()
 		setDisplayScore(0)
@@ -126,7 +136,7 @@ return function(props: any)
 	}
 	if summary.LeveledUp > 0 then
 		badges.Level = e(Chip, {
-			height = Sizes.BadgeHeight,
+			height = Config.BadgeHeight,
 			layoutOrder = 1,
 			swatch = "Gold",
 			text = string.format(Text.ResultLevelUp, summary.NewLevel),
@@ -135,7 +145,7 @@ return function(props: any)
 	end
 	if summary.TargetReached then
 		badges.Target = e(Chip, {
-			height = Sizes.BadgeHeight,
+			height = Config.BadgeHeight,
 			layoutOrder = 2,
 			swatch = "Pink",
 			text = Text.ResultTarget,
@@ -144,7 +154,7 @@ return function(props: any)
 	end
 	if summary.QuestsCompleted > 0 then
 		badges.Quests = e(Chip, {
-			height = Sizes.BadgeHeight,
+			height = Config.BadgeHeight,
 			layoutOrder = 3,
 			swatch = "Teal",
 			text = string.format(Text.ResultQuests, summary.QuestsCompleted),
@@ -153,7 +163,7 @@ return function(props: any)
 	end
 	if summary.ObjectsSoiled > 0 then
 		badges.Soiled = e(Chip, {
-			height = Sizes.BadgeHeight,
+			height = Config.BadgeHeight,
 			layoutOrder = 4,
 			swatch = "Brown",
 			text = string.format(Text.ResultSoiled, summary.ObjectsSoiled),
@@ -161,28 +171,79 @@ return function(props: any)
 		})
 	end
 
-	local badgeCount = 0
-	for key in badges do
-		if key ~= "Layout" then
-			badgeCount += 1
-		end
-	end
-	local badgeRows = math.ceil(badgeCount / Sizes.BadgesPerRow)
 	local stink = PetView.TotalStink(props.data)
 	local stinkLine = string.format(Text.ResultStinkFormat, Format.commas(summary.Score), Format.multiplier(stink))
-	local footerHeight = UIConfig.Sizes.Play.PlayButtonHeight
-	local contentHeight = TextSizes.Body
-		+ TextSizes.Huge
-		+ TextSizes.Body
-		+ Shape.Stroke * 2
-		+ Sizes.RowHeight * 3
-		+ badgeRows * (Sizes.BadgeHeight + Shape.Stroke * 2)
-		+ (Sizes.BaseRows - 1) * Gap / 2
-	local width, height = WindowSize.fit(ui, Sizes.Width, contentHeight + WindowSize.chrome(footerHeight))
+	local footerHeight = Config.ContinueHeight
+	local width, height = WindowSize.fit(ui, Config.Width, 660)
+
+	local banner = e("Frame", {
+		BackgroundTransparency = 1,
+		ClipsDescendants = true,
+		LayoutOrder = 1,
+		Size = UDim2.new(1, 0, 0, Config.ScoreTextSize + Config.CaptionTextSize + Gap * 2),
+	}, {
+		Rays = e(Rays, {
+			anchorPoint = Vector2.new(0.5, 0.5),
+			color = Config.RaysColor,
+			position = UDim2.fromScale(0.5, 0.45),
+			size = Config.RaysSize,
+			zIndex = 1,
+		}),
+		Caption = Primitives.text({
+			Color = Palette.TextSoft,
+			Position = UDim2.fromScale(0.5, 0),
+			Size = UDim2.new(1, 0, 0, Config.CaptionTextSize + Shape.SmallTextStroke * 2),
+			StrokeSize = Shape.SmallTextStroke,
+			Text = Text.ResultScore,
+			TextSize = Config.CaptionTextSize,
+			ZIndex = 2,
+		}),
+		Score = Primitives.text({
+			Color = Palette.Sparkle,
+			Position = UDim2.fromScale(0.5, 0.32),
+			Size = UDim2.new(1, 0, 0, Config.ScoreTextSize + Shape.TextStroke * 2),
+			Text = Format.commas(displayScore),
+			TextSize = Config.ScoreTextSize,
+			ZIndex = 2,
+		}),
+		NewBest = if newBest
+			then e("Frame", {
+				AnchorPoint = Vector2.new(1, 0),
+				BackgroundTransparency = 1,
+				Position = UDim2.fromScale(0.98, 0),
+				Rotation = 8,
+				Size = UDim2.fromOffset(1, 1),
+				ZIndex = 3,
+			}, {
+				Label = e(Chip, {
+					anchorPoint = Vector2.new(1, 0),
+					height = Config.NewBestHeight,
+					position = UDim2.fromScale(1, 0),
+					swatch = Config.NewBestSwatch,
+					text = Config.NewBestText,
+					textSize = TextSizes.Body,
+					zIndex = 3,
+				}),
+			})
+			else nil,
+	})
+
+	local rows = e("Frame", {
+		BackgroundTransparency = 1,
+		LayoutOrder = 3,
+		Size = UDim2.new(1, 0, 0, Config.RowHeight * 3 + Gap),
+	}, {
+		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2),
+		Coins = rewardPill(1, Text.CoinIcon, Text.ResultCoins, Format.commas(displayCoins), "Gold"),
+		Gems = rewardPill(2, Text.GemIcon, Text.ResultGems, Format.commas(summary.Gems), "Purple"),
+		Xp = rewardPill(3, Text.XpIcon, Text.ResultXp, Format.commas(summary.Xp), "Green"),
+	})
 
 	return e(Window, {
 		footer = e(ChunkyButton, {
+			gloss = true,
 			onActivated = DataController.DismissResult,
+			shine = true,
 			size = UDim2.fromScale(1, 1),
 			swatch = "Green",
 			text = Text.Continue,
@@ -190,41 +251,26 @@ return function(props: any)
 		}),
 		footerHeight = footerHeight,
 		height = height,
+		icon = Config.Icon,
 		swatch = if summary.OutOfTime then "Red" else "Gold",
 		title = if summary.OutOfTime then Text.ResultTimeUp else Text.ResultTitle,
 		width = width,
 	}, {
 		Scroll = Primitives.scroll({}, {
 			Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2, Enum.HorizontalAlignment.Center),
-			Caption = Primitives.text({
-				Color = Palette.TextSoft,
-				LayoutOrder = 1,
-				Size = UDim2.new(1, 0, 0, TextSizes.Body),
-				Text = Text.ResultScore,
-				TextSize = TextSizes.Body,
+			Banner = banner,
+			Stink = e(Chip, {
+				height = Config.StinkChipHeight,
+				layoutOrder = 2,
+				swatch = "Purple",
+				text = stinkLine,
+				textSize = Config.StinkChipTextSize,
 			}),
-			Score = Primitives.text({
-				Color = Palette.Sparkle,
-				LayoutOrder = 2,
-				Size = UDim2.new(1, 0, 0, TextSizes.Huge + Shape.Stroke * 2),
-				Text = Format.commas(displayScore),
-				TextSize = TextSizes.Huge,
-			}),
-			Stink = Primitives.text({
-				Color = Palette.TextSoft,
-				Fit = true,
-				LayoutOrder = 3,
-				Size = UDim2.new(1, 0, 0, TextSizes.Body),
-				Text = stinkLine,
-				TextSize = TextSizes.Body,
-			}),
-			Coins = rewardRow(4, Text.CoinIcon, Text.ResultCoins, displayCoins, "Gold"),
-			Gems = rewardRow(5, Text.GemIcon, Text.ResultGems, summary.Gems, "Purple"),
-			Xp = rewardRow(6, Text.XpIcon, Text.ResultXp, summary.Xp, "Green"),
+			Rows = rows,
 			Badges = e("Frame", {
 				AutomaticSize = Enum.AutomaticSize.Y,
 				BackgroundTransparency = 1,
-				LayoutOrder = 7,
+				LayoutOrder = 4,
 				Size = UDim2.fromScale(1, 0),
 			}, badges),
 		}),

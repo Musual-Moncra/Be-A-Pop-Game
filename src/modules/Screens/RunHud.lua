@@ -2,13 +2,14 @@
 
 --[[
 	RunHud
-	Everything shown during a run: the score panel (big score, Stink pill, timer bar that turns
-	red when low, Challenge target bar), the quest list, a column of active food power-ups with
-	countdowns at the left edge, stacked popups (food eaten, object soiled, caught by a chef)
-	and the LEAVE button. The lobby Wallet is hidden while a run is active.
+	Run HUD: the Lifespan pill (clock icon, ratio-coloured fill, red shake when low), the map
+	stain bar (ticks 25/50/75, a poop icon riding the fill edge, Best chip), the score card
+	with a punching count-up and Stink chip, the quest list, the active power-up column and the
+	small LEAVE pill. Float popups (food, soiling, caught) stack above the HUD.
 
 	Props: data (DataController state), ui (useUIScale result)
-	Dependencies: React, UIConfig, RunUIConfig, ConfigLookup, PetView, Net, Primitives, ChunkyButton, Bar, Pill, Inset, Format
+	Dependencies: React, RunService, TweenService, UIConfig, RunUIConfig, ConfigLookup, PetView,
+		Net, Components (Bar, ChunkyButton, Chip, CountUp, Format, Inset, Primitives)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,17 +24,18 @@ local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
 local Components = ReplicatedStorage.Modules.UIComponents
 local Bar = require(Components.Bar)
+local Chip = require(Components.Chip)
 local ChunkyButton = require(Components.ChunkyButton)
+local CountUp = require(Components.CountUp)
 local Format = require(Components.Format)
 local Inset = require(Components.Inset)
-local Pill = require(Components.Pill)
 local Primitives = require(Components.Primitives)
 
 local e = React.createElement
 local Animation = UIConfig.Animation
 local Palette = UIConfig.Palette
 local Shape = UIConfig.Shape
-local Sizes = UIConfig.Sizes.Run
+local Sizes = UIConfig.Sizes
 local Gap = UIConfig.Sizes.Window.Gap
 local Text = UIConfig.Text
 local TextSizes = UIConfig.TextSizes
@@ -58,9 +60,24 @@ local function panel(props: any, children: any)
 	}, merged)
 end
 
-local function TimerPanel(props: any)
+local function swatchForRatio(timed: boolean, ratio: number): string
+	if not timed then
+		return "Blue"
+	end
+	if ratio > RunUIConfig.Lifespan.MidRatio then
+		return RunUIConfig.Lifespan.SwatchHigh
+	elseif ratio > Animation.LowTimeRatio then
+		return RunUIConfig.Lifespan.SwatchMid
+	end
+	return RunUIConfig.Lifespan.SwatchLow
+end
+
+local function LifespanPill(props: any)
 	local data = props.data
+	local config = RunUIConfig.Lifespan
 	local maxTimeRef = React.useRef(0)
+	local frameRef = React.useRef(nil)
+	local scaleRef = React.useRef(nil)
 	local timed = data.TimeLeft >= 0
 	if timed and data.TimeLeft > maxTimeRef.current then
 		maxTimeRef.current = data.TimeLeft
@@ -68,53 +85,188 @@ local function TimerPanel(props: any)
 	local ratio = if timed and maxTimeRef.current > 0 then data.TimeLeft / maxTimeRef.current else 1
 	local low = timed and ratio <= Animation.LowTimeRatio
 
-	return panel({
+	React.useEffect(function()
+		local frame = frameRef.current
+		local scale = scaleRef.current
+		if not low or frame == nil or scale == nil then
+			return
+		end
+		local connection = RunService.Heartbeat:Connect(function()
+			local wave = math.sin(os.clock() * config.ShakeSpeed)
+			frame.Rotation = wave * config.ShakeDegrees
+			scale.Scale = 1 + math.abs(wave) * (config.ShakeScale - 1)
+		end)
+		return function()
+			connection:Disconnect()
+			frame.Rotation = 0
+			scale.Scale = 1
+		end
+	end, { low } :: { any })
+
+	return e("Frame", {
 		AnchorPoint = props.layout.AnchorPoint,
-		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
 		Position = props.layout.Position,
-		Size = UDim2.fromOffset(Sizes.TimerWidth, 0),
+		Size = UDim2.fromOffset(config.Width, config.Height),
+		ref = frameRef,
 	}, {
-		Timer = e(Bar, {
+		Scale = e("UIScale", { ref = scaleRef }),
+		Bar = e(Bar, {
 			ratio = ratio,
-			size = UDim2.new(1, 0, 0, Sizes.TimerBarHeight),
-			swatch = if not timed then "Blue" elseif low then "Red" else "Green",
-			text = if timed then string.format(Text.TimerFormat, math.max(0, data.TimeLeft)) else Text.Untimed,
+			size = UDim2.fromScale(1, 1),
+			swatch = swatchForRatio(timed, ratio),
+		}),
+		Icon = e(ChunkyButton, {
+			gloss = true,
+			icon = config.Icon,
+			iconSize = config.IconSize * Shape.IconFill,
+			position = UDim2.fromOffset(config.Height * 0.12, config.Height * 0.12),
+			round = true,
+			size = UDim2.fromOffset(config.IconSize, config.IconSize),
+			swatch = "Gold",
+			zIndex = 3,
+		}),
+		Time = Primitives.text({
+			Color = Palette.Text,
+			Position = UDim2.fromOffset(config.IconSize + config.Height * 0.3, 0),
+			Size = UDim2.new(1, -(config.IconSize + config.Height * 0.5), 1, 0),
+			Text = if timed then string.format(config.Format, math.max(0, data.TimeLeft)) else config.Untimed,
+			TextSize = config.TextSize,
+			ZIndex = 3,
 		}),
 	})
 end
 
-local function ScorePanel(props: any)
+local function MapMeter(props: any)
 	local data = props.data
-	local layout = props.layout
+	local config = RunUIConfig.Meter
+	local progress = data.MapProgress
+	local percent = math.clamp(if progress ~= nil then tonumber(progress.Percent) or 0 else 0, 0, 100)
+	local best = (data.BestMapProgress or {})[data.MapId] or 0
+	local ratio = percent / 100
+	local tickRefs = React.useRef({})
+	local passedRef = React.useRef(0)
 
+	local tickChildren: { [string]: any } = {}
+	local passedCount = 0
+	for index, mark in config.Ticks do
+		local passed = percent >= mark
+		if passed then
+			passedCount += 1
+		end
+		local tickIndex = index
+		tickChildren["Tick" .. index] = e("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundColor3 = if passed then config.TickDoneColor else config.TickColor,
+			BorderSizePixel = 0,
+			Position = UDim2.new(mark / 100, 0, 0.5, 0),
+			Size = UDim2.fromOffset(config.TickWidth, config.Height * config.TickHeightRatio),
+			ZIndex = 3,
+		}, {
+			Scale = e("UIScale", {
+				ref = function(instance: any)
+					tickRefs.current[tickIndex] = instance
+				end,
+			}),
+		})
+	end
+
+	React.useEffect(function()
+		local previous = passedRef.current
+		passedRef.current = passedCount
+		if passedCount <= previous then
+			return
+		end
+		for index = previous + 1, passedCount do
+			local scale = tickRefs.current[index]
+			if scale ~= nil then
+				scale.Scale = config.TickPopScale
+				TweenService
+					:Create(
+						scale,
+						TweenInfo.new(config.TickPopTime, Animation.SpringStyle, Animation.SpringDirection),
+						{
+							Scale = 1,
+						}
+					)
+					:Play()
+			end
+		end
+	end, { passedCount } :: { any })
+
+	local barChildren: { [string]: any } = {
+		Bar = e(Bar, {
+			ratio = ratio,
+			size = UDim2.fromOffset(config.Width, config.Height),
+			swatch = config.Swatch,
+			text = string.format(config.Format, percent),
+			textSize = TextSizes.Small,
+		}),
+		Poop = e("TextLabel", {
+			AnchorPoint = Vector2.new(0.5, 1),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(ratio, 0, 0, -config.PoopRise),
+			Size = UDim2.fromOffset(config.PoopTextSize + 8, config.PoopTextSize + 8),
+			Text = config.PoopIcon,
+			TextSize = config.PoopTextSize,
+			ZIndex = 4,
+		}),
+	}
+	for key, tick in tickChildren do
+		barChildren[key] = tick
+	end
+	return e("Frame", {
+		AnchorPoint = props.layout.AnchorPoint,
+		BackgroundTransparency = 1,
+		Position = props.layout.Position,
+		Size = UDim2.fromOffset(config.Width + config.Gap + config.BestChip.Width, config.Height),
+	}, {
+		Bar = e("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromOffset(config.Width, config.Height),
+		}, barChildren),
+		Best = e(Chip, {
+			anchorPoint = Vector2.new(1, 0.5),
+			height = config.BestChip.Height,
+			position = UDim2.new(1, 0, 0.5, 0),
+			swatch = config.BestChip.Swatch,
+			text = string.format(config.BestChip.Format, best),
+			textSize = config.BestChip.TextSize,
+			zIndex = 3,
+		}),
+	})
+end
+
+local function ScoreCard(props: any)
+	local data = props.data
+	local config = RunUIConfig.Score
 	local mode = ConfigLookup.GetMode(data.ModeId)
 	local target = if mode ~= nil then mode.TargetScore else 0
 
 	local children: { [string]: any } = {
-		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2, Enum.HorizontalAlignment.Center),
+		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 3, Enum.HorizontalAlignment.Center),
 		Caption = Primitives.text({
-			Color = Palette.TextSoft,
+			Color = Palette.Text,
 			LayoutOrder = 1,
-			Size = UDim2.new(1, 0, 0, TextSizes.Small),
+			Size = UDim2.new(1, 0, 0, config.CaptionTextSize + Shape.SmallTextStroke * 2),
 			StrokeSize = Shape.SmallTextStroke,
 			Text = Text.ScoreLabel,
-			TextSize = TextSizes.Small,
+			TextSize = config.CaptionTextSize,
 		}),
-		Score = Primitives.text({
-			Color = Palette.Sparkle,
-			LayoutOrder = 2,
-			Size = UDim2.new(1, 0, 0, TextSizes.Huge),
-			Text = Format.commas(data.Score),
-			TextSize = TextSizes.Huge,
+		Score = e(CountUp, {
+			compact = true,
+			color = Palette.Sparkle,
+			layoutOrder = 2,
+			size = UDim2.new(1, 0, 0, config.ScoreTextSize + Shape.TextStroke * 2),
+			textSize = config.ScoreTextSize,
+			value = data.Score,
 		}),
-		Stink = e(Pill, {
-			height = RunUIConfig.Stink.Height,
-			icon = Text.StinkIcon,
-			iconSize = RunUIConfig.Stink.IconSize,
+		Stink = e(Chip, {
+			height = config.StinkHeight,
 			layoutOrder = 3,
-			swatch = RunUIConfig.Stink.Swatch,
-			value = string.format(Text.StinkPillFormat, PetView.TotalStink(data)),
-			width = Sizes.ScoreWidth,
+			swatch = "Brown",
+			text = string.format(Text.StinkPillFormat, PetView.TotalStink(data)),
+			textSize = config.StinkTextSize,
 		}),
 	}
 	if target > 0 then
@@ -122,7 +274,7 @@ local function ScorePanel(props: any)
 		children.Target = e(Bar, {
 			layoutOrder = 4,
 			ratio = data.Score / target,
-			size = UDim2.new(1, 0, 0, Sizes.TargetBarHeight + Shape.Stroke * 2),
+			size = UDim2.new(1, 0, 0, Sizes.Run.TargetBarHeight + Shape.Stroke * 2),
 			swatch = if reached then "Green" else "Gold",
 			text = if reached
 				then Text.TargetDone
@@ -132,10 +284,10 @@ local function ScorePanel(props: any)
 	end
 
 	return panel({
-		AnchorPoint = layout.AnchorPoint,
+		AnchorPoint = props.layout.AnchorPoint,
 		AutomaticSize = Enum.AutomaticSize.Y,
-		Position = layout.Position,
-		Size = UDim2.fromOffset(Sizes.ScoreWidth, 0),
+		Position = props.layout.Position,
+		Size = UDim2.fromOffset(config.Width, 0),
 	}, children)
 end
 
@@ -144,9 +296,11 @@ local function QuestPanel(props: any)
 	if #quests == 0 then
 		return nil
 	end
+	local config = RunUIConfig.Quests
 	local rows: { [string]: any } = {
 		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2),
 		Header = Primitives.text({
+			Color = Palette.Text,
 			LayoutOrder = 0,
 			Size = UDim2.new(1, 0, 0, TextSizes.Large),
 			Text = Text.QuestsHeader,
@@ -157,11 +311,11 @@ local function QuestPanel(props: any)
 		rows["Quest" .. index] = e(Inset, {
 			layoutOrder = index,
 			padding = Gap / 2,
-			size = UDim2.new(1, 0, 0, Sizes.QuestRowHeight),
+			size = UDim2.new(1, 0, 0, config.RowHeight),
 		}, {
 			Layout = Primitives.list(Enum.FillDirection.Vertical, Shape.Stroke),
 			Label = Primitives.text({
-				Color = if quest.Done then UIConfig.Swatches.Green.Top else Palette.Text,
+				Color = if quest.Done then UIConfig.Swatches.Green.Bottom else Palette.Ink,
 				LayoutOrder = 1,
 				Size = UDim2.new(1, 0, 0, TextSizes.Small + Shape.Stroke),
 				StrokeSize = Shape.SmallTextStroke,
@@ -172,7 +326,7 @@ local function QuestPanel(props: any)
 			Progress = e(Bar, {
 				layoutOrder = 2,
 				ratio = if quest.Target > 0 then quest.Progress / quest.Target else 1,
-				size = UDim2.new(1, 0, 0, Sizes.TargetBarHeight),
+				size = UDim2.new(1, 0, 0, Sizes.Run.TargetBarHeight),
 				swatch = if quest.Done then "Green" else "Teal",
 				text = string.format(
 					Text.QuestProgress,
@@ -187,7 +341,7 @@ local function QuestPanel(props: any)
 		AnchorPoint = props.layout.AnchorPoint,
 		AutomaticSize = Enum.AutomaticSize.Y,
 		Position = props.layout.Position,
-		Size = UDim2.fromOffset(Sizes.QuestWidth, 0),
+		Size = UDim2.fromOffset(config.Width, 0),
 	}, rows)
 end
 
@@ -230,6 +384,7 @@ local function PowerupSlots(props: any)
 			Size = UDim2.fromOffset(config.Size, config.Size + config.TimerHeight + config.Gap / 2),
 		}, {
 			Icon = e(ChunkyButton, {
+				gloss = true,
 				icon = if definition ~= nil then definition.Icon else "",
 				iconSize = config.Size * Shape.IconFill,
 				round = true,
@@ -260,7 +415,7 @@ end
 local function Popup(props: any)
 	local scaleRef = React.useRef(nil)
 	local swatch = Primitives.swatch(UIConfig.ToastSwatches[props.popup.Kind])
-	local step = UIConfig.Sizes.Popup.Height + UIConfig.Sizes.Popup.Gap
+	local step = Sizes.Popup.Height + Sizes.Popup.Gap
 
 	React.useEffect(function()
 		local scale = scaleRef.current
@@ -278,7 +433,7 @@ local function Popup(props: any)
 		BackgroundTransparency = 1,
 		FontFace = Primitives.displayFont(),
 		Position = props.base.Position - UDim2.fromOffset(0, props.slot * step),
-		Size = UDim2.fromOffset(UIConfig.Sizes.Popup.Width, UIConfig.Sizes.Popup.Height),
+		Size = UDim2.fromOffset(Sizes.Popup.Width, Sizes.Popup.Height),
 		Text = props.popup.Text,
 		TextColor3 = swatch.Top,
 		TextSize = TextSizes.Header,
@@ -294,33 +449,33 @@ end
 
 return function(props: any)
 	local data = props.data
-	local layouts = UIConfig.Layouts[if props.ui.mobile then "Mobile" else "PC"]
-	local narrow = props.ui.safeWidth < Sizes.NarrowWidth
-	local margin = layouts.WindowMargin
-	local scoreLayout = if narrow
-		then { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -margin, 0, Sizes.NarrowScoreTop) }
-		else layouts.RunScore
-	local questLayout = if narrow
-		then { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -margin, 0, Sizes.NarrowQuestTop) }
-		else layouts.RunQuests
-
-	local powerupLayout = RunUIConfig.Layouts[if props.ui.mobile then "Mobile" else "PC"].Powerups
+	local mode = if props.ui.mobile then "Mobile" else "PC"
+	local layouts = UIConfig.Layouts[mode]
+	local runLayouts = RunUIConfig.Layouts[mode]
+	local timerLayout = layouts.RunTimer
+	local meterY = timerLayout.Position.Y.Offset + RunUIConfig.Lifespan.Height + RunUIConfig.Stack.LifespanToMeter
+	local meterLayout = {
+		AnchorPoint = timerLayout.AnchorPoint,
+		Position = UDim2.new(timerLayout.Position.X.Scale, timerLayout.Position.X.Offset, 0, meterY),
+	}
 
 	local children: { [string]: any } = {
-		Timer = e(TimerPanel, { data = data, layout = layouts.RunTimer }),
-		Score = e(ScorePanel, { data = data, layout = scoreLayout }),
-		Quests = e(QuestPanel, { layout = questLayout, quests = data.Quests }),
-		Powerups = e(PowerupSlots, { layout = powerupLayout, powerups = data.Powerups }),
+		Lifespan = e(LifespanPill, { data = data, layout = timerLayout }),
+		Meter = e(MapMeter, { data = data, layout = meterLayout }),
+		Score = e(ScoreCard, { data = data, layout = layouts.RunScore }),
+		Quests = e(QuestPanel, { layout = runLayouts.Quests, quests = data.Quests }),
+		Powerups = e(PowerupSlots, { layout = runLayouts.Powerups, powerups = data.Powerups }),
 		Leave = e(ChunkyButton, {
 			anchorPoint = layouts.RunLeave.AnchorPoint,
+			gloss = true,
 			onActivated = function()
 				Net.LeaveRun:Fire()
 			end,
 			position = layouts.RunLeave.Position,
-			size = UDim2.fromOffset(Sizes.LeaveWidth, Sizes.LeaveHeight),
+			size = UDim2.fromOffset(RunUIConfig.Leave.Width, RunUIConfig.Leave.Height),
 			swatch = "Red",
 			text = Text.Leave,
-			textSize = TextSizes.Large,
+			textSize = TextSizes.Body,
 		}),
 	}
 	local firstVisible = math.max(1, #data.Popups - Animation.PopupMaxVisible + 1)

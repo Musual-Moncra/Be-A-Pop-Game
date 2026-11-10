@@ -2,13 +2,13 @@
 
 --[[
 	RunJuice
-	Run-only juice layers drawn over the HUD: the combo meter under the Lifespan bar and the
-	stain milestone banners (25/50/75% and the full-screen MAP CLEARED! at 100%). Reads its
+	Run-only juice layers drawn over the HUD: the tilted combo meter under the map stain bar and
+	the stain milestone banners (25/50/75% and the full-screen MAP CLEARED! at 100%). Reads its
 	state from JuiceController signals, so it owns nothing the RunHud already shows.
 
 	Props: ui (useUIScale result)
-	Dependencies: React, RunService, TweenService, UIConfig, JuiceConfig, JuiceController,
-		Primitives, Rays, Sparkle
+	Dependencies: React, RunService, TweenService, UIConfig, RunUIConfig, JuiceConfig,
+		JuiceController, Primitives, Rays, Sparkle
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,6 +18,7 @@ local TweenService = game:GetService("TweenService")
 local React = require(ReplicatedStorage.Packages.React)
 local JuiceController = require(ReplicatedStorage.Modules.Controllers.JuiceController)
 local JuiceConfig = require(ReplicatedStorage.Modules.Config.JuiceConfig)
+local RunUIConfig = require(ReplicatedStorage.Modules.Config.RunUIConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
 local Primitives = require(Components.Primitives)
@@ -25,22 +26,26 @@ local Rays = require(Components.Rays)
 local Sparkle = require(Components.Sparkle)
 
 local e = React.createElement
+local Palette = UIConfig.Palette
+local Shape = UIConfig.Shape
 
 local COMBO_PUNCH_INFO = TweenInfo.new(JuiceConfig.ComboPunchTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
 local BANNER_PUNCH_INFO = TweenInfo.new(JuiceConfig.MilestonePunchTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
-local function comboPosition(ui: any): UDim2
-	local layout = UIConfig.Layouts[if ui.mobile then "Mobile" else "PC"].RunTimer
-	return UDim2.new(
-		layout.Position.X.Scale,
-		layout.Position.X.Offset,
-		layout.Position.Y.Scale,
-		layout.Position.Y.Offset
-			+ UIConfig.Sizes.Window.Gap
-			+ UIConfig.Sizes.Run.TimerBarHeight
-			+ JuiceConfig.ComboOffsetY
-	)
+local function comboLayout(ui: any): any
+	local mode = if ui.mobile then "Mobile" else "PC"
+	local timer = UIConfig.Layouts[mode].RunTimer
+	local y = timer.Position.Y.Offset
+		+ RunUIConfig.Lifespan.Height
+		+ RunUIConfig.Stack.LifespanToMeter
+		+ RunUIConfig.Meter.Height
+		+ RunUIConfig.Stack.MeterToCombo
+		+ JuiceConfig.ComboOffsetY
+	return {
+		AnchorPoint = timer.AnchorPoint,
+		Position = UDim2.new(timer.Position.X.Scale, timer.Position.X.Offset, 0, y),
+	}
 end
 
 local function ComboMeter(props: any)
@@ -49,7 +54,10 @@ local function ComboMeter(props: any)
 	local previousRef = React.useRef(level)
 	local punchRef = React.useRef(nil)
 	local frameRef = React.useRef(nil)
+	local gradientRef = React.useRef(nil)
 	local maxLevel = #JuiceConfig.ComboColors
+	local isMax = level >= maxLevel
+	local shownLevel = math.clamp(level, 1, maxLevel)
 
 	React.useEffect(function()
 		local connection = JuiceController.ComboChanged:Connect(setLevel)
@@ -70,40 +78,79 @@ local function ComboMeter(props: any)
 
 	React.useEffect(function()
 		local frame = frameRef.current
-		if frame == nil or level < maxLevel then
+		if frame == nil or level < JuiceConfig.ComboMinLevel then
 			if frame ~= nil then
-				frame.Rotation = 0
+				frame.Rotation = JuiceConfig.ComboTiltDegrees
 			end
 			return
 		end
+		local amplitude = if isMax then JuiceConfig.ComboShakeDegrees else JuiceConfig.ComboWobbleDegrees
+		local speed = if isMax then JuiceConfig.ComboShakeSpeed else JuiceConfig.ComboWobbleSpeed
 		local connection = RunService.Heartbeat:Connect(function()
-			frame.Rotation = math.sin(os.clock() * JuiceConfig.ComboShakeSpeed) * JuiceConfig.ComboShakeDegrees
+			frame.Rotation = JuiceConfig.ComboTiltDegrees + math.sin(os.clock() * speed) * amplitude
 		end)
 		return function()
 			connection:Disconnect()
-			if frame ~= nil then
-				frame.Rotation = 0
-			end
+			frame.Rotation = JuiceConfig.ComboTiltDegrees
 		end
-	end, { level } :: { any })
+	end, { level, isMax } :: { any })
 
-	local layout = UIConfig.Layouts[if ui.mobile then "Mobile" else "PC"].RunTimer
+	React.useEffect(function()
+		local gradient = gradientRef.current
+		if gradient == nil or not isMax then
+			return
+		end
+		gradient.Rotation = 0
+		local tween = TweenService:Create(
+			gradient,
+			TweenInfo.new(
+				JuiceConfig.ComboGradientRotationSeconds,
+				Enum.EasingStyle.Linear,
+				Enum.EasingDirection.In,
+				-1
+			),
+			{ Rotation = 360 }
+		)
+		tween:Play()
+		return function()
+			tween:Cancel()
+		end
+	end, { isMax } :: { any })
+
+	local layout = comboLayout(ui)
+	local labelChildren = {
+		Stroke = e("UIStroke", {
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual,
+			Color = Palette.Ink,
+			LineJoinMode = Enum.LineJoinMode.Round,
+			Thickness = Shape.TextStroke,
+		}),
+	}
+	if isMax then
+		labelChildren.Gradient = e("UIGradient", {
+			Color = JuiceConfig.ComboMaxGradient,
+			ref = gradientRef,
+		})
+	end
+
 	return e("Frame", {
 		AnchorPoint = layout.AnchorPoint,
 		BackgroundTransparency = 1,
-		Position = comboPosition(ui),
-		Rotation = 0,
+		Position = layout.Position,
+		Rotation = JuiceConfig.ComboTiltDegrees,
 		Size = UDim2.fromOffset(JuiceConfig.ComboWidth, JuiceConfig.ComboHeight),
 		Visible = level >= JuiceConfig.ComboMinLevel,
 		ref = frameRef,
 	}, {
 		Scale = e("UIScale", { ref = punchRef }),
-		Label = Primitives.text({
-			Color = JuiceConfig.ComboColors[math.clamp(level, 1, maxLevel)],
+		Label = e("TextLabel", {
+			BackgroundTransparency = 1,
+			FontFace = Primitives.displayFont(),
 			Size = UDim2.fromScale(1, 1),
 			Text = string.format(JuiceConfig.ComboFormat, level),
+			TextColor3 = JuiceConfig.ComboColors[shownLevel],
 			TextSize = JuiceConfig.ComboTextSize,
-		}),
+		}, labelChildren),
 	})
 end
 

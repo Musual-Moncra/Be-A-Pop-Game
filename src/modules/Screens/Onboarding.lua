@@ -4,9 +4,10 @@
 	Onboarding
 	First-run coaching overlay. Draws the current hint in a dark bottom panel with a small
 	Skip button and, when the step has a target, a bouncing arrow plus a pulsing ring on the
-	target. GUI targets are found by name through OnboardingController.FindTarget; in-world
-	targets are the Park portal and the nearest soilable prop. The panel follows the current
-	saved step and the live run / lobby state, so it never blocks a screen that has no hint.
+	target. Step 1 points at the lobby PLAY button (there is no MENU any more). GUI targets are
+	found by name through OnboardingController.FindTarget; in-world targets are the nearest
+	soilable prop. The panel follows the current saved step and the live run / lobby state, so
+	it never blocks a screen that has no hint.
 
 	Props: data (DataController state), ui (useUIScale result), route (LobbyState route)
 	Dependencies: React, Players, RunService, Workspace, GameConfig, LobbyState,
@@ -21,7 +22,6 @@ local Workspace = game:GetService("Workspace")
 local React = require(ReplicatedStorage.Packages.React)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local LobbyState = require(ReplicatedStorage.Modules.UIs.LobbyState)
-local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local OnboardingConfig = require(ReplicatedStorage.Modules.Config.OnboardingConfig)
 local OnboardingController = require(ReplicatedStorage.Modules.Controllers.OnboardingController)
 local Components = ReplicatedStorage.Modules.UIComponents
@@ -45,7 +45,7 @@ local function buildHint(step: number, data: any, route: string): any
 				Text = OnboardingConfig.Text.Play,
 				TargetKind = "UI",
 				TargetKey = "Play",
-				Placement = "Dock",
+				Placement = "Lobby",
 			}
 		end
 		return nil
@@ -76,7 +76,7 @@ local function buildHint(step: number, data: any, route: string): any
 				Text = OnboardingConfig.Text.Lifespan,
 				TargetKind = "UI",
 				TargetKey = "Upgrades",
-				Placement = "Dock",
+				Placement = "Lobby",
 			}
 		end
 		return nil
@@ -91,7 +91,7 @@ local function buildHint(step: number, data: any, route: string): any
 			Text = OnboardingConfig.Text.Pet,
 			TargetKind = "UI",
 			TargetKey = "Pets",
-			Placement = "Dock",
+			Placement = "Lobby",
 		}
 	end
 	return nil
@@ -140,34 +140,11 @@ local function fallbackPoint(key: string?, ui: any): Vector2?
 	return Vector2.new(ui.safeWidth * fallback.X, ui.safeHeight * fallback.Y)
 end
 
-local function dockRowOpen(): boolean
-	return OnboardingController.FindTarget("Upgrades") ~= nil or OnboardingController.FindTarget("Pets") ~= nil
-end
-
-local function playTargetKey(): string
-	return if OnboardingController.FindTarget("Play") ~= nil then "Play" else "Menu"
-end
-
-local function dockOffset(ui: any, open: boolean): number
-	local layout = LobbyUIConfig.Layouts[if ui.mobile then "Mobile" else "PC"].Dock
-	local dock = LobbyUIConfig.Dock
-	local gap = OnboardingConfig.PanelDockGap
-	local lift = dock.Lift
-	if not open then
-		lift = dock.ButtonSize * LobbyUIConfig.Bounce.Scale
-	else
-		lift += dock.ItemSize * dock.BigScale + dock.LabelHeight
-	end
-	return math.abs(layout.Position.Y.Offset) + dock.ButtonSize + lift + gap
-end
-
 return function(props: any)
 	local data = props.data
 	local ui = props.ui
 	local route = props.route
 	local _, setVersion = React.useState(0)
-	local dockOpen, setDockOpen = React.useState(dockRowOpen)
-	local playTarget, setPlayTarget = React.useState(playTargetKey)
 	local arrowRef = React.useRef(nil)
 	local ringRef = React.useRef(nil)
 	local ringScaleRef = React.useRef(nil)
@@ -175,32 +152,6 @@ return function(props: any)
 	React.useEffect(function()
 		local connection = OnboardingController.Changed:Connect(function()
 			setVersion(os.clock())
-		end)
-		return function()
-			connection:Disconnect()
-		end
-	end, {})
-
-	React.useEffect(function()
-		local lastOpen = dockRowOpen()
-		local lastTarget = playTargetKey()
-		local lastCheck = 0
-		local connection = RunService.Heartbeat:Connect(function()
-			local now = os.clock()
-			if now - lastCheck < OnboardingConfig.FollowUpdateSeconds then
-				return
-			end
-			lastCheck = now
-			local openNow = dockRowOpen()
-			if openNow ~= lastOpen then
-				lastOpen = openNow
-				setDockOpen(openNow)
-			end
-			local targetNow = playTargetKey()
-			if targetNow ~= lastTarget then
-				lastTarget = targetNow
-				setPlayTarget(targetNow)
-			end
 		end)
 		return function()
 			connection:Disconnect()
@@ -224,8 +175,8 @@ return function(props: any)
 	local panelTop: number? = nil
 	local panelBottom: number? = nil
 	if hint ~= nil then
-		if hint.Placement == "Dock" then
-			panelBottom = ui.safeHeight - dockOffset(ui, dockOpen)
+		if hint.Placement == "Lobby" then
+			panelBottom = ui.safeHeight * OnboardingConfig.PanelYLobby + OnboardingConfig.PanelHeight / 2
 			panelTop = panelBottom - OnboardingConfig.PanelHeight
 		elseif hint.Placement == "Result" then
 			panelBottom = ui.safeHeight * OnboardingConfig.PanelYResult + OnboardingConfig.PanelHeight / 2
@@ -248,18 +199,11 @@ return function(props: any)
 		end
 		local target: GuiObject? = nil
 		local lastLookup = 0
-		local function findTarget(key: string): GuiObject?
-			local found = OnboardingController.FindTarget(key)
-			if found == nil and key ~= "Menu" then
-				found = OnboardingController.FindTarget("Menu")
-			end
-			return found
-		end
 		local connection = RunService.Heartbeat:Connect(function()
 			local now = os.clock()
 			if now - lastLookup >= OnboardingConfig.FollowUpdateSeconds then
 				lastLookup = now
-				target = if hint.TargetKind == "UI" then findTarget(hint.TargetKey) else nil
+				target = if hint.TargetKind == "UI" then OnboardingController.FindTarget(hint.TargetKey) else nil
 			end
 
 			local center: Vector2? = nil
@@ -307,7 +251,7 @@ return function(props: any)
 		return function()
 			connection:Disconnect()
 		end
-	end, { hintKey .. ":" .. layoutKey .. ":" .. tostring(dockOpen) } :: { any })
+	end, { hintKey .. ":" .. layoutKey } :: { any })
 
 	if hint == nil then
 		return nil
@@ -321,9 +265,8 @@ return function(props: any)
 
 	local panelAnchor = Vector2.new(0.5, 0.5)
 	local panelPosition = UDim2.fromScale(OnboardingConfig.PanelX, OnboardingConfig.PanelYInRun)
-	if hint.Placement == "Dock" then
-		panelAnchor = Vector2.new(0.5, 1)
-		panelPosition = UDim2.new(OnboardingConfig.PanelX, 0, 1, -dockOffset(ui, dockOpen))
+	if hint.Placement == "Lobby" then
+		panelPosition = UDim2.fromScale(OnboardingConfig.PanelX, OnboardingConfig.PanelYLobby)
 	elseif hint.Placement == "Result" then
 		panelPosition = UDim2.fromScale(OnboardingConfig.PanelX, OnboardingConfig.PanelYResult)
 	end
@@ -350,9 +293,7 @@ return function(props: any)
 				Color = OnboardingConfig.TextColor,
 				Position = UDim2.fromOffset(padding + sideReserve, padding),
 				Size = UDim2.fromOffset(labelWidth, OnboardingConfig.PanelHeight - padding * 2),
-				Text = if step == OnboardingConfig.StepPlay and playTarget == "Menu"
-					then OnboardingConfig.Text.PlayMenu
-					else hint.Text,
+				Text = hint.Text,
 				TextSize = OnboardingConfig.TextSize,
 				Wrapped = true,
 				XAlign = Enum.TextXAlignment.Center,
@@ -360,6 +301,7 @@ return function(props: any)
 			}),
 			Skip = e(ChunkyButton, {
 				anchorPoint = Vector2.new(1, 0.5),
+				gloss = true,
 				onActivated = function()
 					OnboardingController.Skip()
 				end,

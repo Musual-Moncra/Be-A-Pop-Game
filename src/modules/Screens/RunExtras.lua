@@ -2,14 +2,13 @@
 
 --[[
 	RunExtras
-	Extra HUD pieces drawn over the game: the live "map stained" meter during a run (with the
-	best percent for that map), the Special Time banner with its countdown (lobby and runs), and
-	the revive popup when a timed run hits zero and a revive is offered (prompts the Roblox
-	purchase of the offered product).
+	Extra HUD pieces drawn over the game: the Special Time banner with its countdown (lobby and
+	runs) and the revive popup when a timed run hits zero and a revive is offered (prompts the
+	Roblox purchase of the offered product). The map stain meter now lives in RunHud.
 
 	Props: data (DataController state), ui (useUIScale result), inRun (boolean)
-	Dependencies: React, UIConfig, RunUIConfig, ConfigLookup, MonetizationConfig, Primitives, ChunkyButton,
-		Bar, Window
+	Dependencies: React, UIConfig, RunUIConfig, ConfigLookup, MarketplaceService, Players, Workspace,
+		Primitives, ChunkyButton, Window
 ]]
 
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -22,7 +21,6 @@ local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local RunUIConfig = require(ReplicatedStorage.Modules.Config.RunUIConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
-local Bar = require(Components.Bar)
 local ChunkyButton = require(Components.ChunkyButton)
 local Primitives = require(Components.Primitives)
 local Window = require(Components.Window)
@@ -54,35 +52,6 @@ local function useTick(active: boolean): number
 	return now
 end
 
-local function Meter(props: any)
-	local progress = props.data.MapProgress
-	local percent = if progress ~= nil then progress.Percent else 0
-	local best = (props.data.BestMapProgress or {})[props.data.MapId] or 0
-	local meter = RunUIConfig.Meter
-	return e("Frame", {
-		AnchorPoint = props.layout.AnchorPoint,
-		BackgroundTransparency = 1,
-		Position = props.layout.Position,
-		Size = UDim2.fromOffset(meter.Width, meter.Height + TextSizes.Small),
-	}, {
-		Bar = e(Bar, {
-			ratio = percent / 100,
-			size = UDim2.new(1, 0, 0, meter.Height),
-			swatch = meter.Swatch,
-			text = string.format(meter.Format, percent),
-			textSize = TextSizes.Body,
-		}),
-		Best = Primitives.text({
-			AnchorPoint = Vector2.new(0.5, 1),
-			Color = UIConfig.Palette.TextSoft,
-			Position = UDim2.fromScale(0.5, 1),
-			Size = UDim2.new(1, 0, 0, TextSizes.Small),
-			Text = string.format(meter.BestFormat, best),
-			TextSize = TextSizes.Small,
-		}),
-	})
-end
-
 local function EventBanner(props: any)
 	local event = props.data.SpecialEvent
 	useTick(event ~= nil)
@@ -96,6 +65,9 @@ local function EventBanner(props: any)
 	local map = ConfigLookup.GetMap(event.MapId)
 	local config = RunUIConfig.Event
 	return e(ChunkyButton, {
+		gloss = true,
+		icon = config.Icon,
+		iconSize = TextSizes.Body,
 		anchorPoint = props.layout.AnchorPoint,
 		position = props.layout.Position,
 		size = UDim2.fromOffset(config.Width, config.Height),
@@ -131,6 +103,7 @@ local function RevivePopup(props: any)
 	}, {
 		Window = e(Window, {
 			height = config.Height,
+			icon = config.Icon,
 			swatch = "Red",
 			title = config.Title,
 			width = config.Width,
@@ -144,10 +117,12 @@ local function RevivePopup(props: any)
 			Buy = e(ChunkyButton, {
 				anchorPoint = Vector2.new(0.5, 1),
 				enabled = tier ~= nil and offer.ProductId ~= 0,
+				gloss = true,
 				onActivated = function()
 					MarketplaceService:PromptProductPurchase(Players.LocalPlayer, offer.ProductId)
 				end,
 				position = UDim2.fromScale(0.5, 1),
+				shine = true,
 				size = UDim2.fromScale(0.9, 0.45),
 				swatch = config.Swatch,
 				text = string.format(config.ButtonFormat, seconds, price),
@@ -160,13 +135,11 @@ end
 return function(props: any)
 	local layouts = RunUIConfig.Layouts[if props.ui.mobile then "Mobile" else "PC"]
 	local narrow = props.ui.safeWidth < RunUIConfig.NarrowWidth
-	local meterLayout = if narrow then RunUIConfig.Narrow.Meter else layouts.Meter
 	local eventLayout = if narrow then RunUIConfig.Narrow.Event else layouts.Event
 	return e("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
 	}, {
-		Meter = if props.inRun then e(Meter, { data = props.data, layout = meterLayout }) else nil,
 		Event = e(EventBanner, { data = props.data, layout = eventLayout }),
 		Revive = if props.inRun then e(RevivePopup, { data = props.data, layout = layouts.Revive }) else nil,
 	})
