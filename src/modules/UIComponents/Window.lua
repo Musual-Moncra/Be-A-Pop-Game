@@ -58,10 +58,25 @@ local function Window(props: any)
 		if scale == nil then
 			return
 		end
-		scale.Scale = Animation.OpenFromScale
-		TweenService:Create(scale, TweenInfo.new(Animation.Open, Animation.SpringStyle, Animation.SpringDirection), {
-			Scale = 1,
+		local step = Animation.PopInTime
+		scale.Scale = Animation.PopInStart
+		TweenService:Create(scale, TweenInfo.new(step * 0.35, Animation.SpringStyle, Animation.SpringDirection), {
+			Scale = Animation.PopInOver,
 		}):Play()
+		TweenService:Create(
+			scale,
+			TweenInfo.new(step * 0.25, Animation.SmoothStyle, Animation.SmoothDirection, 0, false, step * 0.35),
+			{
+				Scale = Animation.PopInUnder,
+			}
+		):Play()
+		TweenService:Create(
+			scale,
+			TweenInfo.new(step * 0.4, Animation.SpringStyle, Animation.SpringDirection, 0, false, step * 0.6),
+			{
+				Scale = 1,
+			}
+		):Play()
 	end, {})
 
 	local function close()

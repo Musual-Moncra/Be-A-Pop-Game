@@ -23,17 +23,23 @@ local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
 local Badge = require(Components.Badge)
 local ChunkyButton = require(Components.ChunkyButton)
+local GlowRing = require(Components.GlowRing)
 local Primitives = require(Components.Primitives)
+local useBreathe = require(Components.useBreathe)
 
 local e = React.createElement
 local Animation = UIConfig.Animation
 local TextSizes = UIConfig.TextSizes
 local BadgeConfig = LobbyUIConfig.Badge
+local Sparkle = UIConfig.Sparkle
 
 return function(props: any)
 	local size = props.size or 84
 	local labelHeight = props.labelHeight or 24
 	local emojiRef = React.useRef(nil)
+	local breatheRef = React.useRef(nil)
+	local hasBadge = props.badge ~= nil and props.badge ~= false
+	useBreathe(breatheRef, 1.06, 1, props.phase, hasBadge)
 
 	React.useEffect(function()
 		local emoji = emojiRef.current
@@ -67,33 +73,55 @@ return function(props: any)
 		Size = UDim2.fromOffset(size, size + labelHeight),
 		ZIndex = props.zIndex,
 	}, {
-		Tile = e(ChunkyButton, {
-			gloss = true,
-			name = props.name,
-			onActivated = props.onActivated,
-			overlay = badge,
-			size = UDim2.fromOffset(size, size),
-			swatch = props.swatch,
-			zIndex = props.zIndex,
+		Glow = if hasBadge
+			then e(GlowRing, {
+				active = props.active ~= false,
+				anchorPoint = Vector2.new(0.5, 0.5),
+				color = UIConfig.Palette.Sparkle,
+				position = UDim2.fromOffset(size / 2, size / 2),
+				size = size * 1.35,
+				zIndex = (props.zIndex or 1) - 1,
+			})
+			else nil,
+		Tile = e("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromOffset(size, size),
+			ZIndex = props.zIndex,
 		}, {
-			Bob = e("Frame", {
-				BackgroundTransparency = 1,
-				Position = UDim2.new(),
-				Size = UDim2.fromScale(1, 1),
-				ZIndex = (props.zIndex or 1) + 1,
+			Scale = e("UIScale", { ref = breatheRef }),
+			Button = e(ChunkyButton, {
+				gloss = true,
+				name = props.name,
+				onActivated = props.onActivated,
+				overlay = badge,
+				popDelay = props.popDelay,
+				popIn = props.popIn,
+				shine = true,
+				shineDelay = (props.phase or 0) * 5,
+				shineInterval = Sparkle.TileShineMin + math.random() * (Sparkle.TileShineMax - Sparkle.TileShineMin),
+				size = UDim2.fromScale(1, 1),
+				swatch = props.swatch,
+				zIndex = props.zIndex,
 			}, {
-				Emoji = e("Frame", {
+				Bob = e("Frame", {
 					BackgroundTransparency = 1,
 					Position = UDim2.new(),
 					Size = UDim2.fromScale(1, 1),
-					ref = emojiRef,
 					ZIndex = (props.zIndex or 1) + 1,
 				}, {
-					Label = Primitives.text({
-						Stroke = false,
-						Text = props.icon,
-						TextSize = size * UIConfig.Shape.IconFill,
-						ZIndex = (props.zIndex or 1) + 2,
+					Emoji = e("Frame", {
+						BackgroundTransparency = 1,
+						Position = UDim2.new(),
+						Size = UDim2.fromScale(1, 1),
+						ref = emojiRef,
+						ZIndex = (props.zIndex or 1) + 1,
+					}, {
+						Label = Primitives.text({
+							Stroke = false,
+							Text = props.icon,
+							TextSize = size * UIConfig.Shape.IconFill,
+							ZIndex = (props.zIndex or 1) + 2,
+						}),
 					}),
 				}),
 			}),

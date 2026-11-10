@@ -21,7 +21,10 @@
 		overlay: element drawn above the whole button, outside its layout (selection rings)
 		gloss: true (default) draws the white top gloss
 		shine: true adds the diagonal shine sweep (primary actions)
-		hoverRotate: false disables the small hover tilt
+		shineInterval / shineDelay: optional sweep wait and first delay (seconds)
+		rainbow: true adds the rotating rainbow outline (PLAY, Legendary+ cards)
+		popIn / popDelay: pop the button in from scale 0.5 with an optional stagger delay (seconds)
+		hoverRotate: kept for compatibility; motion is scale only now
 
 	Dependencies: React, TweenService, UIConfig, Primitives, RarityGradient, ShineSweep, Sparkle,
 		UIScaleContext
@@ -34,6 +37,7 @@ local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
 local Primitives = require(Components.Primitives)
+local RainbowRim = require(Components.RainbowRim)
 local RarityGradient = require(Components.RarityGradient)
 local ShineSweep = require(Components.ShineSweep)
 local Sparkle = require(Components.Sparkle)
@@ -54,9 +58,66 @@ return function(props: any)
 	local rotateSeconds = tonumber(effect.RotateSeconds) or 0
 	local radius = if props.round then "Round" else (props.radius or Shape.Radius)
 	local scaleRef = React.useRef(nil)
-	local holderRef = React.useRef(nil)
+	local squashRef = React.useRef(nil)
 	local gradientRef = React.useRef(nil)
 	local rootScale = React.useContext(UIScaleContext)
+
+	React.useEffect(function()
+		if props.popIn ~= true then
+			return
+		end
+		local scale = scaleRef.current
+		if scale == nil then
+			return
+		end
+		local delay = props.popDelay or 0
+		scale.Scale = Animation.PopInStart
+		TweenService:Create(
+			scale,
+			TweenInfo.new(Animation.PopInTime * 0.35, Animation.SpringStyle, Animation.SpringDirection, 0, false, delay),
+			{
+				Scale = Animation.PopInOver,
+			}
+		):Play()
+		TweenService:Create(
+			scale,
+			TweenInfo.new(
+				Animation.PopInTime * 0.25,
+				Animation.SmoothStyle,
+				Animation.SmoothDirection,
+				0,
+				false,
+				delay + Animation.PopInTime * 0.35
+			),
+			{
+				Scale = Animation.PopInUnder,
+			}
+		):Play()
+		TweenService:Create(
+			scale,
+			TweenInfo.new(
+				Animation.PopInTime * 0.4,
+				Animation.SpringStyle,
+				Animation.SpringDirection,
+				0,
+				false,
+				delay + Animation.PopInTime * 0.6
+			),
+			{
+				Scale = 1,
+			}
+		):Play()
+	end, {})
+
+	local function squash(duration: number, easing: Enum.EasingStyle, direction: Enum.EasingDirection): ()
+		local target = squashRef.current
+		if target == nil then
+			return
+		end
+		TweenService:Create(target, TweenInfo.new(duration, easing, direction), {
+			Size = UDim2.fromScale(1, 1),
+		}):Play()
+	end
 
 	React.useEffect(function()
 		local gradient = gradientRef.current
@@ -85,16 +146,6 @@ return function(props: any)
 		}):Play()
 	end
 
-	local function tweenRotate(target: number)
-		local holder = holderRef.current
-		if holder == nil or props.hoverRotate == false then
-			return
-		end
-		TweenService:Create(holder, TweenInfo.new(Animation.Press, Animation.SpringStyle, Animation.SpringDirection), {
-			Rotation = target,
-		}):Play()
-	end
-
 	local function designSize(): number
 		local scale = scaleRef.current
 		local holder = if scale ~= nil then scale.Parent else nil
@@ -111,14 +162,6 @@ return function(props: any)
 			return Animation.HoverScale
 		end
 		return 1 + math.min(Animation.HoverScale - 1, Animation.HoverGrowMax / size)
-	end
-
-	local function pressScale(): number
-		local size = designSize()
-		if size <= 0 then
-			return Animation.PressScale
-		end
-		return 1 - math.min(1 - Animation.PressScale, Animation.PressShrinkMax / size)
 	end
 
 	local content = props.children
@@ -211,7 +254,15 @@ return function(props: any)
 		})
 	end
 	if props.shine then
-		faceChildren.Shine = e(ShineSweep, { radius = radius, zIndex = 3 })
+		faceChildren.Shine = e(ShineSweep, {
+			delay = props.shineDelay,
+			interval = props.shineInterval,
+			radius = radius,
+			zIndex = 3,
+		})
+	end
+	if props.rainbow then
+		faceChildren.Rainbow = e(RainbowRim, { thickness = Shape.Stroke })
 	end
 	for index, point in RarityGradient.sparkles(props.rarity) do
 		faceChildren["RaritySparkle" .. index] = e(Sparkle, {
@@ -239,61 +290,75 @@ return function(props: any)
 		Size = props.size,
 		Text = if clickable then "" else nil,
 		ZIndex = props.zIndex,
-		ref = holderRef,
 		[React.Event.Activated] = if clickable and enabled then props.onActivated else nil,
 		[React.Event.MouseEnter] = if clickable and enabled
 			then function()
 				tweenScale(hoverScale(), Animation.Press)
-				tweenRotate(Animation.HoverRotate)
 			end
 			else nil,
 		[React.Event.MouseLeave] = if clickable
 			then function()
 				tweenScale(1, Animation.Press)
-				tweenRotate(0)
+				squash(Animation.ReleaseBounceTime, Animation.SpringStyle, Animation.SpringDirection)
 			end
 			else nil,
 		[React.Event.MouseButton1Down] = if clickable and enabled
 			then function()
-				tweenScale(pressScale(), Animation.Press)
+				local target = squashRef.current
+				if target ~= nil then
+					TweenService:Create(
+						target,
+						TweenInfo.new(Animation.PressSquashTime, Animation.SmoothStyle, Animation.SmoothDirection),
+						{ Size = UDim2.fromScale(Animation.PressSquashX, Animation.PressSquashY) }
+					):Play()
+				end
 			end
 			else nil,
 		[React.Event.MouseButton1Up] = if clickable and enabled
 			then function()
 				tweenScale(hoverScale(), Animation.Press)
+				squash(Animation.ReleaseBounceTime, Animation.SpringStyle, Animation.SpringDirection)
 			end
 			else nil,
 	}
 
 	return e(if clickable then "TextButton" else "Frame", holderProps, {
 		Scale = e("UIScale", { ref = scaleRef }),
-		Shadow = e("Frame", {
-			BackgroundColor3 = Palette.Shadow,
-			BackgroundTransparency = Shape.ShadowTransparency,
-			BorderSizePixel = 0,
-			Position = UDim2.fromOffset(0, Shape.ShadowOffset),
+		Squash = e("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			Position = UDim2.fromScale(0.5, 0.5),
 			Size = UDim2.fromScale(1, 1),
-			ZIndex = 1,
+			ref = squashRef,
 		}, {
-			Corner = Primitives.corner(radius),
+			Shadow = e("Frame", {
+				BackgroundColor3 = Palette.Shadow,
+				BackgroundTransparency = Shape.ShadowTransparency,
+				BorderSizePixel = 0,
+				Position = UDim2.fromOffset(0, Shape.ShadowOffset),
+				Size = UDim2.fromScale(1, 1),
+				ZIndex = 1,
+			}, {
+				Corner = Primitives.corner(radius),
+			}),
+			Lip = e("Frame", {
+				BackgroundColor3 = swatch.Lip,
+				BackgroundTransparency = if enabled then 0 else Shape.DisabledTransparency,
+				BorderSizePixel = 0,
+				Size = UDim2.fromScale(1, 1),
+				ZIndex = 2,
+			}, {
+				Corner = Primitives.corner(radius),
+				Stroke = Primitives.stroke(swatch.Stroke or Palette.Ink, Shape.Stroke),
+			}),
+			Face = e("Frame", {
+				BackgroundColor3 = Palette.Text,
+				BackgroundTransparency = if enabled then 0 else Shape.DisabledTransparency,
+				BorderSizePixel = 0,
+				Size = UDim2.new(1, 0, 1, -Shape.Lip),
+				ZIndex = 3,
+			}, faceChildren),
+			Overlay = props.overlay,
 		}),
-		Lip = e("Frame", {
-			BackgroundColor3 = swatch.Lip,
-			BackgroundTransparency = if enabled then 0 else Shape.DisabledTransparency,
-			BorderSizePixel = 0,
-			Size = UDim2.fromScale(1, 1),
-			ZIndex = 2,
-		}, {
-			Corner = Primitives.corner(radius),
-			Stroke = Primitives.stroke(swatch.Stroke or Palette.Ink, Shape.Stroke),
-		}),
-		Face = e("Frame", {
-			BackgroundColor3 = Palette.Text,
-			BackgroundTransparency = if enabled then 0 else Shape.DisabledTransparency,
-			BorderSizePixel = 0,
-			Size = UDim2.new(1, 0, 1, -Shape.Lip),
-			ZIndex = 3,
-		}, faceChildren),
-		Overlay = props.overlay,
 	})
 end

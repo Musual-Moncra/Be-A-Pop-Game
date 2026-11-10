@@ -64,7 +64,13 @@
 	Animation (seconds unless noted):
 		Press: button hover/press tween time
 		PressScale / HoverScale: button size while pressed / hovered (multiplier)
-		HoverRotate: how far a hovered button tilts (degrees)
+		HoverRotate: legacy hover tilt, keep 0 (motion is scale only)
+		PressSquashX / PressSquashY / PressSquashTime: squash size and time while held (multiplier, seconds)
+		ReleaseBounceScale / ReleaseBounceTime: size the button bounces to on release and its time
+		PopInStart / PopInOver / PopInUnder: window and card pop-in scales (multiplier)
+		PopInTime / CardStagger: pop-in length and per-card delay (seconds)
+		PopOutOver / PopOutTime: pop-out overshoot scale and time (multiplier, seconds)
+		NumberPunchScale / NumberPunchSeconds: currency punch size and time (multiplier, seconds)
 		HoverGrowMax / PressShrinkMax: most a button may grow on hover / shrink on press, so large
 			cards in lists never spill out of them (design pixels)
 		Open: window, toast and dock button pop-in time
@@ -107,7 +113,20 @@
 		Window.CloseInset: how far the close button sits inside the corner, fraction of its size (0 to 1)
 		Window.Sparkles: stars around the ribbon; X = fraction of window width, Y = fraction of header
 			height from the top edge, Size = TextSizes key, Delay = fraction of a twinkle cycle
-		RarityGradients: per rarity id, Top / Mid / Bottom / Lip colours of a rarity card
+		Sparkle: shiny animation tuning
+		TwinkleText / TwinkleLife / TwinkleSpin / TwinkleSize: star glyph, life, spin and size (text, seconds, degrees, design pixels)
+		TwinkleGold / TwinkleWhite: star colours (RGB)
+		MaxTwinkle: most stars alive on screen at once (count)
+		BurstCount / BurstLife / BurstGravity / BurstSpeedMin / BurstSpeedMax / BurstSize: confetti burst tuning
+		BurstStarText / BurstColors / MaxBurst: star glyph, candy piece colours and piece cap
+		CoinFlyCount / CoinFlyDuration / CoinFlyArc / CoinFlySize: coin fly pieces, time, arc height
+			and icon size (design pixels)
+		GlowPeriod / GlowScale / GlowTransparencies: claimable glow breathe (seconds, multiplier, 0 to 1)
+		RainbowSeconds / RainbowColors: rotating rainbow rim speed and colours
+		PillTwinkleRate / PillShineInterval: top-bar pill stars per second and shine wait (seconds)
+		TileShineMin / TileShineMax: lobby tile shine wait range (seconds)
+		PlayTwinkleRate / HeaderTwinkleRate: PLAY stars per second and window header stars per second
+	RarityGradients: per rarity id, Top / Mid / Bottom / Lip colours of a rarity card
 		RarityEffects: per rarity id, RotateSeconds (animated gradient) / ShineSeconds / Sparkles count
 		RaritySparkles: star positions on a sparkled rarity card (X, Y, Size key, Delay)
 		Play.Width / Play.Height: play window size (shrinks to fit small screens)
@@ -287,6 +306,8 @@ return {
 		Shadow = Color3.fromRGB(27, 20, 64),
 		Overlay = Color3.fromRGB(27, 20, 64),
 		Sparkle = Color3.fromRGB(255, 236, 140),
+		CoinFlash = Color3.fromRGB(255, 226, 90),
+		GemFlash = Color3.fromRGB(110, 245, 255),
 		Locked = Color3.fromRGB(27, 20, 64),
 	},
 
@@ -361,6 +382,52 @@ return {
 			Lip = Color3.fromRGB(80, 45, 20),
 			Stroke = Color3.fromRGB(27, 20, 64),
 		},
+	},
+
+	Sparkle = {
+		TwinkleText = "✦",
+		TwinkleLife = 0.9,
+		TwinkleSpin = 45,
+		TwinkleSize = 26,
+		TwinkleGold = Color3.fromRGB(255, 236, 140),
+		TwinkleWhite = Color3.fromRGB(255, 255, 255),
+		MaxTwinkle = 40,
+		BurstCount = 18,
+		BurstLife = 0.8,
+		BurstGravity = 260,
+		BurstSpeedMin = 140,
+		BurstSpeedMax = 300,
+		BurstSize = 10,
+		BurstStarText = "✦",
+		MaxBurst = 60,
+		BurstColors = {
+			Color3.fromRGB(255, 130, 170),
+			Color3.fromRGB(255, 214, 40),
+			Color3.fromRGB(90, 230, 220),
+			Color3.fromRGB(140, 255, 90),
+			Color3.fromRGB(205, 150, 255),
+		},
+		CoinFlyCount = 8,
+		CoinFlyDuration = 0.7,
+		CoinFlyArc = 140,
+		CoinFlySize = 34,
+		GlowPeriod = 1.4,
+		GlowScale = 1.08,
+		GlowTransparencies = { 0.55, 0.7, 0.85 },
+		RainbowSeconds = 3,
+		RainbowColors = {
+			Color3.fromRGB(255, 130, 170),
+			Color3.fromRGB(255, 214, 40),
+			Color3.fromRGB(140, 255, 90),
+			Color3.fromRGB(90, 230, 220),
+			Color3.fromRGB(205, 150, 255),
+		},
+		PillTwinkleRate = 0.3,
+		PillShineInterval = 7,
+		TileShineMin = 4,
+		TileShineMax = 6,
+		PlayTwinkleRate = 2,
+		HeaderTwinkleRate = 1.5,
 	},
 
 	RarityGradients = {
@@ -471,8 +538,8 @@ return {
 	Animation = {
 		Press = 0.18,
 		PressScale = 0.9,
-		HoverScale = 1.07,
-		HoverRotate = 2,
+		HoverScale = 1.06,
+		HoverRotate = 0,
 		HoverGrowMax = 8,
 		PressShrinkMax = 10,
 		Open = 0.32,
@@ -486,8 +553,20 @@ return {
 		ShineTransparency = 0.5,
 		ShineRotation = 20,
 		CountUpSeconds = 0.4,
-		NumberPunchScale = 1.25,
-		NumberPunchSeconds = 0.25,
+		NumberPunchScale = 1.3,
+		NumberPunchSeconds = 0.3,
+		PressSquashX = 1.08,
+		PressSquashY = 0.88,
+		PressSquashTime = 0.08,
+		ReleaseBounceScale = 1.1,
+		ReleaseBounceTime = 0.25,
+		PopInStart = 0.5,
+		PopInOver = 1.12,
+		PopInUnder = 0.96,
+		PopInTime = 0.45,
+		CardStagger = 0.03,
+		PopOutOver = 1.08,
+		PopOutTime = 0.18,
 		IdleBobHeight = 3,
 		IdleBobSeconds = 1.6,
 		BarTween = 0.25,

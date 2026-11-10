@@ -1,0 +1,41 @@
+--!strict
+
+--[[
+	useBreathe
+	Idle zoom for a UIScale: scale 1.00 ↔ scale, sine over period, phase-offset so neighbours
+	never pulse in sync. Runs on the shared SparkleClock (one Heartbeat for every breathing
+	element and sparkle).
+
+	Usage: useBreathe(scaleRef, scale, period, phase, active?)
+	Dependencies: React, SparkleClock
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local React = require(ReplicatedStorage.Packages.React)
+local SparkleClock = require(ReplicatedStorage.Modules.UIComponents.SparkleClock)
+
+local TAU = math.pi * 2
+
+return function(scaleRef: any, scale: number, period: number, phase: number?, active: boolean?)
+	React.useEffect(function()
+		local target = scaleRef.current
+		if target == nil then
+			return
+		end
+		if active == false or period <= 0 then
+			target.Scale = 1
+			return
+		end
+		local offset = (phase or 0) * TAU
+		local disconnect = SparkleClock.Subscribe(function(_dt: number, now: number)
+			target.Scale = 1 + (scale - 1) * (0.5 + 0.5 * math.sin(now / period * TAU + offset))
+		end)
+		return function()
+			disconnect()
+			if target.Parent ~= nil then
+				target.Scale = 1
+			end
+		end
+	end, { scale, period, phase, active } :: { any })
+end
