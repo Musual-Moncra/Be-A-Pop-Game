@@ -230,6 +230,11 @@ local function scoreStain(run: ActiveRun, hitPart: BasePart, stainSize: number, 
 	run.score += points
 	RunEvents.Stained:Fire(run.player, points, objectType)
 
+	local npcBonus = NpcService.SoilFromStain(run.mapModel, hitPart, run.player)
+	if npcBonus > 0 then
+		RunEvents.ScoreBonus:Fire(run.player, npcBonus, "Npc")
+	end
+
 	if objectModel == nil or objectDef == nil then
 		return
 	end
@@ -707,6 +712,18 @@ RunEvents.MiniBombDetonated:Connect(function(plr: Player, origin: Vector3, radiu
 		return
 	end
 	soilPropsInRadius(run, origin, radius)
+end)
+
+RunEvents.ScoreBonus:Connect(function(plr: Player, points: number, _source: string?)
+	local run = activeRuns[plr]
+	if run == nil or not run.active then
+		return
+	end
+	local amount = math.floor(points)
+	if amount <= 0 then
+		return
+	end
+	run.score += amount
 end)
 
 Heartbeat:Connect(function(dt)

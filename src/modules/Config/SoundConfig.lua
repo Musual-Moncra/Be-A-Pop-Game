@@ -69,6 +69,14 @@ return {
 			MaxConcurrent = 1,
 			Throttle = 0.5,
 		},
+		NpcSqueal = {
+			Asset = "",
+			Volume = 0.6,
+			PitchMin = 1.1,
+			PitchMax = 1.5,
+			MaxConcurrent = 2,
+			Throttle = 0.2,
+		},
 		RunStart = {
 			Asset = "RunStart",
 			Volume = 0.55,

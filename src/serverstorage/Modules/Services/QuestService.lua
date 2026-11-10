@@ -243,6 +243,23 @@ RunEvents.ObjectSoiled:Connect(function(plr: Player, objectType: string, bonusPo
 	end
 end)
 
+RunEvents.ScoreBonus:Connect(function(plr: Player, points: number, _source: string?)
+	local run = runs[plr]
+	if run == nil or points <= 0 then
+		return
+	end
+
+	local changed = false
+	for _, quest in run.quests do
+		if quest.Kind == "Score" then
+			changed = applyProgress(plr, run, quest, points) or changed
+		end
+	end
+	if changed then
+		publish(plr, run)
+	end
+end)
+
 RunEvents.PowerupEaten:Connect(function(plr: Player, _powerupId: string)
 	local run = runs[plr]
 	if run == nil then

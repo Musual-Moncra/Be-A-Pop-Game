@@ -2,7 +2,7 @@
 
 --[[
 	EventConfig
-	Timed world events, map completion reporting and target panic tuning. Pure data, no functions.
+	Timed world events and map completion reporting. Pure data, no functions.
 
 	Fields:
 		StepInterval: heartbeat check interval for timed events (seconds)
@@ -14,9 +14,6 @@
 		MapProgress.SyncInterval: time between live map-percent sends to the client (seconds)
 		MapProgress.MinSendDelta: smallest percent change worth a live map-percent send (percent)
 		MapProgress.SaveStepPercent: best percent is checkpointed to the save every this many percent (percent)
-		TargetPanic.DurationSeconds: how long an NPC panics after a nearby prop is fully soiled (seconds)
-		TargetPanic.SpeedMultiplier: patrol speed of a panicking NPC (multiplier)
-		TargetPanic.Radius: props within this distance of an NPC make it panic when fully soiled (studs)
 ]]
 
 return {
@@ -34,11 +31,5 @@ return {
 		SyncInterval = 0.5,
 		MinSendDelta = 0.1,
 		SaveStepPercent = 10,
-	},
-
-	TargetPanic = {
-		DurationSeconds = 4,
-		SpeedMultiplier = 2.2,
-		Radius = 45,
 	},
 }
