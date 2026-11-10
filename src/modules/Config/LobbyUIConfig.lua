@@ -7,28 +7,26 @@
 	UIConfig.Swatches keys; sizes are UIConfig design pixels. Pure data, no functions.
 
 	Fields:
-		Dock: the single lobby button at the bottom centre; pressing it pops a row of buttons above it
-			ButtonSize: diameter of the centre button (design pixels)
-			ItemSize: diameter of one row button (design pixels)
-			LabelHeight: caption height under a row button (design pixels)
-			Gap: space between row buttons (design pixels)
-			Lift: space between the row and the centre button (design pixels)
-			Margin: space kept free at both screen sides; a wider row shrinks to fit (design pixels)
-			Stagger: delay between two row buttons popping out (seconds)
-			Icon / OpenIcon: emoji on the centre button when closed / open (text)
-			Label: caption on the centre button (text)
-			Name: instance name of the centre MENU button (string)
-			Swatch / OpenSwatch: centre button colour when closed / open (UIConfig.Swatches key)
-			BadgeSize: diameter of the red notification dot (design pixels)
-			Items: one row per button, left to right
+		Dock: the always-visible lobby layout (no MENU fold-out)
+			TileSize / TileGap / TileColumns: left grid tile diameter, gap and column count
+			TileLabelHeight / TileLabelSize: caption height and text size under a tile
+			PlaySize / PlayIconSize / PlayTextSize: right PLAY button size, icon and label
+			PlayIcon / PlayLabel / PlaySwatch: PLAY icon, caption and colour
+			PlayPulseScale / PlayPulseSeconds: idle PLAY pulse size and cycle
+			TimerWidth / TimerHeight / TimerIconSize / TimerGap / TimerMax / TimerTextSize: active
+				potion/boost timer pills under PLAY (design pixels, count)
+			TimerFormat: timer text (format: minutes, seconds)
+			PotionSwatch / CoinBoostSwatch / BoostSwatch: timer pill colours
+			CoinBoostIcon / BoostIcons / BoostFormat: purchased boost icon and daily boost icons/label
+			Items: one tile per grid slot, left to right then top to bottom
 				Id: unique key (string)
-				Label: caption under the button (text)
-				Icon: emoji on the button face (text)
-				Swatch: button colour (UIConfig.Swatches key)
-				Route: LobbyState route the button opens (LobbyState.Routes key)
-				Big: true draws it larger with a sunburst (true/false)
+				Label: caption under the tile (text)
+				Icon: emoji on the tile (text)
+				Swatch: tile colour (UIConfig.Swatches key)
+				Route: LobbyState route the tile opens (LobbyState.Routes key)
 				Name: optional instance name the onboarding tutorial looks up (string)
-			BigScale: size of a Big button compared to ItemSize (multiplier)
+			ButtonSize / ItemSize / LabelHeight / Lift / BigScale / Stagger / Margin: legacy fields
+				kept for the onboarding hint layout while it catches up (design pixels)
 		Rays: rotating sunburst drawn behind highlighted buttons
 			Count: number of rays (count)
 			Thickness: width of one ray (design pixels)
@@ -45,7 +43,8 @@
 			Swatch: dot colour (UIConfig.Swatches key)
 			PulseScale: largest scale of the pulse (multiplier)
 			PulseSeconds: length of one pulse (seconds)
-		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of the Dock
+		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of the Grid, Play, Timers
+			and the legacy Dock (kept for the onboarding hint)
 		Stations: lobby booths, keyed by the LobbyStation attribute on their Prompt part
 			Route: LobbyState route opened by the prompt (LobbyState.Routes key)
 			ActionText: prompt action text (text)
@@ -145,53 +144,73 @@
 
 return {
 	Dock = {
-		ButtonSize = 118,
-		ItemSize = 86,
-		LabelHeight = 24,
-		Gap = 14,
-		Lift = 18,
+		TileSize = 84,
+		TileLabelHeight = 22,
+		TileLabelSize = 18,
+		TileGap = 10,
+		TileColumns = 2,
+		PlaySize = 150,
+		PlayIcon = "▶",
+		PlayLabel = "PLAY",
+		PlaySwatch = "Green",
+		PlayIconSize = 40,
+		PlayTextSize = 30,
+		PlayPulseScale = 1.05,
+		PlayPulseSeconds = 1.2,
+		TimerWidth = 180,
+		TimerHeight = 34,
+		TimerIconSize = 42,
+		TimerGap = 6,
+		TimerMax = 3,
+		TimerTextSize = 18,
+		TimerFormat = "%d:%02d",
+		PotionSwatch = "Teal",
+		CoinBoostSwatch = "Gold",
+		BoostSwatch = "Purple",
+		CoinBoostIcon = "💰",
+		BoostIcons = { Coins = "💰", Stacks = "💩" },
+		BoostFormat = "x%s %s",
+		MobileTileSize = 64,
+		MobileTileLabelHeight = 20,
+		MobileTileLabelSize = 16,
+		MobileTileGap = 8,
+		MobilePlaySize = 120,
+		MobilePlayIconSize = 34,
+		MobilePlayTextSize = 26,
+		MobileTimerWidth = 150,
+		MobileTimerHeight = 30,
+		MobileTimerIconSize = 36,
+		MobileTimerTextSize = 16,
+		ButtonSize = 150,
+		ItemSize = 84,
+		LabelHeight = 22,
+		Lift = 0,
+		BigScale = 1,
+		Stagger = 0,
 		Margin = 24,
-		Stagger = 0.035,
-		Icon = "💩",
-		OpenIcon = "✖️",
-		Label = "MENU",
-		Name = "OnboardingMenuButton",
-		Swatch = "Orange",
-		OpenSwatch = "Red",
-		BadgeSize = 34,
-		BigScale = 1.25,
 		Items = {
-			{ Id = "Shop", Label = "SHOP", Icon = "🛒", Swatch = "Gold", Route = "Shop", Big = false },
+			{ Id = "Shop", Label = "SHOP", Icon = "🛒", Swatch = "Gold", Route = "Shop" },
 			{
 				Id = "Pets",
 				Label = "PETS",
 				Icon = "🐶",
-				Swatch = "Blue",
+				Swatch = "Pink",
 				Route = "Pets",
-				Big = false,
 				Name = "OnboardingPetsButton",
 			},
-			{ Id = "Skins", Label = "SKINS", Icon = "🎨", Swatch = "Purple", Route = "Skins", Big = false },
-			{
-				Id = "Play",
-				Label = "PLAY",
-				Icon = "▶️",
-				Swatch = "Green",
-				Route = "Play",
-				Big = true,
-				Name = "OnboardingPlayButton",
-			},
+			{ Id = "Index", Label = "INDEX", Icon = "📖", Swatch = "Purple", Route = "Pets" },
 			{
 				Id = "Upgrades",
-				Label = "UPGRADE",
+				Label = "UPGRADES",
 				Icon = "⚡",
-				Swatch = "Orange",
+				Swatch = "Green",
 				Route = "Upgrades",
-				Big = false,
 				Name = "OnboardingUpgradesButton",
 			},
-			{ Id = "Daily", Label = "DAILY", Icon = "🎁", Swatch = "Pink", Route = "Daily", Big = false },
-			{ Id = "Rebirth", Label = "REBIRTH", Icon = "🌀", Swatch = "Teal", Route = "Rebirth", Big = false },
+			{ Id = "Daily", Label = "DAILY", Icon = "🎁", Swatch = "Orange", Route = "Daily" },
+			{ Id = "Rebirth", Label = "REBIRTH", Icon = "♻️", Swatch = "Blue", Route = "Rebirth" },
+			{ Id = "Skins", Label = "SKINS", Icon = "👕", Swatch = "Teal", Route = "Skins" },
+			{ Id = "Rooms", Label = "ROOMS", Icon = "👥", Swatch = "Grey", Route = "Play" },
 		},
 	},
 
@@ -219,10 +238,16 @@ return {
 
 	Layouts = {
 		PC = {
-			Dock = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -24) },
+			Dock = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -40, 0.32, 0) },
+			Grid = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 28, 0, 96) },
+			Play = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -40, 0.32, 0) },
+			Timers = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -40, 0.52, 0) },
 		},
 		Mobile = {
-			Dock = { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -12) },
+			Dock = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0.24, 0) },
+			Grid = { AnchorPoint = Vector2.new(0, 0), Position = UDim2.new(0, 16, 0, 84) },
+			Play = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0.24, 0) },
+			Timers = { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0.48, 0) },
 		},
 	},
 
