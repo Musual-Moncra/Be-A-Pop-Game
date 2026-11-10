@@ -15,6 +15,7 @@
 		PurchaseUpgrade(upgradeId)
 		UnlockMap(mapId)
 		LeaveRun()
+		QuickPlay(mapId)                   start a private solo room now
 		CreateRoom(mapId, modeId, maxPlayers, friendsOnly)
 		UpdateRoom(mapId, modeId, maxPlayers, friendsOnly)   host only, while Waiting
 		JoinRoom(roomId)
@@ -246,6 +247,7 @@ local RoomSummary = {
 	HostIsFriend = Packet.Boolean8,
 }
 
+Net.QuickPlay = Packet.new("QuickPlay", Packet.String)
 Net.CreateRoom = Packet.new("CreateRoom", Packet.String, Packet.String, Packet.NumberU8, Packet.Boolean8)
 Net.UpdateRoom = Packet.new("UpdateRoom", Packet.String, Packet.String, Packet.NumberU8, Packet.Boolean8)
 Net.JoinRoom = Packet.new("JoinRoom", Packet.NumberU16)

@@ -10,6 +10,7 @@
 		ConfigLookup.GetSortedMaps() -> { MapDefinition }
 		ConfigLookup.GetPreviousMap(id) -> MapDefinition?
 		ConfigLookup.GetMode(id) -> ModeDefinition?
+		ConfigLookup.GetDefaultMode() -> ModeDefinition?
 		ConfigLookup.GetSortedModes() -> { ModeDefinition }
 		ConfigLookup.GetUpgrade(id) -> UpgradeDefinition?
 		ConfigLookup.GetSortedUpgradeIds() -> { string }
@@ -237,6 +238,10 @@ function ConfigLookup.GetMode(id: string): ModeDefinition?
 		end
 	end
 	return nil
+end
+
+function ConfigLookup.GetDefaultMode(): ModeDefinition?
+	return ConfigLookup.GetMode(ModeConfig.DefaultModeId)
 end
 
 function ConfigLookup.GetSortedModes(): { ModeDefinition }

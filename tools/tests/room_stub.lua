@@ -24,7 +24,12 @@ end
 local task = {
 	delay = function(s, fn, ...)
 		local a = { ... }
-		table.insert(queue, { at = clock + s, fn = function() fn(table.unpack(a)) end })
+		table.insert(queue, {
+			at = clock + s,
+			fn = function()
+				fn(table.unpack(a))
+			end,
+		})
 	end,
 	spawn = function(fn, ...)
 		local co = coroutine.create(fn)
@@ -133,6 +138,9 @@ local Stubs = {
 		end,
 		GetMode = function(id)
 			return if id == "Bad" then nil else { Id = id, RequiredLevel = if id == "Hard" then 50 else 1 }
+		end,
+		GetDefaultMode = function()
+			return { Id = "M", RequiredLevel = 1 }
 		end,
 	},
 	MessageConfig = setmetatable({}, {
@@ -246,6 +254,25 @@ do -- create validation
 	check("second create refused", lastNote(a) == "AlreadyInRoom")
 	cleanup(a)
 	check("last leave closes", not state(a).InRoom)
+end
+
+do -- quick play
+	local a = Player("a", { maps = { Z1 = true } })
+	Room.QuickPlay(a, "Z2")
+	check("quick play locked map refused", not state(a).InRoom and lastNote(a) == "MapLocked")
+	Room.QuickPlay(a, "Z1")
+	check(
+		"quick play private one-player room",
+		state(a).InRoom and state(a).MaxPlayers == 1 and state(a).FriendsOnly == true
+	)
+	check("quick play default mode", state(a).ModeId == "M")
+	pump(0)
+	check("quick play starts immediately", state(a).Status == "Running" and running[a])
+	local rel = log.released
+	Room.QuickPlay(a, "Z1")
+	check("quick play refused while running", lastNote(a) == "RoomInRun")
+	endAll(a)
+	check("quick play map released", log.released == rel + 1)
 end
 
 do -- ready rules, countdown, three members

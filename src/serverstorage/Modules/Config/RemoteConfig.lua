@@ -10,6 +10,7 @@
 			PurchaseUpgrade: buying an upgrade
 			UnlockMap: buying a map
 			LeaveRun: leaving a run from the HUD
+			QuickPlay: starting a private solo room
 			CreateRoom: opening a room
 			UpdateRoom: changing the map, mode or size of a waiting room
 			JoinRoom: joining a room from the browser or an invite
@@ -37,6 +38,7 @@ return {
 		PurchaseUpgrade = 0.2,
 		UnlockMap = 0.2,
 		LeaveRun = 0.5,
+		QuickPlay = 0.5,
 		CreateRoom = 0.5,
 		UpdateRoom = 0.5,
 		JoinRoom = 0.3,

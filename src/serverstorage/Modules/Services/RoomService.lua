@@ -2,14 +2,16 @@
 
 --[[
 	RoomService
-	Owns play rooms and their lifecycle. A host creates a room with a map, a mode and a size;
-	members join, mark ready and the host starts a countdown. When the countdown ends the
+	Owns play rooms and their lifecycle. QuickPlay makes a private solo room and starts it at
+	once; otherwise a host creates a room with a map, a mode and a size, members join, mark
+	ready and the host starts a countdown. When the countdown ends the
 	service acquires a private map copy from MapInstanceService, starts one run per member in
 	that copy and keeps the room Running until every run ended, then releases the map and
 	closes the room. All checks (map ownership, mode level, size, friendship, kick block,
 	ready flags, host-only actions) run here on the server.
 
 	API:
+		RoomService.QuickPlay(plr, mapId)   private solo room, default mode, starts now
 		RoomService.CreateRoom(plr, mapId, modeId, maxPlayers, friendsOnly)
 		RoomService.UpdateRoom(plr, mapId, modeId, maxPlayers, friendsOnly)
 		RoomService.JoinRoom(plr, roomId)
@@ -435,56 +437,56 @@ local function startCountdown(room: Room)
 	end)
 end
 
-function RoomService.CreateRoom(plr: Player, mapId: string, modeId: string, maxPlayers: number, friendsOnly: boolean)
+local function createRoom(plr: Player, mapId: string, modeId: string, maxPlayers: number, friendsOnly: boolean): Room?
 	if RunService.IsPlayerInRun(plr) then
 		Outbound.Notify(plr, "Error", MessageConfig.RoomInRun)
-		return
+		return nil
 	end
 	if roomByPlayer[plr] ~= nil then
 		Outbound.Notify(plr, "Error", MessageConfig.AlreadyInRoom)
-		return
+		return nil
 	end
 	if DataService.Get(plr) == nil then
 		Outbound.Notify(plr, "Error", MessageConfig.DataLoading)
-		return
+		return nil
 	end
 	if roomCount() >= RoomConfig.MaxRooms then
 		Outbound.Notify(plr, "Error", MessageConfig.RoomLimit)
-		return
+		return nil
 	end
 
 	local mapDef = ConfigLookup.GetMap(mapId)
 	if mapDef == nil or not mapDef.Enabled then
 		Outbound.Notify(plr, "Error", MessageConfig.MapUnavailable)
-		return
+		return nil
 	end
 	if MapInstanceService.GetTemplate(mapDef) == nil then
 		Outbound.Notify(plr, "Error", MessageConfig.RoomUnavailable)
-		return
+		return nil
 	end
 	if not DataService.IsMapUnlocked(plr, mapId) then
 		Outbound.Notify(plr, "Error", MessageConfig.MapLocked)
-		return
+		return nil
 	end
 
 	local modeDef = ConfigLookup.GetMode(modeId)
 	if modeDef == nil then
 		Outbound.Notify(plr, "Error", MessageConfig.RoomModeUnavailable)
-		return
+		return nil
 	end
 	if getLevel(plr) < modeDef.RequiredLevel then
 		Outbound.Notify(plr, "Error", string.format(MessageConfig.ModeLocked, modeDef.RequiredLevel))
-		return
+		return nil
 	end
 	if not isPlayerOption(maxPlayers) then
 		Outbound.Notify(plr, "Error", MessageConfig.RoomSizeInvalid)
-		return
+		return nil
 	end
 
 	local roomId = allocateRoomId()
 	if roomId == nil then
 		Outbound.Notify(plr, "Error", MessageConfig.RoomLimit)
-		return
+		return nil
 	end
 
 	local room: Room = {
@@ -507,8 +509,31 @@ function RoomService.CreateRoom(plr: Player, mapId: string, modeId: string, maxP
 	}
 	rooms[roomId] = room
 	addMember(room, plr, true)
+	return room
+end
+
+function RoomService.CreateRoom(plr: Player, mapId: string, modeId: string, maxPlayers: number, friendsOnly: boolean)
+	local room = createRoom(plr, mapId, modeId, maxPlayers, friendsOnly)
+	if room == nil then
+		return
+	end
 	broadcast(room)
 	refreshLists()
+end
+
+function RoomService.QuickPlay(plr: Player, mapId: string)
+	local modeDef = ConfigLookup.GetDefaultMode()
+	if modeDef == nil then
+		Outbound.Notify(plr, "Error", MessageConfig.RoomModeUnavailable)
+		return
+	end
+	local room = createRoom(plr, mapId, modeDef.Id, 1, true)
+	if room == nil then
+		return
+	end
+	broadcast(room)
+	refreshLists()
+	startCountdown(room)
 end
 
 function RoomService.UpdateRoom(plr: Player, mapId: string, modeId: string, maxPlayers: number, friendsOnly: boolean)
