@@ -149,7 +149,10 @@ return function(props: any)
 	local cardWidth, cardHeight = WindowSize.fit(props.ui, Reveal.CardWidth, Reveal.CardHeight)
 	local flipped = phase == "flip" or phase == "revealed"
 	local revealed = phase == "revealed"
-	local rainbow = pet ~= nil and Reveal.RainbowRarities[pet.Rarity] == true
+	local variantId = if variant ~= nil then variant.Id else ""
+	local variantRimColor = Reveal.VariantRimColors[variantId]
+	local rainbow = variantId == "Rainbow"
+		or (variantRimColor == nil and pet ~= nil and Reveal.RainbowRarities[pet.Rarity] == true)
 
 	React.useEffect(function()
 		local wrapper = flipRef.current
@@ -228,6 +231,7 @@ return function(props: any)
 			else nil,
 		Twinkle = e(Twinkle, {
 			active = flipped,
+			color = variantRimColor,
 			rate = Reveal.TwinkleRate,
 			size = Reveal.TwinkleSize,
 			zIndex = 1,
@@ -258,6 +262,9 @@ return function(props: any)
 				Corner = Primitives.corner(Shape.WindowRadius),
 				Rainbow = if rainbow
 					then e(RainbowRim, { active = revealed, thickness = Reveal.RainbowThickness })
+					else nil,
+				VariantRim = if variantRimColor ~= nil and not rainbow
+					then Primitives.stroke(variantRimColor, Reveal.RainbowThickness)
 					else nil,
 				Body = e(ChunkyButton, {
 					anchorPoint = Vector2.new(0.5, 0.5),
@@ -370,12 +377,16 @@ return function(props: any)
 	for key, sparkle in sparkles do
 		children[key] = sparkle
 	end
+	local ui = props.ui
+	local overlaySize =
+		UDim2.fromOffset(ui.safeWidth + ui.safe.Left + ui.safe.Right, ui.safeHeight + ui.safe.Top + ui.safe.Bottom)
 	return e("TextButton", {
 		AutoButtonColor = false,
 		BackgroundColor3 = Palette.Overlay,
 		BackgroundTransparency = Reveal.OverlayTransparency,
 		BorderSizePixel = 0,
-		Size = UDim2.fromScale(1, 1),
+		Position = UDim2.fromOffset(-ui.safe.Left, -ui.safe.Top),
+		Size = overlaySize,
 		Text = "",
 		[React.Event.Activated] = tap,
 	}, children)

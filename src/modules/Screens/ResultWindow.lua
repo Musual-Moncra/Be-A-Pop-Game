@@ -178,16 +178,30 @@ return function(props: any)
 		})
 	end
 
+	local badgeCount = 0
+	for key in badges do
+		if key ~= "Layout" then
+			badgeCount += 1
+		end
+	end
+
 	local stink = PetView.TotalStink(props.data)
 	local stinkLine = string.format(Text.ResultStinkFormat, Format.commas(summary.Score), Format.multiplier(stink))
 	local footerHeight = Config.ContinueHeight
-	local width, height = WindowSize.fit(ui, Config.Width, 660)
+	local bannerHeight = Config.ScoreTextSize + Config.CaptionTextSize + Gap * 2
+	local rowsHeight = Config.RowHeight * 3 + Gap
+	local badgeHeight = if badgeCount > 0
+		then math.ceil(badgeCount / Config.BadgesPerRow) * (Config.BadgeHeight + Shape.Stroke * 2)
+		else 0
+	local itemCount = if badgeCount > 0 then 4 else 3
+	local contentHeight = bannerHeight + Config.StinkChipHeight + rowsHeight + badgeHeight + (itemCount - 1) * Gap / 2
+	local width, height = WindowSize.fit(ui, Config.Width, contentHeight + WindowSize.chrome(footerHeight))
 
 	local banner = e("Frame", {
 		BackgroundTransparency = 1,
 		ClipsDescendants = true,
 		LayoutOrder = 1,
-		Size = UDim2.new(1, 0, 0, Config.ScoreTextSize + Config.CaptionTextSize + Gap * 2),
+		Size = UDim2.new(1, 0, 0, bannerHeight),
 	}, {
 		Rays = e(Rays, {
 			anchorPoint = Vector2.new(0.5, 0.5),
@@ -197,6 +211,7 @@ return function(props: any)
 			zIndex = 1,
 		}),
 		Caption = Primitives.text({
+			AnchorPoint = Vector2.new(0.5, 0),
 			Color = Palette.TextSoft,
 			Position = UDim2.fromScale(0.5, 0),
 			Size = UDim2.new(1, 0, 0, Config.CaptionTextSize + Shape.SmallTextStroke * 2),
@@ -206,8 +221,9 @@ return function(props: any)
 			ZIndex = 2,
 		}),
 		Score = Primitives.text({
+			AnchorPoint = Vector2.new(0.5, 0),
 			Color = Palette.Sparkle,
-			Position = UDim2.fromScale(0.5, 0.32),
+			Position = UDim2.fromScale(0.5, 0.3),
 			Size = UDim2.new(1, 0, 0, Config.ScoreTextSize + Shape.TextStroke * 2),
 			Text = Format.commas(displayScore),
 			TextSize = Config.ScoreTextSize,
@@ -252,6 +268,27 @@ return function(props: any)
 		Xp = rewardPill(3, Text.XpIcon, Text.ResultXp, Format.commas(summary.Xp), "Green"),
 	})
 
+	local scrollChildren: { [string]: any } = {
+		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2, Enum.HorizontalAlignment.Center),
+		Banner = banner,
+		Stink = e(Chip, {
+			height = Config.StinkChipHeight,
+			layoutOrder = 2,
+			swatch = "Purple",
+			text = stinkLine,
+			textSize = Config.StinkChipTextSize,
+		}),
+		Rows = rows,
+	}
+	if badgeCount > 0 then
+		scrollChildren.Badges = e("Frame", {
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			LayoutOrder = 4,
+			Size = UDim2.fromScale(1, 0),
+		}, badges)
+	end
+
 	local window = e(Window, {
 		footer = e(ChunkyButton, {
 			gloss = true,
@@ -269,24 +306,7 @@ return function(props: any)
 		title = if summary.OutOfTime then Text.ResultTimeUp else Text.ResultTitle,
 		width = width,
 	}, {
-		Scroll = Primitives.scroll({}, {
-			Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 2, Enum.HorizontalAlignment.Center),
-			Banner = banner,
-			Stink = e(Chip, {
-				height = Config.StinkChipHeight,
-				layoutOrder = 2,
-				swatch = "Purple",
-				text = stinkLine,
-				textSize = Config.StinkChipTextSize,
-			}),
-			Rows = rows,
-			Badges = e("Frame", {
-				AutomaticSize = Enum.AutomaticSize.Y,
-				BackgroundTransparency = 1,
-				LayoutOrder = 4,
-				Size = UDim2.fromScale(1, 0),
-			}, badges),
-		}),
+		Scroll = Primitives.scroll({}, scrollChildren),
 	})
 
 	return e("Frame", {
