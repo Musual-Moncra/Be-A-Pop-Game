@@ -7,7 +7,8 @@
 
 	Props: icon (emoji), value (text) or valueElement (custom number element), swatch
 	       (UIConfig.Swatches key for the icon), width, height, iconSize, textSize, position,
-	       anchorPoint, layoutOrder, onPlus (optional callback, draws the plus), plusSize (design pixels)
+	       anchorPoint, layoutOrder, onPlus (optional callback, draws the plus), plusSize (design pixels),
+	       shine / shineInterval (sweep), twinkle / twinkleRate / twinkleActive (stars)
 	Dependencies: React, UIConfig, Primitives, ChunkyButton
 ]]
 
@@ -18,10 +19,13 @@ local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
 local ChunkyButton = require(Components.ChunkyButton)
 local Primitives = require(Components.Primitives)
+local ShineSweep = require(Components.ShineSweep)
+local Twinkle = require(Components.Twinkle)
 
 local e = React.createElement
 local Palette = UIConfig.Palette
 local Shape = UIConfig.Shape
+local Sparkle = UIConfig.Sparkle
 local Text = UIConfig.Text
 
 return function(props: any)
@@ -101,6 +105,21 @@ return function(props: any)
 				text = Text.PlusIcon,
 				textSize = UIConfig.TextSizes.Header,
 				zIndex = 5,
+			})
+			else nil,
+		Shine = if props.shine
+			then e(ShineSweep, {
+				interval = props.shineInterval or Sparkle.PillShineInterval,
+				radius = "Round",
+				zIndex = 4,
+			})
+			else nil,
+		Twinkle = if props.twinkle
+			then e(Twinkle, {
+				active = props.twinkleActive,
+				color = Sparkle.TwinkleWhite,
+				rate = props.twinkleRate or Sparkle.PillTwinkleRate,
+				zIndex = 6,
 			})
 			else nil,
 	})

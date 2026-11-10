@@ -5,7 +5,8 @@
 	White diagonal bar that sweeps left to right across its parent, clipped to the parent box.
 	Used on primary buttons (PLAY, BUY, COLLECT, CLAIM) to make them feel glossy and alive.
 
-	Props: radius (design pixels or "Round"), zIndex, transparency (0 to 1), active (default true)
+	Props: radius (design pixels or "Round"), zIndex, transparency (0 to 1), active (default true),
+		interval (seconds between sweeps), delay (seconds before the first sweep)
 	Dependencies: React, TweenService, UIConfig, Primitives
 ]]
 
@@ -32,10 +33,14 @@ return function(props: any)
 			return
 		end
 		local running = true
+		local interval = props.interval or Animation.ShineInterval
 		task.spawn(function()
+			if (props.delay or 0) > 0 then
+				task.wait(props.delay)
+			end
 			while running do
 				bar.Position = UDim2.fromScale(-0.35, 0.5)
-				task.wait(math.max(0, Animation.ShineInterval - Animation.ShineSeconds))
+				task.wait(math.max(0, interval - Animation.ShineSeconds))
 				if not running then
 					break
 				end
@@ -48,7 +53,7 @@ return function(props: any)
 		return function()
 			running = false
 		end
-	end, { props.active })
+	end, { props.active, props.interval, props.delay } :: { any })
 
 	return e("Frame", {
 		BackgroundTransparency = 1,

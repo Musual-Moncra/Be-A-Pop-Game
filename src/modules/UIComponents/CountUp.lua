@@ -7,7 +7,8 @@
 
 	Props: value (number), textSize, color, font ("Display" | "Body"), size, position,
 		anchorPoint, layoutOrder, zIndex, format (string.format with the displayed number),
-		compact (true uses K/M suffixes), stroke (false hides the outline)
+		compact (true uses K/M suffixes), stroke (false hides the outline),
+		flashColor (optional colour flashed on a value change; defaults to the label colour)
 	Dependencies: React, RunService, TweenService, UIConfig, Primitives, Format
 ]]
 
@@ -29,12 +30,22 @@ return function(props: any)
 	local shown, setShown = React.useState(target)
 	local previous = React.useRef(target)
 	local scaleRef = React.useRef(nil)
+	local labelRef = React.useRef(nil)
 
 	React.useEffect(function()
 		local from = previous.current
 		previous.current = target
 		if from == target then
 			return
+		end
+		local label = labelRef.current
+		if label ~= nil and props.flashColor ~= nil then
+			label.TextColor3 = props.flashColor
+			TweenService:Create(
+				label,
+				TweenInfo.new(Animation.NumberPunchSeconds, Animation.SmoothStyle, Animation.SmoothDirection),
+				{ TextColor3 = props.color or UIConfig.Palette.Text }
+			):Play()
 		end
 		local punch = scaleRef.current
 		if punch ~= nil then
@@ -92,6 +103,7 @@ return function(props: any)
 			Text = text,
 			TextSize = props.textSize,
 			ZIndex = props.zIndex,
+			ref = labelRef,
 		}),
 	})
 end
