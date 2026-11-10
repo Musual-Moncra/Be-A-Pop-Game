@@ -22,13 +22,17 @@ local RebirthConfig = require(ReplicatedStorage.Modules.Config.RebirthConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
 local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
+local GlowRing = require(Components.GlowRing)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
 local Rays = require(Components.Rays)
+local Twinkle = require(Components.Twinkle)
+local useBreathe = require(Components.useBreathe)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
+local Motion = LobbyUIConfig.Motion
 local Rebirth = LobbyUIConfig.Rebirth
 local Gap = UIConfig.Sizes.Window.Gap
 local Palette = UIConfig.Palette
@@ -67,6 +71,8 @@ return function(props: any)
 	local cost = ConfigLookup.GetRebirthCost(rebirths)
 	local canRebirth = (data.Coins or 0) >= cost
 	local rowsTop = Rebirth.HeroSize + Gap
+	local buttonScale = React.useRef(nil)
+	useBreathe(buttonScale, Motion.BreatheButtonScale, Motion.BreatheButtonPeriod, 0.31, canRebirth)
 
 	local rows: { [string]: any } = {
 		Layout = Primitives.list(Enum.FillDirection.Vertical, Rebirth.RowGap),
@@ -109,6 +115,11 @@ return function(props: any)
 				TextSize = Rebirth.HeroSize,
 				ZIndex = 2,
 			}),
+			Twinkle = e(Twinkle, {
+				clip = true,
+				rate = Motion.HeroTwinkleRate,
+				zIndex = 3,
+			}),
 		}),
 		Rows = e("Frame", {
 			BackgroundTransparency = 1,
@@ -124,18 +135,33 @@ return function(props: any)
 			Text = Rebirth.Warning,
 			TextSize = TextSizes.Small,
 		}),
-		Button = e(ChunkyButton, {
-			anchorPoint = Vector2.new(0.5, 1),
-			enabled = canRebirth,
-			onActivated = function()
-				Net.Rebirth:Fire()
-			end,
-			position = UDim2.fromScale(0.5, 1),
-			shine = canRebirth,
-			size = UDim2.fromOffset(Rebirth.ButtonWidth, Rebirth.ButtonHeight),
-			swatch = "Green",
-			text = Rebirth.Button,
-			textSize = TextSizes.Header,
+		Button = e("Frame", {
+			AnchorPoint = Vector2.new(0.5, 1),
+			BackgroundTransparency = 1,
+			Position = UDim2.fromScale(0.5, 1),
+			Size = UDim2.fromOffset(Rebirth.ButtonWidth, Rebirth.ButtonHeight),
+		}, {
+			Scale = e("UIScale", { ref = buttonScale }),
+			Glow = if canRebirth
+				then e(GlowRing, {
+					color = UIConfig.Swatches.Gold.Top,
+					size = Rebirth.ButtonHeight * 2.4,
+					zIndex = 1,
+				})
+				else nil,
+			Button = e(ChunkyButton, {
+				enabled = canRebirth,
+				onActivated = function()
+					Net.Rebirth:Fire()
+				end,
+				popIn = true,
+				shine = canRebirth,
+				size = UDim2.fromScale(1, 1),
+				swatch = "Green",
+				text = Rebirth.Button,
+				textSize = TextSizes.Header,
+				zIndex = 3,
+			}),
 		}),
 	})
 end

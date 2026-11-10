@@ -13,7 +13,6 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
@@ -21,16 +20,21 @@ local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local DailyRewardConfig = require(ReplicatedStorage.Modules.Config.DailyRewardConfig)
 local Components = ReplicatedStorage.Modules.UIComponents
+local Burst = require(Components.Burst)
 local Chip = require(Components.Chip)
 local ChunkyButton = require(Components.ChunkyButton)
+local GlowRing = require(Components.GlowRing)
 local Primitives = require(Components.Primitives)
 local Sparkle = require(Components.Sparkle)
+local Twinkle = require(Components.Twinkle)
+local useBreathe = require(Components.useBreathe)
 local Rays = require(Components.Rays)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
 local Daily = LobbyUIConfig.Daily
+local Motion = LobbyUIConfig.Motion
 local Gap = UIConfig.Sizes.Window.Gap
 local Palette = UIConfig.Palette
 local Shape = UIConfig.Shape
@@ -57,27 +61,7 @@ local function DayTile(props: any)
 	local locked = props.locked
 	local isLast = props.day == DailyRewardConfig.StreakLength
 	local scaleRef = React.useRef(nil)
-
-	React.useEffect(function()
-		if not today then
-			return
-		end
-		local scale = scaleRef.current
-		if scale == nil then
-			return
-		end
-		scale.Scale = 1
-		local tween = TweenService:Create(
-			scale,
-			TweenInfo.new(0.70, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-			{ Scale = 1.05 }
-		)
-		tween:Play()
-		return function()
-			tween:Cancel()
-			scale.Scale = 1
-		end
-	end, { today } :: { any })
+	useBreathe(scaleRef, Motion.BreatheTodayScale, Motion.BreatheTodayPeriod, props.day * 0.17, today)
 
 	local swatch = if today
 		then "Gold"
@@ -134,7 +118,14 @@ local function DayTile(props: any)
 		Size = UDim2.fromOffset(props.width, Daily.TileHeight),
 	}, {
 		Scale = e("UIScale", { ref = scaleRef }),
-		Rays = if today then e(Rays, { size = Daily.TileHeight * Daily.RaysRatio, zIndex = 0 }) else nil,
+		Glow = if today
+			then e(GlowRing, {
+				color = Primitives.swatch("Gold").Top,
+				size = Daily.TileHeight * Motion.GlowSizeRatio,
+				zIndex = 0,
+			})
+			else nil,
+		Rays = if today then e(Rays, { size = Daily.TileHeight * Daily.RaysRatio, zIndex = 1 }) else nil,
 		Sparkles = if isLast
 				and not today
 				and not claimed
@@ -146,6 +137,8 @@ local function DayTile(props: any)
 			})
 			else nil,
 		Tile = e(ChunkyButton, {
+			popDelay = props.day * UIConfig.Animation.CardStagger,
+			popIn = true,
 			size = UDim2.fromScale(1, 1),
 			swatch = swatch,
 			zIndex = 2,
@@ -157,6 +150,13 @@ local function DayTile(props: any)
 				})
 				else nil,
 		}, content),
+		Twinkle = if today
+			then e(Twinkle, {
+				clip = true,
+				rate = Motion.TodayTwinkleRate,
+				zIndex = 6,
+			})
+			else nil,
 	})
 end
 
@@ -165,6 +165,23 @@ return function(props: any)
 	local width, height = WindowSize.fit(ui, Daily.Width, Daily.Height)
 	local daily = props.data.Daily
 	local remaining, setRemaining = React.useState(if daily ~= nil then daily.SecondsUntilNext else 0)
+	local burst, setBurst = React.useState(0)
+	local previousDaily = React.useRef(nil)
+
+	React.useEffect(function()
+		local previous = previousDaily.current
+		if daily ~= nil and previous ~= nil then
+			local claimed = previous.CanClaim == true and daily.CanClaim ~= true
+			if daily.Day ~= previous.Day or daily.Streak ~= previous.Streak or claimed then
+				setBurst(function(count: number)
+					return count + 1
+				end)
+			end
+		end
+		previousDaily.current = if daily ~= nil
+			then { Day = daily.Day, Streak = daily.Streak, CanClaim = daily.CanClaim }
+			else nil
+	end, { daily } :: { any })
 
 	React.useEffect(function()
 		if daily == nil then
@@ -254,6 +271,11 @@ return function(props: any)
 		title = Daily.Title,
 		width = width,
 	}, {
+		Burst = e(Burst, {
+			origin = UDim2.fromScale(0.5, 0.5),
+			trigger = burst,
+			zIndex = 20,
+		}),
 		Row = e("Frame", {
 			BackgroundTransparency = 1,
 			Position = UDim2.fromOffset(0, 0),

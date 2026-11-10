@@ -13,6 +13,7 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
@@ -20,15 +21,19 @@ local LobbyUIConfig = require(ReplicatedStorage.Modules.Config.LobbyUIConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
 local Components = ReplicatedStorage.Modules.UIComponents
+local Burst = require(Components.Burst)
 local ChunkyButton = require(Components.ChunkyButton)
+local GlowRing = require(Components.GlowRing)
 local Format = require(Components.Format)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
+local useBreathe = require(Components.useBreathe)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
 
 local e = React.createElement
 local Upgrade = LobbyUIConfig.Upgrade
+local Motion = LobbyUIConfig.Motion
 local Palette = UIConfig.Palette
 local Shape = UIConfig.Shape
 local Text = UIConfig.Text
@@ -52,6 +57,92 @@ local function pips(level: number, maxLevel: number, swatch: any): { [string]: a
 		})
 	end
 	return children
+end
+
+local function PopInRow(props: any)
+	local scaleRef = React.useRef(nil)
+
+	React.useEffect(function()
+		local scale = scaleRef.current
+		if scale == nil then
+			return
+		end
+		local animation = UIConfig.Animation
+		local delay = (props.order or 1) * animation.CardStagger
+		scale.Scale = animation.PopInStart
+		TweenService:Create(
+			scale,
+			TweenInfo.new(animation.PopInTime * 0.35, animation.SpringStyle, animation.SpringDirection, 0, false, delay),
+			{ Scale = animation.PopInOver }
+		):Play()
+		TweenService:Create(
+			scale,
+			TweenInfo.new(
+				animation.PopInTime * 0.25,
+				animation.SmoothStyle,
+				animation.SmoothDirection,
+				0,
+				false,
+				delay + animation.PopInTime * 0.35
+			),
+			{ Scale = animation.PopInUnder }
+		):Play()
+		TweenService:Create(
+			scale,
+			TweenInfo.new(
+				animation.PopInTime * 0.4,
+				animation.SpringStyle,
+				animation.SpringDirection,
+				0,
+				false,
+				delay + animation.PopInTime * 0.6
+			),
+			{ Scale = 1 }
+		):Play()
+	end, {})
+
+	return e("Frame", {
+		BackgroundTransparency = 1,
+		LayoutOrder = props.order,
+		Size = UDim2.new(1, 0, 0, Upgrade.RowHeight),
+	}, {
+		Scale = e("UIScale", { ref = scaleRef }),
+		Row = props.row,
+	})
+end
+
+local function BreatheBuy(props: any)
+	local scaleRef = React.useRef(nil)
+	useBreathe(scaleRef, Motion.BreatheButtonScale, Motion.BreatheButtonPeriod, (props.order or 1) * 0.17, props.active)
+
+	return e("Frame", {
+		AnchorPoint = Vector2.new(1, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -Upgrade.RowPadding, 0.5, 0),
+		Size = UDim2.fromOffset(Upgrade.BuyWidth, Upgrade.BuyHeight),
+	}, {
+		Scale = e("UIScale", { ref = scaleRef }),
+		Glow = if props.active
+			then e(GlowRing, {
+				color = Primitives.swatch("Gold").Top,
+				size = Upgrade.BuyWidth * Motion.GlowSizeRatio,
+				zIndex = 1,
+			})
+			else nil,
+		Button = e(ChunkyButton, {
+			onActivated = if props.active
+				then function()
+					Net.PurchaseUpgrade:Fire(props.id)
+				end
+				else nil,
+			shine = props.active,
+			size = UDim2.fromScale(1, 1),
+			swatch = if props.active then "Green" else "Red",
+			text = string.format(Text.IconLabel, Text.CoinIcon, Format.compact(props.cost)),
+			textSize = TextSizes.Large,
+			zIndex = 3,
+		}),
+	})
 end
 
 local function UpgradeRow(props: any)
@@ -87,26 +178,16 @@ local function UpgradeRow(props: any)
 			text = Text.Max,
 			textSize = TextSizes.Header,
 		})
-		else e(ChunkyButton, {
-			anchorPoint = Vector2.new(1, 0.5),
-			enabled = canAfford,
-			onActivated = if canAfford
-				then function()
-					Net.PurchaseUpgrade:Fire(props.id)
-				end
-				else nil,
-			position = UDim2.new(1, -Upgrade.RowPadding, 0.5, 0),
-			shine = canAfford,
-			size = UDim2.fromOffset(Upgrade.BuyWidth, Upgrade.BuyHeight),
-			swatch = if canAfford then "Green" else "Red",
-			text = string.format(Text.IconLabel, Text.CoinIcon, Format.compact(cost)),
-			textSize = TextSizes.Large,
+		else e(BreatheBuy, {
+			active = canAfford,
+			cost = cost,
+			id = props.id,
+			order = props.order,
 		})
 
 	return e(Inset, {
-		layoutOrder = props.order,
 		radius = Shape.Radius,
-		size = UDim2.new(1, 0, 0, Upgrade.RowHeight),
+		size = UDim2.fromScale(1, 1),
 	}, {
 		Icon = e(ChunkyButton, {
 			position = UDim2.fromOffset(Upgrade.RowPadding, math.floor((Upgrade.RowHeight - Upgrade.IconSize) / 2)),
@@ -161,18 +242,38 @@ return function(props: any)
 	local ui = props.ui
 	local width, height = WindowSize.fit(ui, Upgrade.Width, Upgrade.Height)
 	local ids = ConfigLookup.GetSortedUpgradeIds()
+	local burst, setBurst = React.useState(0)
+	local previousLevels = React.useRef(nil)
+
+	React.useEffect(function()
+		local total = 0
+		for _, level in data.Upgrades do
+			total += level
+		end
+		local previous = previousLevels.current
+		if previous ~= nil and total > previous then
+			setBurst(function(count: number)
+				return count + 1
+			end)
+		end
+		previousLevels.current = total
+	end, { data.Upgrades } :: { any })
 
 	local rows: { [string]: any } = {
 		Layout = Primitives.list(Enum.FillDirection.Vertical, Upgrade.RowGap),
 		Padding = Primitives.paddingXY(Shape.RimStroke, Shape.RimStroke),
 	}
 	for index, id in ids do
-		rows[id] = e(UpgradeRow, {
-			coins = data.Coins,
-			id = id,
-			level = data.Upgrades[id] or 0,
+		rows[id] = e(PopInRow, {
 			order = index,
-			swatch = UIConfig.UpgradeSwatches[(index - 1) % #UIConfig.UpgradeSwatches + 1],
+		}, {
+			Row = e(UpgradeRow, {
+				coins = data.Coins,
+				id = id,
+				level = data.Upgrades[id] or 0,
+				order = index,
+				swatch = UIConfig.UpgradeSwatches[(index - 1) % #UIConfig.UpgradeSwatches + 1],
+			}),
 		})
 	end
 
@@ -185,5 +286,10 @@ return function(props: any)
 		width = width,
 	}, {
 		Rows = Primitives.scroll({ Size = UDim2.fromScale(1, 1) }, rows),
+		Burst = e(Burst, {
+			origin = UDim2.fromScale(0.5, 0.5),
+			trigger = burst,
+			zIndex = 20,
+		}),
 	})
 end

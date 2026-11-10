@@ -391,8 +391,8 @@ return {
 		GridGap = 12,
 		PassRowHeight = 104,
 		TierSwatches = { "Blue", "Purple", "Pink", "Gold", "Gold" },
-		TierIconBase = 64,
-		TierIconStep = 8,
+		TierIconBase = 52,
+		TierIconStep = 5,
 		RibbonWidth = 104,
 		RibbonHeight = 22,
 		RibbonRotation = -28,
@@ -413,6 +413,7 @@ return {
 		OneShotText = "ONE SHOT",
 		PotionStatFormat = "%dx %s",
 		NewbiePackText = "NEWBIE PACK",
+		NewbiePackBonus = "STARTER BUNDLE",
 		Perks = {
 			Coins = "x%s coins",
 			Gems = "x%s gems",
@@ -437,8 +438,8 @@ return {
 		CountFormat = "x%d",
 		StainBombIcon = "💣",
 		NewbiePackIcon = "🎁",
-		StainBombInfoFormat = "Splats everything within %d studs!",
-		NewbiePackInfoFormat = "%s + %s 💎 + %s 💰 + x%s coins",
+		StainBombInfoFormat = "Splats within %d studs!",
+		NewbiePackInfoFormat = "%s\n+%s💎 +%s💰 x%s",
 	},
 
 	Pets = {
@@ -580,6 +581,30 @@ return {
 		EquippedText = "EQUIPPED",
 		LockedText = "🔒",
 		LastCrateFormat = "You got %s!",
+	},
+
+	Motion = {
+		BreatheButtonScale = 1.05,
+		BreatheButtonPeriod = 1.4,
+		BreatheTodayScale = 1.06,
+		BreatheTodayPeriod = 1.2,
+		BreatheRewardScale = 1.06,
+		BreatheRewardPeriod = 1.4,
+		GlowSizeRatio = 1.45,
+		RewardTwinkleRate = 1.5,
+		TodayTwinkleRate = 1,
+		HeroTwinkleRate = 1.5,
+		RarityTwinkleRates = {
+			Common = 0,
+			Uncommon = 0,
+			Rare = 0.5,
+			Epic = 1,
+			Legendary = 2,
+			Mythical = 2,
+			Secret = 2,
+			Darkness = 2,
+		},
+		RainbowMinOrder = 5,
 	},
 
 	Play = {
