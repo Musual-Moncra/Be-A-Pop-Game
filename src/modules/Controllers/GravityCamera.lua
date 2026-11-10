@@ -236,11 +236,15 @@ local function render(dt: number)
 	local baseForward = CFrame.fromAxisAngle(upSmooth, yaw) * forwardRef
 	local lookDirection = baseForward * math.cos(pitch) - upSmooth * math.sin(pitch)
 
-	local desiredOffset = -lookDirection * MovementConfig.CameraDistance
-	local distance = MovementConfig.CameraDistance
+	local fullDistance = MovementConfig.CameraDistance * cachedScale
+	local desiredOffset = -lookDirection * fullDistance
+	local distance = fullDistance
 	local hit = workspace:Raycast(nextFocus, desiredOffset, cameraRaycastParams)
 	if hit then
-		distance = math.max(hit.Distance - MovementConfig.CameraCollisionPadding, MovementConfig.CameraMinDistance)
+		distance = math.max(
+			hit.Distance - MovementConfig.CameraCollisionPadding,
+			MovementConfig.CameraMinDistance * cachedScale
+		)
 	end
 
 	local cameraPosition = nextFocus + desiredOffset.Unit * distance

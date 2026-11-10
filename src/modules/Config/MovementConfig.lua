@@ -42,8 +42,8 @@
 	current scale, so a poop grown by food still sticks and climbs.
 
 	Camera fields:
-		CameraDistance: distance from the poop to the camera (studs)
-		CameraMinDistance: closest the camera may be pulled in by geometry (studs)
+		CameraDistance: distance from the poop to the camera at normal size; scales with the poop's size (studs)
+		CameraMinDistance: closest the camera may be pulled in by geometry at normal size; scales with the poop's size (studs)
 		CameraHeightOffset: focus point offset from the body center along GravityUp (studs)
 		CameraUpLerpSpeed: how quickly the camera up vector follows GravityUp (1/s)
 		CameraFollowLerpSpeed: how quickly the camera focus follows the poop (1/s)
