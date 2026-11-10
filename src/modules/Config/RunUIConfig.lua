@@ -101,7 +101,8 @@
 			CollectBurstCount / CollectBurstOrigin: confetti on COLLECT (pieces, UDim2 inside the screen)
 			CollectDismissDelay: wait for the confetti before closing the reveal (seconds)
 			RainbowRarities: rarities that get the animated rainbow rim, keyed by rarity id (true/false)
-			RainbowThickness: rainbow rim width (design pixels)
+			VariantRimColors: solid rim and twinkle colour per variant id, e.g. Golden / Stinky (RGB)
+			RainbowThickness: rainbow or solid variant rim width (design pixels)
 		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of Event, Powerups,
 			Quests and Revive
 		NarrowWidth: safe widths below this move the Event banner to the bottom centre (design pixels)
@@ -243,9 +244,9 @@ return {
 		CoinFly = {
 			Count = 8,
 			Duration = 0.7,
-			CoinsFrom = UDim2.fromScale(0.5, 0.63),
+			CoinsFrom = UDim2.fromScale(0.5, 0.49),
 			CoinsTo = UDim2.fromScale(0.39, 0.045),
-			GemsFrom = UDim2.fromScale(0.5, 0.68),
+			GemsFrom = UDim2.fromScale(0.5, 0.57),
 			GemsTo = UDim2.fromScale(0.55, 0.045),
 		},
 	},
@@ -290,6 +291,10 @@ return {
 			Darkness = true,
 		},
 		RainbowThickness = 6,
+		VariantRimColors = {
+			Golden = Color3.fromRGB(255, 205, 60),
+			Stinky = Color3.fromRGB(140, 200, 80),
+		},
 	},
 
 	Layouts = {
