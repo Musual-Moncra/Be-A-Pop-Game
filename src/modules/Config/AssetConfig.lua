@@ -9,16 +9,14 @@
 
 	Fields:
 		Animations: animation id per use, "" = the animation is skipped (asset id)
-			Walk: the poop's walk cycle, played by Animate in StarterCharacterScripts
+			none today: the poop is animated procedurally by PoopAnimController (AnimConfig)
 		Textures: texture id per use, "" = the texture is skipped (asset id)
 			Splat: square stain splat painted on the top face of every stain cell,
 				"" = fall back to the flat stained part (asset id)
 ]]
 
 return {
-	Animations = {
-		Walk = "rbxassetid://125635267489826",
-	},
+	Animations = {},
 
 	Textures = {
 		Splat = "rbxassetid://137899280",
