@@ -72,7 +72,8 @@ local function UpgradeRow(props: any)
 		)
 	local cost = if maxed then 0 else ConfigLookup.GetUpgradeCost(props.id, level)
 	local canAfford = props.coins >= cost
-	local swatch = props.swatch
+	local swatchName = props.swatch
+	local swatch = Primitives.swatch(swatchName)
 
 	local left = Upgrade.RowPadding + Upgrade.IconSize + Upgrade.RowPadding
 	local right = Upgrade.RowPadding + Upgrade.BuyWidth + Upgrade.RowPadding
@@ -111,7 +112,7 @@ local function UpgradeRow(props: any)
 			position = UDim2.fromOffset(Upgrade.RowPadding, math.floor((Upgrade.RowHeight - Upgrade.IconSize) / 2)),
 			radius = Shape.Radius,
 			size = UDim2.fromOffset(Upgrade.IconSize, Upgrade.IconSize),
-			swatch = swatch,
+			swatch = swatchName,
 			zIndex = 3,
 		}, {
 			Icon = Primitives.text({
@@ -171,7 +172,7 @@ return function(props: any)
 			id = id,
 			level = data.Upgrades[id] or 0,
 			order = index,
-			swatch = Primitives.swatch(UIConfig.UpgradeSwatches[(index - 1) % #UIConfig.UpgradeSwatches + 1]),
+			swatch = UIConfig.UpgradeSwatches[(index - 1) % #UIConfig.UpgradeSwatches + 1],
 		})
 	end
 
