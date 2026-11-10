@@ -41,6 +41,7 @@
 		Cosmetics: { EquippedSkin, EquippedTrail, OwnedSkins, OwnedTrails } (ids / owned maps)
 		LastCrate: last crate reward { CrateId, Kind, Id, IsNew, Refund }, nil until a crate opens
 		Rebirths: rebirths completed (count)
+		NewbiePackClaimed: true once the once-per-player Newbie Pack was granted (boolean)
 		Potions: active potion expiries, potion id -> unix time it ends (unix seconds)
 		PotionInventory: owned potion counts, potion id -> count (counts)
 		OwnedPasses: owned gamepass key -> true (pass keys)
@@ -228,6 +229,7 @@ export type State = {
 	Cosmetics: Cosmetics,
 	LastCrate: CrateResult?,
 	Rebirths: number,
+	NewbiePackClaimed: boolean,
 	Potions: { [string]: number },
 	PotionInventory: { [string]: number },
 	OwnedPasses: { [string]: boolean },
@@ -297,6 +299,7 @@ local function defaultState(): State
 		},
 		LastCrate = nil,
 		Rebirths = 0,
+		NewbiePackClaimed = false,
 		Potions = {},
 		PotionInventory = {},
 		OwnedPasses = {},
@@ -576,6 +579,9 @@ Net.DataSync.OnClientEvent:Connect(function(snapshot: any)
 	state.Stats = cleanStats(snapshot.Stats)
 
 	state.Rebirths = math.max(0, math.floor(tonumber(snapshot.Rebirths) or state.Rebirths))
+	if type(snapshot.NewbiePackClaimed) == "boolean" then
+		state.NewbiePackClaimed = snapshot.NewbiePackClaimed
+	end
 	if type(snapshot.Potions) == "table" then
 		state.Potions = cleanNumberMap(snapshot.Potions)
 	end
