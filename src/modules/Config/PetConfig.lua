@@ -23,6 +23,14 @@
 		PoopGems: gems paid by a successful pet poop (gems)
 		StackBonus: Stink added per stack, as a share of the pet's base Stink (multiplier)
 		StackCap: most stacks one pet may hold (count)
+		VfxParticleTexture: sparkle texture used by Golden, Rainbow and Stinky followers (asset string)
+		VfxParticleLifetime: sparkle particle life range, { Min, Max } (seconds)
+		VfxParticleSpeed: sparkle particle speed range, { Min, Max } (studs/second)
+		VfxParticleSize: sparkle particle size over its life (NumberSequence)
+		VfxParticleTransparency: sparkle particle fade over its life (NumberSequence)
+		VfxParticleLightEmission: how much the sparkles glow (0 to 1)
+		VfxParticleSpreadAngle: sparkle emission cone (degrees, X and Y)
+		VfxOutlineThickness: line thickness of the variant outline (studs)
 		FollowFolderName: Workspace folder that holds the pet followers (string)
 		FollowModelPrefix: name prefix of every follower model (string)
 		FollowSpawnDelay: wait after a character spawns before followers are rebuilt (seconds)
@@ -50,6 +58,8 @@
 			DropOdds: 1/N chance to roll this variant, 0 = never rolled, Default takes the rest (number)
 			NextVariant: variant a merge turns this one into, missing = final variant (variant id)
 			Color: follower body colour override for this variant (RGB)
+			VfxColor: sparkle and outline colour for this variant (RGB)
+			VfxRate: sparkles emitted per second; 0 = no variant VFX (particles/second)
 		Pets: list of pets, one table per pet
 			Id: unique pet id saved in player data (string)
 			DisplayName: name shown in the UI (text)
@@ -58,9 +68,10 @@
 			Stink: base Stink multiplier of the pet (multiplier)
 			Exclusive: true = Pet Index reward, never rolled (true/false)
 			DropOdds: 1/N weight inside the map pool, 0 = not rolled (number)
-			Size: placeholder follower body width, height and depth (studs)
+			Size: target follower size (studs): placeholder ball diameter, or the longest model axis after ScaleTo
 			Color: placeholder follower body colour (RGB)
-			ModelName: follower model name for the art pass, "" = placeholder ball (string)
+			ModelName: follower Model name in ReplicatedStorage.Assets.Models.Pets, set to the pet Id;
+				a missing model falls back to the placeholder ball (string)
 ]]
 
 return {
@@ -75,6 +86,20 @@ return {
 	PoopGems = 1,
 	StackBonus = 0.01,
 	StackCap = 100,
+	VfxParticleTexture = "rbxasset://textures/particles/sparkles_main.dds",
+	VfxParticleLifetime = { Min = 0.35, Max = 0.7 },
+	VfxParticleSpeed = { Min = 0.6, Max = 1.6 },
+	VfxParticleSize = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.5),
+		NumberSequenceKeypoint.new(1, 0),
+	}),
+	VfxParticleTransparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.15),
+		NumberSequenceKeypoint.new(1, 1),
+	}),
+	VfxParticleLightEmission = 1,
+	VfxParticleSpreadAngle = Vector2.new(60, 60),
+	VfxOutlineThickness = 0.06,
 	FollowFolderName = "PetFollowers",
 	FollowModelPrefix = "Pet_",
 	FollowSpawnDelay = 0.4,
@@ -166,6 +191,8 @@ return {
 			DropOdds = 0,
 			NextVariant = "Golden",
 			Color = Color3.fromRGB(150, 110, 70),
+			VfxColor = Color3.fromRGB(150, 110, 70),
+			VfxRate = 0,
 		},
 		Golden = {
 			Id = "Golden",
@@ -174,6 +201,8 @@ return {
 			DropOdds = 8,
 			NextVariant = "Rainbow",
 			Color = Color3.fromRGB(255, 205, 60),
+			VfxColor = Color3.fromRGB(255, 205, 60),
+			VfxRate = 6,
 		},
 		Rainbow = {
 			Id = "Rainbow",
@@ -182,6 +211,8 @@ return {
 			DropOdds = 60,
 			NextVariant = "Stinky",
 			Color = Color3.fromRGB(255, 120, 220),
+			VfxColor = Color3.fromRGB(255, 120, 220),
+			VfxRate = 8,
 		},
 		Stinky = {
 			Id = "Stinky",
@@ -189,6 +220,8 @@ return {
 			Bonus = 3.5,
 			DropOdds = 400,
 			Color = Color3.fromRGB(120, 160, 60),
+			VfxColor = Color3.fromRGB(120, 160, 60),
+			VfxRate = 12,
 		},
 	},
 
@@ -203,7 +236,7 @@ return {
 			DropOdds = 2,
 			Size = 1.1,
 			Color = Color3.fromRGB(176, 150, 118),
-			ModelName = "",
+			ModelName = "Snail",
 		},
 		{
 			Id = "Parrot",
@@ -215,7 +248,7 @@ return {
 			DropOdds = 4,
 			Size = 1.3,
 			Color = Color3.fromRGB(84, 190, 110),
-			ModelName = "",
+			ModelName = "Parrot",
 		},
 		{
 			Id = "Bulldog",
@@ -227,7 +260,7 @@ return {
 			DropOdds = 4,
 			Size = 1.5,
 			Color = Color3.fromRGB(170, 160, 150),
-			ModelName = "",
+			ModelName = "Bulldog",
 		},
 		{
 			Id = "Raccoon",
@@ -239,7 +272,7 @@ return {
 			DropOdds = 5,
 			Size = 1.3,
 			Color = Color3.fromRGB(120, 125, 135),
-			ModelName = "",
+			ModelName = "Raccoon",
 		},
 		{
 			Id = "Pelican",
@@ -251,7 +284,7 @@ return {
 			DropOdds = 6.5,
 			Size = 1.6,
 			Color = Color3.fromRGB(238, 238, 228),
-			ModelName = "",
+			ModelName = "Pelican",
 		},
 		{
 			Id = "HomelessGuy",
@@ -263,7 +296,7 @@ return {
 			DropOdds = 12,
 			Size = 1.7,
 			Color = Color3.fromRGB(110, 88, 64),
-			ModelName = "",
+			ModelName = "HomelessGuy",
 		},
 		{
 			Id = "ParkKing",
@@ -275,7 +308,7 @@ return {
 			DropOdds = 0,
 			Size = 2,
 			Color = Color3.fromRGB(255, 190, 60),
-			ModelName = "",
+			ModelName = "ParkKing",
 		},
 		{
 			Id = "PersianCat",
@@ -287,7 +320,7 @@ return {
 			DropOdds = 3,
 			Size = 1.2,
 			Color = Color3.fromRGB(236, 228, 214),
-			ModelName = "",
+			ModelName = "PersianCat",
 		},
 		{
 			Id = "CyberDog",
@@ -299,7 +332,7 @@ return {
 			DropOdds = 4,
 			Size = 1.4,
 			Color = Color3.fromRGB(80, 220, 230),
-			ModelName = "",
+			ModelName = "CyberDog",
 		},
 		{
 			Id = "LivingTeddyBear",
@@ -311,7 +344,7 @@ return {
 			DropOdds = 5,
 			Size = 1.5,
 			Color = Color3.fromRGB(168, 120, 78),
-			ModelName = "",
+			ModelName = "LivingTeddyBear",
 		},
 		{
 			Id = "PuppyHotdog",
@@ -323,7 +356,7 @@ return {
 			DropOdds = 7,
 			Size = 1.5,
 			Color = Color3.fromRGB(214, 120, 80),
-			ModelName = "",
+			ModelName = "PuppyHotdog",
 		},
 		{
 			Id = "GummyBear",
@@ -335,7 +368,7 @@ return {
 			DropOdds = 12,
 			Size = 1.7,
 			Color = Color3.fromRGB(255, 120, 190),
-			ModelName = "",
+			ModelName = "GummyBear",
 		},
 		{
 			Id = "MallCop",
@@ -347,7 +380,7 @@ return {
 			DropOdds = 15,
 			Size = 1.8,
 			Color = Color3.fromRGB(64, 84, 140),
-			ModelName = "",
+			ModelName = "MallCop",
 		},
 		{
 			Id = "MallMonarch",
@@ -359,7 +392,7 @@ return {
 			DropOdds = 0,
 			Size = 2,
 			Color = Color3.fromRGB(255, 210, 90),
-			ModelName = "",
+			ModelName = "MallMonarch",
 		},
 		{
 			Id = "GoldenPoopDoge",
@@ -371,7 +404,7 @@ return {
 			DropOdds = 0,
 			Size = 1.8,
 			Color = Color3.fromRGB(255, 205, 60),
-			ModelName = "",
+			ModelName = "GoldenPoopDoge",
 		},
 	},
 }

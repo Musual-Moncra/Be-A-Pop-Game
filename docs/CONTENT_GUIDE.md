@@ -17,6 +17,15 @@ Khi nhấn Play trong Studio, Output in dòng `[ContentCheck]`: có `problems` >
 
 **Rojo không xóa** thứ bạn tự tạo trong các thư mục `Assets` ở trên. Thư mục con **mới tạo trong Studio** cũng được giữ. Instance chỉ có trong Studio được lưu cùng place, nên **hãy Save/Publish place sau khi sửa**.
 
+### Thêm model pet
+
+1. Đặt Model vào `ReplicatedStorage.Assets.Models.Pets` (thư mục `Pets` đã có sẵn qua Rojo).
+2. Tên Model trùng `ModelName` của pet trong `PetConfig`; mỗi pet đang dùng chính `Id` của nó (ví dụ `Snail`, `PersianCat`).
+3. Model phải có `PrimaryPart` (chọn một MeshPart làm gốc). Các part bên trong giữ weld nội bộ; game tự bỏ anchor, tắt va chạm/query/touch và bật `Massless` cho mọi part.
+4. Không cần đúng kích thước: game tự `ScaleTo` để cạnh dài nhất của model bằng `Size` của pet trong `PetConfig`.
+5. Pet Golden / Rainbow / Stinky được tô màu, thêm sparkle và viền theo `Variants` (`VfxColor`, `VfxRate`). Pet Default giữ màu model gốc.
+6. Thiếu model thì pet vẫn chạy bằng quả bóng placeholder; `[ContentCheck]` liệt kê từng pet còn thiếu model.
+
 ## 2. Thêm hoặc sửa map
 
 1. Đặt Model vào `ServerStorage.Assets.Maps`. Tên Model trùng `ModelName` trong `MapConfig`.
@@ -25,7 +34,7 @@ Khi nhấn Play trong Studio, Output in dòng `[ContentCheck]`: có `problems` >
    - `NPCs`: Model NPC, tên trùng `name` trong `RunConfig.NpcPatrols[<id map>]`.
    - `PlayArea`: Part đánh dấu vùng chơi (dùng để sinh perk và tính % map).
 3. Thêm mục map trong `MapConfig` (`Spawn` là vị trí **trong lúc map đang đặt ở tọa độ gốc của nó**). Game tự cộng độ lệch khi clone cho từng phòng, nên **không di chuyển map sau khi đã ghi tọa độ** `Spawn` và patrol; nếu di chuyển phải cập nhật cả hai.
-4. Muốn có trứng pet hoặc nhạc riêng: thêm vào `PetConfig` và `SoundConfig.Music.Maps`.
+4. Muốn đổi pet rơi hoặc nhạc riêng: sửa `PetConfig` và `SoundConfig.Music.Maps`.
 
 ## 3. Animator
 
@@ -53,7 +62,7 @@ Khi nhấn Play trong Studio, Output in dòng `[ContentCheck]`: có `problems` >
 | NPC: tầm nhìn, tốc độ đuổi, hình phạt | `NpcConfig` |
 | NPC: tuyến tuần tra | `RunConfig.NpcPatrols` |
 | Perk, thuốc | `PowerupConfig`, `PotionConfig` |
-| Pet, trứng, độ hiếm | `PetConfig` |
+| Pet, độ hiếm, model pet | `PetConfig` |
 | Skin, trail, crate | `CosmeticConfig` |
 | Rebirth, daily, event, quest | `RebirthConfig`, `DailyRewardConfig`, `EventConfig`, `QuestConfig` |
 | Phòng chơi: số người, đếm ngược, luật sẵn sàng | `RoomConfig` |

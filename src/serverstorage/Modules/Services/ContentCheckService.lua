@@ -9,7 +9,9 @@
 
 	Checks: every enabled map has its template, spawn inside the map, its patrol NPCs and valid
 	ObjectType attributes on Props; every sound key has its Sound template; room sizes and default
-	are valid; pet MapIds point at real maps; CharacterConfig.RootWidth matches the StarterCharacter. Ids still at 0, empty animations and empty sounds are listed as notes.
+	are valid; pet MapIds point at real maps; pet follower models that are missing or unnamed are
+	listed as notes; CharacterConfig.RootWidth matches the StarterCharacter. Ids still at 0, empty
+	animations and empty sounds are listed as notes.
 
 	Dependencies: ServerStorage.Assets, ReplicatedStorage.Assets, ConfigLookup, AssetConfig,
 	MapConfig, MonetizationConfig, PetConfig, PotionConfig, RoomConfig, RunConfig, SoundConfig
@@ -108,9 +110,18 @@ local function run()
 		problem("RoomConfig.DefaultMaxPlayers %d is not in PlayerOptions", RoomConfig.DefaultMaxPlayers)
 	end
 
+	local replicatedAssets = ReplicatedStorage:FindFirstChild("Assets")
+	local assetModels = if replicatedAssets ~= nil then replicatedAssets:FindFirstChild("Models") else nil
+	local petModels = if assetModels ~= nil then assetModels:FindFirstChild("Pets") else nil
+
 	for _, pet in PetConfig.Pets do
 		if pet.MapId ~= "" and ConfigLookup.GetMap(pet.MapId) == nil then
 			problem("Pet %s points at unknown map %s", pet.Id, pet.MapId)
+		end
+		if pet.ModelName == "" then
+			table.insert(notes, "Pet " .. pet.Id .. " has no ModelName")
+		elseif petModels == nil or petModels:FindFirstChild(pet.ModelName) == nil then
+			table.insert(notes, "Pet model missing: " .. pet.ModelName)
 		end
 	end
 	if PetConfig.BaseSlots < 1 then

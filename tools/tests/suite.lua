@@ -1053,6 +1053,23 @@ runTest("ConfigIntegrity_Pets_Rarities_Variants", function()
 	expect(PetConfig.StackBonus > 0, "PetConfig.StackBonus must be positive")
 	expect(PetConfig.PoopInterval > 0, "PetConfig.PoopInterval must be positive")
 	expect(PetConfig.PoopGemChance >= 0 and PetConfig.PoopGemChance <= 1, "PetConfig.PoopGemChance must be a chance")
+	expect(
+		type(PetConfig.VfxParticleTexture) == "string" and #PetConfig.VfxParticleTexture > 0,
+		"VfxParticleTexture must be set"
+	)
+	expect(
+		PetConfig.VfxParticleLifetime.Min > 0 and PetConfig.VfxParticleLifetime.Max >= PetConfig.VfxParticleLifetime.Min,
+		"VfxParticleLifetime range must be valid"
+	)
+	expect(
+		PetConfig.VfxParticleSpeed.Min >= 0 and PetConfig.VfxParticleSpeed.Max >= PetConfig.VfxParticleSpeed.Min,
+		"VfxParticleSpeed range must be valid"
+	)
+	expect(
+		PetConfig.VfxParticleLightEmission >= 0 and PetConfig.VfxParticleLightEmission <= 1,
+		"VfxParticleLightEmission must be 0..1"
+	)
+	expect(PetConfig.VfxOutlineThickness > 0, "VfxOutlineThickness must be positive")
 
 	for rarityId, rarity in PetConfig.Rarities do
 		expect(rarity.Id == rarityId, "Rarity key/Id mismatch: " .. tostring(rarityId))
@@ -1063,6 +1080,14 @@ runTest("ConfigIntegrity_Pets_Rarities_Variants", function()
 		expect(variant.Id == variantId, "Variant key/Id mismatch: " .. tostring(variantId))
 		expect(variant.DropOdds >= 0, "Variant DropOdds must not be negative: " .. tostring(variantId))
 		expect(variant.Bonus > 0, "Variant bonus must be positive: " .. tostring(variantId))
+		expect(variant.VfxColor ~= nil, "Variant VfxColor must exist: " .. tostring(variantId))
+		expect(
+			type(variant.VfxRate) == "number" and variant.VfxRate >= 0,
+			"Variant VfxRate must be >= 0: " .. tostring(variantId)
+		)
+		if variantId ~= "Default" then
+			expect(variant.VfxRate > 0, "Special variant needs sparkles: " .. tostring(variantId))
+		end
 		if variant.NextVariant ~= nil then
 			expect(
 				PetConfig.Variants[variant.NextVariant] ~= nil,
@@ -1083,7 +1108,7 @@ runTest("ConfigIntegrity_Pets_Rarities_Variants", function()
 			string.format("Pet %s references invalid rarity %s", pet.Id, pet.Rarity)
 		)
 		expect(pet.Stink > 0, "Pet Stink must be positive: " .. pet.Id)
-		expect(type(pet.ModelName) == "string", "Pet ModelName must be a string: " .. pet.Id)
+		expect(pet.ModelName == pet.Id, "Pet ModelName must be its Id: " .. pet.Id)
 		if pet.MapId ~= "" then
 			expect(
 				ConfigLookup.GetMap(pet.MapId) ~= nil,

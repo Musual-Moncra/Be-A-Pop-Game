@@ -258,18 +258,127 @@ local function getFolder(): Folder
 	return created
 end
 
-local function createFollower(hrp: BasePart, entry: any, slot: number, folder: Instance, instances: { Instance })
-	local pet = ConfigLookup.GetPet(entry.PetId)
-	if pet == nil then
+local function getPetModelTemplate(pet: any): Model?
+	if pet.ModelName == "" then
+		return nil
+	end
+	local assets = ReplicatedStorage:FindFirstChild("Assets")
+	local models = if assets ~= nil then assets:FindFirstChild("Models") else nil
+	local folder = if models ~= nil then models:FindFirstChild("Pets") else nil
+	local template = if folder ~= nil then folder:FindFirstChild(pet.ModelName) else nil
+	if template == nil or not template:IsA("Model") then
+		return nil
+	end
+	return template
+end
+
+local function preparePetModel(template: Model, pet: any): Model?
+	local model = template:Clone()
+	if model.PrimaryPart == nil then
+		model:Destroy()
+		return nil
+	end
+
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.Anchored = false
+			descendant.CanCollide = false
+			descendant.CanQuery = false
+			descendant.CanTouch = false
+			descendant.Massless = true
+		elseif descendant:IsA("Weld") or descendant:IsA("WeldConstraint") then
+			local joint = descendant :: any
+			local part0 = joint.Part0
+			local part1 = joint.Part1
+			if part0 == nil or part1 == nil or not (part0:IsDescendantOf(model) and part1:IsDescendantOf(model)) then
+				joint:Destroy()
+			end
+		end
+	end
+
+	local extents = model:GetExtentsSize()
+	local longest = math.max(extents.X, extents.Y, extents.Z)
+	if longest > 0 and pet.Size > 0 then
+		model:ScaleTo(model:GetScale() * pet.Size / longest)
+	end
+	return model
+end
+
+local function tintVariant(model: Model, variant: any)
+	if variant == nil or variant.Id == "Default" then
 		return
 	end
-	local variant = ConfigLookup.GetVariant(entry.Variant)
-	local offsets = PetConfig.FollowOffsets
-	local offset = CharacterConfig.HitboxOffset + offsets[(slot - 1) % #offsets + 1]
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.Color = variant.Color
+			local surface = descendant:FindFirstChildOfClass("SurfaceAppearance")
+			if surface ~= nil then
+				surface.Color = variant.Color
+			end
+		end
+	end
+end
 
+local function addVariantVfx(model: Model, primary: BasePart, variant: any)
+	if variant == nil or variant.VfxRate <= 0 then
+		return
+	end
+
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Name = "VariantSparkle"
+	emitter.Texture = PetConfig.VfxParticleTexture
+	emitter.Color = ColorSequence.new(variant.VfxColor)
+	emitter.Rate = variant.VfxRate
+	emitter.Lifetime = NumberRange.new(PetConfig.VfxParticleLifetime.Min, PetConfig.VfxParticleLifetime.Max)
+	emitter.Speed = NumberRange.new(PetConfig.VfxParticleSpeed.Min, PetConfig.VfxParticleSpeed.Max)
+	emitter.Size = PetConfig.VfxParticleSize
+	emitter.Transparency = PetConfig.VfxParticleTransparency
+	emitter.LightEmission = PetConfig.VfxParticleLightEmission
+	emitter.SpreadAngle = PetConfig.VfxParticleSpreadAngle
+	emitter.Parent = primary
+
+	local outline = Instance.new("SelectionBox")
+	outline.Name = "VariantOutline"
+	outline.Adornee = model
+	outline.Color3 = variant.VfxColor
+	outline.LineThickness = PetConfig.VfxOutlineThickness
+	outline.SurfaceTransparency = 1
+	outline.Parent = model
+end
+
+local function attachFollower(hrp: BasePart, model: Model, primary: BasePart, offset: Vector3, instances: { Instance })
+	local anchor = Instance.new("Attachment")
+	anchor.Name = "PetAnchor"
+	anchor.Position = offset
+	anchor.Parent = hrp
+
+	local bodyAttachment = Instance.new("Attachment")
+	bodyAttachment.Name = "BodyAttachment"
+	bodyAttachment.Parent = primary
+
+	local align = Instance.new("AlignPosition")
+	align.Name = "PetAlign"
+	align.Attachment0 = bodyAttachment
+	align.Attachment1 = anchor
+	align.Responsiveness = PetConfig.FollowResponsiveness
+	align.MaxForce = PetConfig.FollowMaxForce
+	align.ApplyAtCenterOfMass = true
+	align.Parent = primary
+
+	local orientation = Instance.new("AlignOrientation")
+	orientation.Name = "PetOrientation"
+	orientation.Attachment0 = bodyAttachment
+	orientation.Attachment1 = anchor
+	orientation.Responsiveness = PetConfig.FollowResponsiveness
+	orientation.MaxTorque = PetConfig.FollowMaxTorque
+	orientation.Parent = primary
+
+	table.insert(instances, anchor)
+	table.insert(instances, model)
+end
+
+local function createPlaceholder(pet: any, variant: any): (Model, BasePart)
 	local model = Instance.new("Model")
-	model.Name = PetConfig.FollowModelPrefix .. pet.DisplayName
-
 	local body = Instance.new("Part")
 	body.Name = "Body"
 	body.Shape = PetConfig.FollowShape
@@ -281,7 +390,6 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 	body.CanQuery = false
 	body.CanTouch = false
 	body.Massless = true
-	body.CFrame = hrp.CFrame * CFrame.new(offset)
 	body.Parent = model
 
 	for _, side in { -1, 1 } do
@@ -308,35 +416,42 @@ local function createFollower(hrp: BasePart, entry: any, slot: number, folder: I
 		eye.Parent = model
 	end
 
-	local anchor = Instance.new("Attachment")
-	anchor.Name = "PetAnchor"
-	anchor.Position = offset
-	anchor.Parent = hrp
+	return model, body
+end
 
-	local bodyAttachment = Instance.new("Attachment")
-	bodyAttachment.Name = "BodyAttachment"
-	bodyAttachment.Parent = body
+local function createFollower(hrp: BasePart, entry: any, slot: number, folder: Instance, instances: { Instance })
+	local pet = ConfigLookup.GetPet(entry.PetId)
+	if pet == nil then
+		return
+	end
+	local variant = ConfigLookup.GetVariant(entry.Variant)
+	local offsets = PetConfig.FollowOffsets
+	local offset = CharacterConfig.HitboxOffset + offsets[(slot - 1) % #offsets + 1]
 
-	local align = Instance.new("AlignPosition")
-	align.Name = "PetAlign"
-	align.Attachment0 = bodyAttachment
-	align.Attachment1 = anchor
-	align.Responsiveness = PetConfig.FollowResponsiveness
-	align.MaxForce = PetConfig.FollowMaxForce
-	align.ApplyAtCenterOfMass = true
-	align.Parent = body
+	local template = getPetModelTemplate(pet)
+	if template ~= nil then
+		local model = preparePetModel(template, pet)
+		local primary = if model ~= nil then model.PrimaryPart else nil
+		if model ~= nil and primary ~= nil then
+			model.Name = PetConfig.FollowModelPrefix .. pet.DisplayName
+			tintVariant(model, variant)
+			addVariantVfx(model, primary, variant)
+			attachFollower(hrp, model, primary, offset, instances)
+			model.Parent = folder
+			model:PivotTo(hrp.CFrame * CFrame.new(offset))
+			return
+		end
+		if model ~= nil then
+			model:Destroy()
+		end
+	end
 
-	local orientation = Instance.new("AlignOrientation")
-	orientation.Name = "PetOrientation"
-	orientation.Attachment0 = bodyAttachment
-	orientation.Attachment1 = anchor
-	orientation.Responsiveness = PetConfig.FollowResponsiveness
-	orientation.MaxTorque = PetConfig.FollowMaxTorque
-	orientation.Parent = body
-
+	local model, body = createPlaceholder(pet, variant)
+	model.Name = PetConfig.FollowModelPrefix .. pet.DisplayName
+	body.CFrame = hrp.CFrame * CFrame.new(offset)
+	addVariantVfx(model, body, variant)
+	attachFollower(hrp, model, body, offset, instances)
 	model.Parent = folder
-	table.insert(instances, anchor)
-	table.insert(instances, model)
 end
 
 local function rebuild(plr: Player)
