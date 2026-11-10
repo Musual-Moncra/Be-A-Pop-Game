@@ -44,6 +44,8 @@
 		Rebirths: rebirths completed (count)
 		NewbiePackClaimed: true once the once-per-player Newbie Pack was granted (boolean)
 		Potions: active potion expiries, potion id -> unix time it ends (unix seconds)
+		Boosts: active daily/pass boosts, boost id -> unix time it ends (unix seconds)
+		CoinBoostUntil: unix time the purchased coin boost ends, 0 = none (unix seconds)
 		PotionInventory: owned potion counts, potion id -> count (counts)
 		OwnedPasses: owned gamepass key -> true (pass keys)
 		ReviveOffer: open revive offer { ProductId, Tier, ExpiresAt }, ExpiresAt = os.clock(), nil = none
@@ -236,6 +238,8 @@ export type State = {
 	NewbiePackClaimed: boolean,
 	Potions: { [string]: number },
 	PotionInventory: { [string]: number },
+	Boosts: { [string]: number },
+	CoinBoostUntil: number,
 	OwnedPasses: { [string]: boolean },
 	ReviveOffer: ReviveOffer?,
 	MapProgress: MapProgress,
@@ -306,6 +310,8 @@ local function defaultState(): State
 		NewbiePackClaimed = false,
 		Potions = {},
 		PotionInventory = {},
+		Boosts = {},
+		CoinBoostUntil = 0,
 		OwnedPasses = {},
 		ReviveOffer = nil,
 		MapProgress = { MapId = "", Percent = 0 },
@@ -617,6 +623,10 @@ Net.DataSync.OnClientEvent:Connect(function(snapshot: any)
 	if type(snapshot.PotionInventory) == "table" then
 		state.PotionInventory = cleanNumberMap(snapshot.PotionInventory)
 	end
+	if type(snapshot.Boosts) == "table" then
+		state.Boosts = cleanNumberMap(snapshot.Boosts)
+	end
+	state.CoinBoostUntil = math.max(0, tonumber(snapshot.CoinBoostUntil) or state.CoinBoostUntil)
 	if type(snapshot.MapProgress) == "table" then
 		state.BestMapProgress = cleanNumberMap(snapshot.MapProgress)
 	end
