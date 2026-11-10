@@ -182,7 +182,7 @@ local function indexTile(pet: any, discovered: boolean, order: number): any
 	local name = if discovered then pet.DisplayName else Index.UnknownName
 	local icon = if discovered then Pets.PetIcon else Index.LockedIcon
 	local rarityName = if rarity ~= nil then rarity.DisplayName else pet.Rarity
-	local oddsText = if odds > 0 then string.format(Index.OddsFormat, odds) else ""
+	local oddsText = if odds > 0 then string.format(Index.OddsFormat, Format.multiplier(odds)) else ""
 
 	return e(ChunkyButton, {
 		layoutOrder = order,

@@ -54,7 +54,7 @@ function PetView.DropOdds(pet: any): number
 	if odds == nil or odds <= 0 then
 		return 0
 	end
-	return math.floor(odds)
+	return odds
 end
 
 function PetView.IndexGems(): number

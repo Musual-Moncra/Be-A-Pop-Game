@@ -87,7 +87,8 @@
 			Tabs: tab rows { Id, Label, Icon, Swatch }; Id is "MyPets" or "Index"
 			PetIcon: emoji shown on every pet card (text)
 			EquipText / UnequipText / EvolveText / DeleteText / DeleteConfirmText: pet card buttons (text)
-			EvolveNeedFormat: evolve button while short of copies (format: copies needed)
+			EvolveNeedFormat / EvolveMaxText: evolve button while short of copies / on a final variant
+				(format: copies needed)
 			SlotsFormat: equipped slots line (format: used, total)
 			StinkFormat / PetStinkFormat: total Stink header and card Stink value (format: multiplier)
 			StackFormat / StackOnlyFormat: stacks bar text with / without a known cap (format: stacks, cap)
@@ -100,7 +101,7 @@
 				Columns / TileWidth / TileHeight / TileIconSize: tile grid (count, design pixels)
 				HeaderHeight / SectionGap / RewardHeight: section header, section gap, reward line (design pixels)
 				ProgressFormat: discovered / total line (format: found, total)
-				OddsFormat: drop odds line (format: drop odds denominator)
+				OddsFormat: drop odds line (format: drop odds denominator, decimal allowed)
 				UnknownName / LockedIcon: undiscovered pet name and icon (text)
 				RewardHeader / RewardFormat / RewardGemsFormat: reward preview (format: exclusive pet name, gems)
 				ClaimedText / ComingSoonText / NoPetsText: section states (text)
@@ -294,7 +295,7 @@ return {
 		TraitFormat = "%s  •  %s",
 		EmptyText = "No pets yet. Clear a map to catch one!",
 		Card = {
-			Width = 260,
+			Width = 240,
 			Height = 384,
 			IconRatio = 0.28,
 			Padding = 14,
@@ -313,7 +314,7 @@ return {
 			SectionGap = 18,
 			RewardHeight = 40,
 			ProgressFormat = "%d/%d",
-			OddsFormat = "1/%d",
+			OddsFormat = "1/%s",
 			UnknownName = "???",
 			LockedIcon = "❔",
 			RewardHeader = "COMPLETE TO EARN",

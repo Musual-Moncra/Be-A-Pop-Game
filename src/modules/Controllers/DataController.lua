@@ -17,7 +17,6 @@
 		DataController.Soiled -> Signal ()             a prop became fully soiled
 		DataController.PowerupPicked -> Signal ()      a food item was eaten
 		DataController.NpcCaught -> Signal ()          an NPC caught the player
-		DataController.PetPoop -> Signal (uid, gems)   an equipped pet pooped
 
 	State:
 		Coins: coins owned (coins)
@@ -249,7 +248,6 @@ DataController.Stained = Signal.new()
 DataController.Soiled = Signal.new()
 DataController.PowerupPicked = Signal.new()
 DataController.NpcCaught = Signal.new()
-DataController.PetPoop = Signal.new()
 
 local nextToastId = 0
 local nextPopupId = 0
@@ -843,13 +841,6 @@ Net.PetDrop.OnClientEvent:Connect(function(petId: any, variantId: any, isNew: an
 		At = os.clock(),
 	}
 	publish()
-end)
-
-Net.PetPoop.OnClientEvent:Connect(function(uid: any, gems: any)
-	if type(uid) ~= "string" then
-		return
-	end
-	DataController.PetPoop:Fire(uid, math.max(0, math.floor(tonumber(gems) or 0)))
 end)
 
 Net.CosmeticState.OnClientEvent:Connect(
