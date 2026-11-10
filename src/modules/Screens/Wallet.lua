@@ -3,10 +3,10 @@
 --[[
 	Wallet
 	Top-left HUD shown in the lobby and during runs: gold level badge with an XP bar,
-	then coin and gem pills.
+	a coin pill with the Stink multiplier chip beside it, then a gem pill.
 
 	Props: data (DataController state), ui (useUIScale result)
-	Dependencies: React, UIConfig, GameConfig, ConfigLookup, Primitives, ChunkyButton, Bar, Pill, Format
+	Dependencies: React, UIConfig, GameConfig, ConfigLookup, PetView, Primitives, ChunkyButton, Bar, Chip, Pill, Format
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,8 +15,10 @@ local React = require(ReplicatedStorage.Packages.React)
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
 local Components = ReplicatedStorage.Modules.UIComponents
 local Bar = require(Components.Bar)
+local Chip = require(Components.Chip)
 local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
 local Pill = require(Components.Pill)
@@ -39,6 +41,8 @@ return function(props: any)
 		else string.format(Text.XpFormat, Format.compact(data.Xp), Format.compact(needed))
 
 	local badge = Sizes.BadgeSize
+	local stinkText = string.format(Text.StinkFormat, Format.multiplier(PetView.TotalStink(data)))
+	local coinWidth = Sizes.Width - Sizes.StinkChipWidth - Sizes.Gap
 	return e("Frame", {
 		AnchorPoint = layout.AnchorPoint,
 		AutomaticSize = Enum.AutomaticSize.Y,
@@ -91,14 +95,27 @@ return function(props: any)
 				}),
 			}),
 		}),
-		Coins = e(Pill, {
-			height = Sizes.PillHeight,
-			icon = Text.CoinIcon,
-			iconSize = Sizes.PillIconSize,
-			layoutOrder = 2,
-			swatch = "Gold",
-			value = Format.compact(data.Coins),
-			width = Sizes.Width,
+		Coins = e("Frame", {
+			BackgroundTransparency = 1,
+			LayoutOrder = 2,
+			Size = UDim2.new(1, 0, 0, Sizes.PillHeight),
+		}, {
+			Coins = e(Pill, {
+				height = Sizes.PillHeight,
+				icon = Text.CoinIcon,
+				iconSize = Sizes.PillIconSize,
+				swatch = "Gold",
+				value = Format.compact(data.Coins),
+				width = coinWidth,
+			}),
+			Stink = e(Chip, {
+				anchorPoint = Vector2.new(1, 0.5),
+				height = Sizes.StinkChipHeight,
+				position = UDim2.fromScale(1, 0.5),
+				swatch = "Brown",
+				text = stinkText,
+				textSize = TextSizes.Small,
+			}),
 		}),
 		Gems = e(Pill, {
 			height = Sizes.PillHeight,

@@ -12,10 +12,12 @@
 		DataController.PushToast(kind, text) client-only notification toast
 		DataController.PushPopup(kind, text) client-only in-run popup
 		DataController.DismissResult() clears the last run summary
+		DataController.DismissPetDrop() clears the last pet drop reveal
 		DataController.Stained -> Signal ()            a stain step was painted
 		DataController.Soiled -> Signal ()             a prop became fully soiled
 		DataController.PowerupPicked -> Signal ()      a food item was eaten
 		DataController.NpcCaught -> Signal ()          an NPC caught the player
+		DataController.PetPoop -> Signal (uid, gems)   an equipped pet pooped
 
 	State:
 		Coins: coins owned (coins)
@@ -34,8 +36,9 @@
 		Quests: rolled quests { Id, Text, Progress, Target, Done } (counts)
 		Daily: daily streak { Day, CanClaim, SecondsUntilNext, Streak }, nil until the server sends it
 		GoldenTargets: golden prop paths relative to the map model (name paths)
-		Pets: owned and equipped pets { Pets, Equipped, Slots } (pet entries / uids / slots)
-		LastHatch: last hatched pet { PetId, Variant, At }, At = os.clock(), nil until a hatch
+		Pets: owned and equipped pets { Pets, Equipped, Slots, Stink, Index, IndexClaimed }
+		      (pet entries with Stacks / uids / slots / total Stink multiplier / discovered pets / claimed maps)
+		LastPetDrop: last pet drop { PetId, Variant, IsNew, Converted, At }, At = os.clock(), nil until a drop
 		Cosmetics: { EquippedSkin, EquippedTrail, OwnedSkins, OwnedTrails } (ids / owned maps)
 		LastCrate: last crate reward { CrateId, Kind, Id, IsNew, Refund }, nil until a crate opens
 		Rebirths: rebirths completed (count)
@@ -67,6 +70,7 @@ local DailyRewardConfig = require(ReplicatedStorage.Modules.Config.DailyRewardCo
 local GameConfig = require(ReplicatedStorage.Modules.Config.GameConfig)
 local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
+local PetConfig = require(ReplicatedStorage.Modules.Config.PetConfig)
 local ModeConfig = require(ReplicatedStorage.Modules.Config.ModeConfig)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local Net = require(ReplicatedStorage.Modules.Shared.Net)
@@ -136,17 +140,28 @@ export type PetEntry = {
 	Uid: string,
 	PetId: string,
 	Variant: string,
+	Stacks: number,
+}
+
+export type PetIndexEntry = {
+	PetId: string,
+	Variant: string,
 }
 
 export type Pets = {
 	Pets: { PetEntry },
 	Equipped: { string },
 	Slots: number,
+	Stink: number,
+	Index: { PetIndexEntry },
+	IndexClaimed: { [string]: boolean },
 }
 
-export type LastHatch = {
+export type PetDrop = {
 	PetId: string,
 	Variant: string,
+	IsNew: boolean,
+	Converted: number,
 	At: number,
 }
 
@@ -211,7 +226,7 @@ export type State = {
 	Daily: DailyState?,
 	GoldenTargets: { string },
 	Pets: Pets,
-	LastHatch: LastHatch?,
+	LastPetDrop: PetDrop?,
 	Cosmetics: Cosmetics,
 	LastCrate: CrateResult?,
 	Rebirths: number,
@@ -235,6 +250,7 @@ DataController.Stained = Signal.new()
 DataController.Soiled = Signal.new()
 DataController.PowerupPicked = Signal.new()
 DataController.NpcCaught = Signal.new()
+DataController.PetPoop = Signal.new()
 
 local nextToastId = 0
 local nextPopupId = 0
@@ -267,8 +283,15 @@ local function defaultState(): State
 		Quests = {},
 		Daily = nil,
 		GoldenTargets = {},
-		Pets = { Pets = {}, Equipped = {}, Slots = ConfigLookup.GetMaxEquippedSlots(0) },
-		LastHatch = nil,
+		Pets = {
+			Pets = {},
+			Equipped = {},
+			Slots = ConfigLookup.GetMaxEquippedSlots(0),
+			Stink = 1,
+			Index = {},
+			IndexClaimed = {},
+		},
+		LastPetDrop = nil,
 		Cosmetics = {
 			EquippedSkin = "Default",
 			EquippedTrail = "",
@@ -384,10 +407,49 @@ local function cleanPetEntries(source: any): { PetEntry }
 			and type(entry.PetId) == "string"
 			and type(entry.Variant) == "string"
 		then
-			table.insert(entries, { Uid = entry.Uid, PetId = entry.PetId, Variant = entry.Variant })
+			table.insert(entries, {
+				Uid = entry.Uid,
+				PetId = entry.PetId,
+				Variant = entry.Variant,
+				Stacks = math.max(0, math.floor(tonumber(entry.Stacks) or 0)),
+			})
 		end
 	end
 	return entries
+end
+
+local function cleanPetIndex(source: any): { PetIndexEntry }
+	local entries: { PetIndexEntry } = {}
+	if type(source) ~= "table" then
+		return entries
+	end
+	for key, value in source do
+		if type(value) == "table" and type(value.PetId) == "string" and type(value.Variant) == "string" then
+			table.insert(entries, { PetId = value.PetId, Variant = value.Variant })
+		elseif type(key) == "string" and type(value) == "table" then
+			for variantId, discovered in value do
+				if type(variantId) == "string" and discovered == true then
+					table.insert(entries, { PetId = key, Variant = variantId })
+				end
+			end
+		end
+	end
+	return entries
+end
+
+local function cleanStringSet(source: any): { [string]: boolean }
+	local set = {}
+	if type(source) ~= "table" then
+		return set
+	end
+	for key, value in source do
+		if type(key) == "string" and value == true then
+			set[key] = true
+		elseif type(value) == "string" then
+			set[value] = true
+		end
+	end
+	return set
 end
 
 local function cleanUids(source: any): { string }
@@ -489,6 +551,14 @@ function DataController.DismissResult()
 	publish()
 end
 
+function DataController.DismissPetDrop()
+	if state.LastPetDrop == nil then
+		return
+	end
+	state.LastPetDrop = nil
+	publish()
+end
+
 Net.DataSync.OnClientEvent:Connect(function(snapshot: any)
 	if type(snapshot) ~= "table" then
 		return
@@ -539,6 +609,11 @@ Net.DataSync.OnClientEvent:Connect(function(snapshot: any)
 			Pets = cleanPetEntries(pets.Inventory),
 			Equipped = cleanUids(pets.Equipped),
 			Slots = ConfigLookup.GetMaxEquippedSlots(tonumber(pets.ExtraSlots) or 0),
+			Stink = state.Pets.Stink,
+			Index = if type(snapshot.PetIndex) == "table" then cleanPetIndex(snapshot.PetIndex) else state.Pets.Index,
+			IndexClaimed = if type(snapshot.PetIndexClaimed) == "table"
+				then cleanStringSet(snapshot.PetIndexClaimed)
+				else state.Pets.IndexClaimed,
 		}
 	end
 
@@ -744,35 +819,79 @@ Net.PetInventory.OnClientEvent:Connect(function(payload: any)
 	if type(payload) ~= "table" then
 		return
 	end
+	local stink = tonumber(payload.Stink)
 	state.Pets = {
 		Pets = cleanPetEntries(payload.Pets),
 		Equipped = cleanUids(payload.Equipped),
 		Slots = math.max(0, math.floor(tonumber(payload.Slots) or state.Pets.Slots)),
+		Stink = if stink ~= nil and stink > 0 then stink else state.Pets.Stink,
+		Index = cleanPetIndex(payload.Index),
+		IndexClaimed = cleanStringSet(payload.IndexClaimed),
 	}
 	publish()
 end)
 
-Net.HatchResult.OnClientEvent:Connect(function(petId: any, variantId: any)
-	if type(petId) ~= "string" or type(variantId) ~= "string" then
-		return
+local NetAny = Net :: any
+
+local petDropPacket = NetAny.PetDrop
+if petDropPacket ~= nil then
+	petDropPacket.OnClientEvent:Connect(function(petId: any, variantId: any, isNew: any, converted: any)
+		if type(petId) ~= "string" or type(variantId) ~= "string" then
+			return
+		end
+		state.LastPetDrop = {
+			PetId = petId,
+			Variant = variantId,
+			IsNew = isNew == true,
+			Converted = math.max(0, math.floor(tonumber(converted) or 0)),
+			At = os.clock(),
+		}
+		publish()
+	end)
+end
+
+local petPoopPacket = NetAny.PetPoop
+if petPoopPacket ~= nil then
+	petPoopPacket.OnClientEvent:Connect(function(uid: any, gems: any)
+		if type(uid) ~= "string" then
+			return
+		end
+		local cap = math.max(0, math.floor(tonumber((PetConfig :: any).StackCap) or 0))
+		local stackBonus = tonumber((PetConfig :: any).StackBonus) or 0
+		for index, entry in state.Pets.Pets do
+			if entry.Uid == uid then
+				local bumped = table.clone(entry)
+				bumped.Stacks += 1
+				if cap > 0 then
+					bumped.Stacks = math.min(bumped.Stacks, cap)
+				end
+				if stackBonus > 0 and bumped.Stacks ~= entry.Stacks then
+					local before = 1 + stackBonus * entry.Stacks
+					local after = 1 + stackBonus * bumped.Stacks
+					state.Pets.Stink = math.max(1, state.Pets.Stink * (after / before))
+				end
+				state.Pets.Pets[index] = bumped
+				break
+			end
+		end
+		DataController.PetPoop:Fire(uid, math.max(0, math.floor(tonumber(gems) or 0)))
+		publish()
+	end)
+end
+
+Net.CosmeticState.OnClientEvent:Connect(
+	function(equippedSkin: any, equippedTrail: any, ownedSkins: any, ownedTrails: any)
+		state.Cosmetics = {
+			EquippedSkin = if type(equippedSkin) == "string" and equippedSkin ~= ""
+				then equippedSkin
+				else state.Cosmetics.EquippedSkin,
+			EquippedTrail = if type(equippedTrail) == "string" then equippedTrail else state.Cosmetics.EquippedTrail,
+			OwnedSkins = if type(ownedSkins) == "table" then cleanOwned(ownedSkins) else state.Cosmetics.OwnedSkins,
+			OwnedTrails = if type(ownedTrails) == "table" then cleanOwned(ownedTrails) else state.Cosmetics.OwnedTrails,
+		}
+		publish()
 	end
-	state.LastHatch = { PetId = petId, Variant = variantId, At = os.clock() }
-	publish()
-end)
-
-Net.CosmeticState.OnClientEvent:Connect(function(equippedSkin: any, equippedTrail: any, ownedSkins: any, ownedTrails: any)
-	state.Cosmetics = {
-		EquippedSkin = if type(equippedSkin) == "string" and equippedSkin ~= ""
-			then equippedSkin
-			else state.Cosmetics.EquippedSkin,
-		EquippedTrail = if type(equippedTrail) == "string"
-			then equippedTrail
-			else state.Cosmetics.EquippedTrail,
-		OwnedSkins = if type(ownedSkins) == "table" then cleanOwned(ownedSkins) else state.Cosmetics.OwnedSkins,
-		OwnedTrails = if type(ownedTrails) == "table" then cleanOwned(ownedTrails) else state.Cosmetics.OwnedTrails,
-	}
-	publish()
-end)
+)
 
 Net.CrateResult.OnClientEvent:Connect(function(payload: any)
 	if type(payload) ~= "table" then

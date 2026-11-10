@@ -29,6 +29,7 @@ local UIScaleContext = require(ReplicatedStorage.Modules.UIComponents.UIScaleCon
 local Screens = ReplicatedStorage.Modules.Screens
 local DailyWindow = require(Screens.DailyWindow)
 local LobbyDock = require(Screens.LobbyDock)
+local PetReveal = require(Screens.PetReveal)
 local PetsWindow = require(Screens.PetsWindow)
 local RebirthWindow = require(Screens.RebirthWindow)
 local PlayWindow = require(Screens.PlayWindow)
@@ -38,7 +39,6 @@ local ShopWindow = require(Screens.ShopWindow)
 local SkinsWindow = require(Screens.SkinsWindow)
 local RunExtras = require(Screens.RunExtras)
 local RunHud = require(Screens.RunHud)
-local StatsWindow = require(Screens.StatsWindow)
 local Toasts = require(Screens.Toasts)
 local UpgradeWindow = require(Screens.UpgradeWindow)
 local Wallet = require(Screens.Wallet)
@@ -115,8 +115,6 @@ local function App(props: any)
 			lobbyWindow = e(PlayWindow, { data = data, ui = ui, onClose = close })
 		elseif route == Routes.Upgrades then
 			lobbyWindow = e(UpgradeWindow, { data = data, ui = ui, onClose = close })
-		elseif route == Routes.Stats then
-			lobbyWindow = e(StatsWindow, { data = data, ui = ui, onClose = close })
 		elseif route == Routes.Daily then
 			lobbyWindow = e(DailyWindow, { data = data, ui = ui, onClose = close })
 		elseif route == Routes.Shop then
@@ -159,6 +157,11 @@ local function App(props: any)
 			Window = layer(ui, "Window", lobbyWindow),
 			Result = layer(ui, "Result", if showResult then e(ResultWindow, { data = data, ui = ui }) else nil),
 			Toasts = layer(ui, "Toasts", e(Toasts, { data = data, ui = ui })),
+			Reveal = layer(
+				ui,
+				"Reveal",
+				if data.LastPetDrop ~= nil then e(PetReveal, { data = data, ui = ui }) else nil
+			),
 		}),
 	})
 end

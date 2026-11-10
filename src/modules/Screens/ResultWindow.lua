@@ -2,18 +2,22 @@
 
 --[[
 	ResultWindow
-	End-of-run window: big score, coin / gem / XP reward rows, badges for level up, target
+	End-of-run window: score and coins count up together over ResultCountSeconds; the score,
+	the Stink multiplier line, coin / gem / XP reward rows, badges for level up, target
 	reached, quests done and objects soiled, and a CONTINUE button that clears the result.
 
 	Props: data (DataController state with LastRun), ui (useUIScale result)
-	Dependencies: React, UIConfig, DataController, Primitives, ChunkyButton, Chip, Inset, Window, WindowSize, Format
+	Dependencies: React, RunService, UIConfig, DataController, PetView, Primitives, ChunkyButton, Chip, Inset,
+		Window, WindowSize, Format
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
 local DataController = require(ReplicatedStorage.Modules.Controllers.DataController)
+local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
 local Components = ReplicatedStorage.Modules.UIComponents
 local Chip = require(Components.Chip)
 local ChunkyButton = require(Components.ChunkyButton)
@@ -67,6 +71,35 @@ end
 return function(props: any)
 	local summary = props.data.LastRun
 	local ui = props.ui
+	local displayScore, setDisplayScore = React.useState(0)
+	local displayCoins, setDisplayCoins = React.useState(0)
+
+	React.useEffect(function()
+		setDisplayScore(0)
+		setDisplayCoins(0)
+		if summary == nil then
+			return
+		end
+		local duration = UIConfig.Animation.ResultCountSeconds
+		if duration <= 0 then
+			setDisplayScore(summary.Score)
+			setDisplayCoins(summary.Coins)
+			return
+		end
+		local started = os.clock()
+		local connection = RunService.Heartbeat:Connect(function()
+			local progress = math.clamp((os.clock() - started) / duration, 0, 1)
+			local eased = 1 - (1 - progress) * (1 - progress)
+			setDisplayScore(math.floor(summary.Score * eased))
+			setDisplayCoins(math.floor(summary.Coins * eased))
+			if progress >= 1 then
+				connection:Disconnect()
+			end
+		end)
+		return function()
+			connection:Disconnect()
+		end
+	end, { summary } :: { any })
 
 	React.useEffect(function()
 		if UIConfig.Animation.ResultAutoCloseSeconds <= 0 then
@@ -135,9 +168,18 @@ return function(props: any)
 		end
 	end
 	local badgeRows = math.ceil(badgeCount / Sizes.BadgesPerRow)
+	local stink = PetView.TotalStink(props.data)
+	local stinkCoins = math.floor(summary.Score * stink)
+	local stinkLine = string.format(
+		Text.ResultStinkFormat,
+		Format.commas(summary.Score),
+		Format.multiplier(stink),
+		Format.commas(stinkCoins)
+	)
 	local footerHeight = UIConfig.Sizes.Play.PlayButtonHeight
 	local contentHeight = TextSizes.Body
 		+ TextSizes.Huge
+		+ TextSizes.Body
 		+ Shape.Stroke * 2
 		+ Sizes.RowHeight * 3
 		+ badgeRows * (Sizes.BadgeHeight + Shape.Stroke * 2)
@@ -171,16 +213,24 @@ return function(props: any)
 				Color = Palette.Sparkle,
 				LayoutOrder = 2,
 				Size = UDim2.new(1, 0, 0, TextSizes.Huge + Shape.Stroke * 2),
-				Text = Format.commas(summary.Score),
+				Text = Format.commas(displayScore),
 				TextSize = TextSizes.Huge,
 			}),
-			Coins = rewardRow(3, Text.CoinIcon, Text.ResultCoins, summary.Coins, "Gold"),
-			Gems = rewardRow(4, Text.GemIcon, Text.ResultGems, summary.Gems, "Purple"),
-			Xp = rewardRow(5, Text.XpIcon, Text.ResultXp, summary.Xp, "Green"),
+			Stink = Primitives.text({
+				Color = Palette.TextSoft,
+				Fit = true,
+				LayoutOrder = 3,
+				Size = UDim2.new(1, 0, 0, TextSizes.Body),
+				Text = stinkLine,
+				TextSize = TextSizes.Body,
+			}),
+			Coins = rewardRow(4, Text.CoinIcon, Text.ResultCoins, displayCoins, "Gold"),
+			Gems = rewardRow(5, Text.GemIcon, Text.ResultGems, summary.Gems, "Purple"),
+			Xp = rewardRow(6, Text.XpIcon, Text.ResultXp, summary.Xp, "Green"),
 			Badges = e("Frame", {
 				AutomaticSize = Enum.AutomaticSize.Y,
 				BackgroundTransparency = 1,
-				LayoutOrder = 6,
+				LayoutOrder = 7,
 				Size = UDim2.fromScale(1, 0),
 			}, badges),
 		}),

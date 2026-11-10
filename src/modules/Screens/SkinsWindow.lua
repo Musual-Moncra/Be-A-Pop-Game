@@ -3,9 +3,9 @@
 --[[
 	SkinsWindow
 	Crates tab: one card per CosmeticConfig crate whose button fires Net.OpenCrate (coins or
-	gems). Skins / Trails tabs: every cosmetic as a rarity-striped card tinted with its colour;
-	owned ones can be equipped (Net.EquipCosmetic), the equipped one is ringed, unowned ones are
-	locked. Default is always owned; the equipped trail can be taken off. A banner shows the last crate result.
+	gems). Skins tab: every cosmetic as a rarity-striped card tinted with its colour; owned
+	ones can be equipped (Net.EquipCosmetic), the equipped one is ringed, unowned ones are
+	locked. Default is always owned. A banner shows the last crate result.
 
 	Props: data (DataController state), ui (useUIScale result), onClose
 	Dependencies: React, Net, UIConfig, LobbyUIConfig, CosmeticConfig, ConfigLookup, Format, Primitives,
@@ -72,36 +72,33 @@ local function crateCards(data: any): ({ [string]: any }, number)
 	return cards, #keys
 end
 
-local function cosmeticCards(kind: string, data: any): ({ [string]: any }, number)
+local function skinCards(data: any): ({ [string]: any }, number)
 	local cosmetics = data.Cosmetics or {}
-	local source = if kind == "Skin" then CosmeticConfig.Skins else CosmeticConfig.Trails
-	local owned = (if kind == "Skin" then cosmetics.OwnedSkins else cosmetics.OwnedTrails) or {}
-	local equippedId = if kind == "Skin" then cosmetics.EquippedSkin else cosmetics.EquippedTrail
+	local owned = cosmetics.OwnedSkins or {}
+	local equippedId = cosmetics.EquippedSkin
 	local cards = {}
-	local keys = sortedKeys(source)
+	local keys = sortedKeys(CosmeticConfig.Skins)
 	for index, id in keys do
-		local item = source[id]
-		local isOwned = owned[id] == true or (kind == "Skin" and id == "Default")
-		local isEquipped = equippedId == id or (kind == "Skin" and id == "Default" and (equippedId or "") == "")
-		local canUnequip = isEquipped and kind == "Trail"
+		local item = CosmeticConfig.Skins[id]
+		local isOwned = owned[id] == true or id == "Default"
+		local isEquipped = equippedId == id or (id == "Default" and (equippedId or "") == "")
 		local tint = if typeof(item.Color) == "Color3"
 			then item.Color
 			elseif typeof(item.Color) == "ColorSequence" then item.Color.Keypoints[1].Value
 			else nil
 		cards[id] = e(ItemCard, {
-			buttonEnabled = isOwned and (not isEquipped or canUnequip),
-			buttonSwatch = if canUnequip then "Red" elseif isEquipped then "Teal" else "Green",
+			buttonEnabled = isOwned and not isEquipped,
+			buttonSwatch = if isEquipped then "Teal" else "Green",
 			buttonText = if not isOwned
 				then Skins.LockedText
-				elseif canUnequip then Skins.UnequipText
 				elseif isEquipped then Skins.EquippedText
 				else Skins.EquipText,
-			icon = if kind == "Skin" then Skins.SkinIcon else Skins.TrailIcon,
+			icon = Skins.SkinIcon,
 			iconColor = tint,
 			info = item.Rarity,
 			layoutOrder = index,
 			onButton = function()
-				Net.EquipCosmetic:Fire(kind, if canUnequip then "" else id)
+				Net.EquipCosmetic:Fire("Skin", id)
 			end,
 			rarityColor = LobbyUIConfig.RarityColors[item.Rarity],
 			selected = isEquipped,
@@ -120,9 +117,7 @@ return function(props: any)
 
 	local cards, count
 	if tab == "Skins" then
-		cards, count = cosmeticCards("Skin", data)
-	elseif tab == "Trails" then
-		cards, count = cosmeticCards("Trail", data)
+		cards, count = skinCards(data)
 	else
 		cards, count = crateCards(data)
 	end
@@ -130,7 +125,7 @@ return function(props: any)
 	local banner = ""
 	local last = data.LastCrate
 	if last ~= nil then
-		local item = if last.Kind == "Skin" then ConfigLookup.GetSkin(last.Id) else ConfigLookup.GetTrail(last.Id)
+		local item = if last.Kind == "Skin" then ConfigLookup.GetSkin(last.Id) else nil
 		banner = string.format(Skins.LastCrateFormat, if item ~= nil then item.DisplayName else last.Id)
 	end
 
