@@ -9,6 +9,7 @@
 	Props:
 		icon, title, info (text), tag (corner text, optional)
 		swatch: card colour (UIConfig.Swatches key)
+		rarity: rarity id; uses that rarity card gradient and sparkles (optional)
 		rarityColor: colour of the strip under the icon (Color3, optional)
 		iconColor: tint behind the icon (Color3, optional)
 		buttonText, buttonSwatch, buttonEnabled (default true), onButton (nil hides the button)
@@ -136,6 +137,7 @@ return function(props: any)
 		Size = UDim2.fromScale(1, 1),
 	}, {
 		Card = e(ChunkyButton, {
+			rarity = props.rarity,
 			size = UDim2.fromScale(1, 1),
 			swatch = props.swatch,
 			zIndex = 2,

@@ -158,6 +158,7 @@ return function(props: any)
 		Size = UDim2.fromScale(1, 1),
 	}, {
 		Card = e(ChunkyButton, {
+			rarity = props.rarity or (if props.pet ~= nil then props.pet.Rarity else nil),
 			size = UDim2.fromScale(1, 1),
 			swatch = if props.equipped then "Teal" else "Blue",
 			zIndex = 2,

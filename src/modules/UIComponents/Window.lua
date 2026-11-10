@@ -2,17 +2,18 @@
 
 --[[
 	Window
-	Modal window: drop shadow, purple rim around a navy gradient body, a ribbon header
-	that straddles the top edge with twinkling sparkles, and a red close button on the corner.
-	Pops in when it mounts. The full-screen dimmer behind it is drawn by App.
+	Modal window: Ink rim around a candy panel, a glossy swatch header banner (emoji + title +
+	twinkling sparkles), a round red close button on the corner, and a springy scale-open.
+	The close button scales the window down before calling onClose. The full-screen dimmer is
+	drawn by App.
 
-	Props: title, swatch (header colour, UIConfig.Swatches key), width, height (design pixels),
-	       onClose (nil hides the close button), children (body content),
-	       footer (element filling the bottom action bar, nil hides it), footerHeight (design pixels)
+	Props: title, icon (optional emoji), swatch (header colour, UIConfig.Swatches key),
+	       width, height (design pixels), onClose (nil hides the close button),
+	       children (body content), footer (element filling the bottom action bar, nil hides it),
+	       footerHeight (design pixels)
 
 	Sizing helpers live in WindowSize.
-
-	Dependencies: React, UIConfig, Primitives, ChunkyButton, Sparkle
+	Dependencies: React, TweenService, UIConfig, Primitives, ChunkyButton, Sparkle
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,9 +21,10 @@ local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
-local ChunkyButton = require(ReplicatedStorage.Modules.UIComponents.ChunkyButton)
-local Primitives = require(ReplicatedStorage.Modules.UIComponents.Primitives)
-local Sparkle = require(ReplicatedStorage.Modules.UIComponents.Sparkle)
+local Components = ReplicatedStorage.Modules.UIComponents
+local ChunkyButton = require(Components.ChunkyButton)
+local Primitives = require(Components.Primitives)
+local Sparkle = require(Components.Sparkle)
 
 local e = React.createElement
 local Animation = UIConfig.Animation
@@ -33,6 +35,7 @@ local TextSizes = UIConfig.TextSizes
 
 local function Window(props: any)
 	local scaleRef = React.useRef(nil)
+	local closingRef = React.useRef(false)
 	local headerHeight = Sizes.HeaderHeight
 	local closeSize = Sizes.CloseSize
 	local bodyTop = headerHeight / 2 + Sizes.Padding
@@ -61,6 +64,26 @@ local function Window(props: any)
 		}):Play()
 	end, {})
 
+	local function close()
+		if closingRef.current then
+			return
+		end
+		closingRef.current = true
+		local scale = scaleRef.current
+		if scale ~= nil then
+			TweenService
+				:Create(scale, TweenInfo.new(Animation.Close, Animation.SmoothStyle, Animation.SmoothDirection), {
+					Scale = Animation.CloseFromScale,
+				})
+				:Play()
+		end
+		task.delay(Animation.Close, function()
+			if props.onClose ~= nil then
+				props.onClose()
+			end
+		end)
+	end
+
 	return e("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
@@ -85,15 +108,14 @@ local function Window(props: any)
 			}),
 			Rim = e("Frame", {
 				Active = true,
-				BackgroundColor3 = Palette.PanelRim,
+				BackgroundColor3 = Palette.Ink,
 				BorderSizePixel = 0,
 				Size = UDim2.fromScale(1, 1),
 				ZIndex = 2,
 			}, {
 				Corner = Primitives.corner(Shape.WindowRadius),
-				Stroke = Primitives.stroke(Palette.Ink, Shape.Stroke),
 				Body = e("Frame", {
-					BackgroundColor3 = Palette.Text,
+					BackgroundColor3 = Palette.PanelTop,
 					BorderSizePixel = 0,
 					Position = UDim2.fromOffset(Shape.RimStroke, Shape.RimStroke),
 					Size = UDim2.new(1, -Shape.RimStroke * 2, 1, -Shape.RimStroke * 2),
@@ -119,8 +141,11 @@ local function Window(props: any)
 				else nil,
 			Header = e(ChunkyButton, {
 				anchorPoint = Vector2.new(0.5, 0.5),
+				icon = props.icon,
+				iconSize = TextSizes.Header,
 				position = UDim2.fromScale(0.5, 0),
 				size = UDim2.new(Sizes.HeaderWidth, 0, 0, headerHeight),
+				stacked = false,
 				swatch = props.swatch,
 				text = props.title,
 				textSize = TextSizes.Title,
@@ -130,14 +155,14 @@ local function Window(props: any)
 			Close = if props.onClose ~= nil
 				then e(ChunkyButton, {
 					anchorPoint = Vector2.new(0.5, 0.5),
-					onActivated = props.onClose,
+					onActivated = close,
 					position = UDim2.new(1, -closeSize * Sizes.CloseInset, 0, closeSize * Sizes.CloseInset),
 					radius = Shape.Radius,
 					size = UDim2.fromOffset(closeSize, closeSize),
 					swatch = "Red",
 					text = UIConfig.Text.CloseIcon,
 					textSize = TextSizes.Header,
-					zIndex = 5,
+					zIndex = 6,
 				})
 				else nil,
 		}),

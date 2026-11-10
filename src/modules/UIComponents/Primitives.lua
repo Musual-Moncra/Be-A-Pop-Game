@@ -9,6 +9,7 @@
 		Primitives.corner(radius) -> UICorner element (radius in design pixels, or "Round")
 		Primitives.stroke(color, thickness, transparency?) -> UIStroke element (border)
 		Primitives.gradient(top, bottom) -> vertical UIGradient element
+		Primitives.gradient3(top, mid, bottom) -> vertical three-stop UIGradient element
 		Primitives.padding(all) / Primitives.paddingXY(x, y) -> UIPadding element
 		Primitives.list(direction, gap, hAlign?, vAlign?) -> UIListLayout element
 		Primitives.displayFont() / Primitives.bodyFont() -> Font
@@ -73,6 +74,17 @@ end
 function Primitives.gradient(top: Color3, bottom: Color3)
 	return e("UIGradient", {
 		Color = ColorSequence.new(top, bottom),
+		Rotation = Shape.GradientRotation,
+	})
+end
+
+function Primitives.gradient3(top: Color3, mid: Color3, bottom: Color3)
+	return e("UIGradient", {
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, top),
+			ColorSequenceKeypoint.new(0.5, mid),
+			ColorSequenceKeypoint.new(1, bottom),
+		}),
 		Rotation = Shape.GradientRotation,
 	})
 end
