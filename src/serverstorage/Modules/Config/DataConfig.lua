@@ -44,9 +44,12 @@
 			OwnedTrails: table of owned trail ids mapped to true ({ [string]: boolean })
 			EquippedSkin: currently equipped skin id (string)
 			EquippedTrail: currently equipped trail id (string)
-			Pets.Inventory: owned pets, one { Uid, PetId, Variant } table each (pet entries)
+			Pets.Inventory: owned pets, one { Uid, PetId, Variant, Stacks } table each (pet entries)
 			Pets.Equipped: uids of equipped pets, order is the follower order (pet uids)
 			Pets.ExtraSlots: extra equip slots saved in data; gamepass slots are added live (slots)
+			PetIndex: pets discovered per map pool, petId = { [variantId] = true } (pet index)
+			PetIndexClaimed: maps whose index reward and exclusive pet were already paid,
+				mapId = true (map ids)
 		ShutdownSaveWait: time the server waits for saves when it shuts down (seconds)
 		HumanoidWaitTimeout: how long to wait for a character's Humanoid to appear (seconds)
 		LoadFailedKick: kick message when the save cannot be loaded (text)
@@ -70,6 +73,7 @@ return {
 		},
 		UnlockedMaps = {
 			Zone1 = true,
+			Zone3 = true,
 		},
 		Stats = {
 			BestScore = 0,
@@ -105,6 +109,8 @@ return {
 			Equipped = {},
 			ExtraSlots = 0,
 		},
+		PetIndex = {},
+		PetIndexClaimed = {},
 	},
 
 	ShutdownSaveWait = 2,

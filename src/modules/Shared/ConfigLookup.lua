@@ -35,20 +35,17 @@
 		ConfigLookup.GetRebirthCost(rebirths) -> number
 		ConfigLookup.GetRebirthMultiplier(rebirths) -> number
 		ConfigLookup.GetSkin(id) -> any
-		ConfigLookup.GetTrail(id) -> any
 		ConfigLookup.GetCrate(id) -> any
 		ConfigLookup.GetPet(id) -> PetDefinition?
 		ConfigLookup.GetSortedPets() -> { PetDefinition }
-		ConfigLookup.GetPetsForEgg(eggId) -> { PetDefinition }
-		ConfigLookup.GetEgg(id) -> EggDefinition?
-		ConfigLookup.GetSortedEggs() -> { EggDefinition }
+		ConfigLookup.GetPetsForMap(mapId) -> { PetDefinition }   non-exclusive pool of a map
+		ConfigLookup.GetExclusivePet(mapId) -> PetDefinition?
 		ConfigLookup.GetRarity(id) -> RarityDefinition?
 		ConfigLookup.GetVariant(id) -> VariantDefinition?
 		ConfigLookup.GetNextVariant(variantId) -> string?
-		ConfigLookup.GetEggWeight(eggId) -> number
-		ConfigLookup.RollPet(eggId, roll) -> PetDefinition?
+		ConfigLookup.RollPet(mapId, roll) -> PetDefinition?
 		ConfigLookup.RollVariant(roll) -> VariantDefinition?
-		ConfigLookup.GetPetMultipliers(petId, variantId) -> PetMultipliers
+		ConfigLookup.GetPetMultipliers(petId, variantId, stacks) -> PetMultipliers
 		ConfigLookup.GetMaxEquippedSlots(extraSlots) -> number
 
 	Dependencies: GameConfig, MapConfig, ModeConfig, UpgradeConfig, PowerupConfig, ObjectConfig,
@@ -85,6 +82,7 @@ export type MapDefinition = {
 	RewardMultiplier: number,
 	SizeLabel: string,
 	Enabled: boolean,
+	ComingSoon: boolean,
 	CompletionGems: number,
 	RequirePreviousComplete: boolean,
 }
@@ -174,35 +172,25 @@ export type VariantDefinition = {
 	Id: string,
 	DisplayName: string,
 	Bonus: number,
-	Weight: number,
+	DropOdds: number,
 	NextVariant: string?,
-	Color: Color3,
-}
-
-export type EggDefinition = {
-	Id: string,
-	MapId: string,
-	DisplayName: string,
-	Price: number,
-	BaseSlots: number,
-	InventoryCap: number,
-	Order: number,
 	Color: Color3,
 }
 
 export type PetDefinition = {
 	Id: string,
 	DisplayName: string,
-	EggId: string,
+	MapId: string,
 	Rarity: string,
-	CoinMultiplier: number,
-	StinkMultiplier: number,
+	Stink: number,
+	Exclusive: boolean,
+	DropOdds: number,
 	Size: number,
 	Color: Color3,
+	ModelName: string,
 }
 
 export type PetMultipliers = {
-	Coins: number,
 	Stink: number,
 }
 
@@ -424,7 +412,6 @@ function ConfigLookup.GetSortedPotionIds(): { string }
 	return ids
 end
 
-
 function ConfigLookup.GetRebirthCost(rebirths: number): number
 	return math.floor(RebirthConfig.BaseCost * (RebirthConfig.CostGrowth ^ rebirths))
 end
@@ -435,10 +422,6 @@ end
 
 function ConfigLookup.GetSkin(id: string)
 	return CosmeticConfig.Skins[id]
-end
-
-function ConfigLookup.GetTrail(id: string)
-	return CosmeticConfig.Trails[id]
 end
 
 function ConfigLookup.GetCrate(id: string)
@@ -458,27 +441,23 @@ function ConfigLookup.GetSortedPets(): { PetDefinition }
 	return table.clone(PetConfig.Pets :: { PetDefinition })
 end
 
-function ConfigLookup.GetPetsForEgg(eggId: string): { PetDefinition }
+function ConfigLookup.GetPetsForMap(mapId: string): { PetDefinition }
 	local pets = {}
 	for _, pet in PetConfig.Pets :: { PetDefinition } do
-		if pet.EggId == eggId then
+		if pet.MapId == mapId and not pet.Exclusive then
 			table.insert(pets, pet)
 		end
 	end
 	return pets
 end
 
-function ConfigLookup.GetEgg(id: string): EggDefinition?
-	return (PetConfig.Eggs :: { [string]: EggDefinition })[id]
-end
-
-function ConfigLookup.GetSortedEggs(): { EggDefinition }
-	local eggs = {}
-	for _, egg in PetConfig.Eggs :: { [string]: EggDefinition } do
-		table.insert(eggs, egg)
+function ConfigLookup.GetExclusivePet(mapId: string): PetDefinition?
+	for _, pet in PetConfig.Pets :: { PetDefinition } do
+		if pet.MapId == mapId and pet.Exclusive then
+			return pet
+		end
 	end
-	table.sort(eggs, byOrder)
-	return eggs
+	return nil
 end
 
 function ConfigLookup.GetRarity(id: string): RarityDefinition?
@@ -497,30 +476,24 @@ function ConfigLookup.GetNextVariant(variantId: string): string?
 	return variant.NextVariant
 end
 
-function ConfigLookup.GetEggWeight(eggId: string): number
+function ConfigLookup.RollPet(mapId: string, roll: number): PetDefinition?
+	local pets = ConfigLookup.GetPetsForMap(mapId)
 	local total = 0
-	for _, pet in ConfigLookup.GetPetsForEgg(eggId) do
-		local rarity = ConfigLookup.GetRarity(pet.Rarity)
-		if rarity ~= nil then
-			total += rarity.Weight
+	for _, pet in pets do
+		if pet.DropOdds > 0 then
+			total += 1 / pet.DropOdds
 		end
 	end
-	return total
-end
-
-function ConfigLookup.RollPet(eggId: string, roll: number): PetDefinition?
-	local total = ConfigLookup.GetEggWeight(eggId)
 	if total <= 0 then
 		return nil
 	end
 	local target = math.clamp(roll, 0, 1) * total
 	local cursor = 0
 	local last: PetDefinition? = nil
-	for _, pet in ConfigLookup.GetPetsForEgg(eggId) do
-		local rarity = ConfigLookup.GetRarity(pet.Rarity)
-		if rarity ~= nil then
+	for _, pet in pets do
+		if pet.DropOdds > 0 then
 			last = pet
-			cursor += rarity.Weight
+			cursor += 1 / pet.DropOdds
 			if target < cursor then
 				return pet
 			end
@@ -530,36 +503,36 @@ function ConfigLookup.RollPet(eggId: string, roll: number): PetDefinition?
 end
 
 function ConfigLookup.RollVariant(roll: number): VariantDefinition?
-	local total = 0
+	local specials = {}
 	for _, variant in PetConfig.Variants :: { [string]: VariantDefinition } do
-		total += variant.Weight
+		if variant.DropOdds > 0 then
+			table.insert(specials, variant)
+		end
 	end
-	if total <= 0 then
-		return nil
-	end
-	local target = math.clamp(roll, 0, 1) * total
+	table.sort(specials, function(a, b)
+		return a.DropOdds < b.DropOdds
+	end)
+	local target = math.clamp(roll, 0, 1)
 	local cursor = 0
-	local last: VariantDefinition? = nil
-	for _, variant in PetConfig.Variants :: { [string]: VariantDefinition } do
-		last = variant
-		cursor += variant.Weight
+	for _, variant in specials do
+		cursor += 1 / variant.DropOdds
 		if target < cursor then
 			return variant
 		end
 	end
-	return last
+	return (PetConfig.Variants :: { [string]: VariantDefinition }).Default
 end
 
-function ConfigLookup.GetPetMultipliers(petId: string, variantId: string): PetMultipliers
+function ConfigLookup.GetPetMultipliers(petId: string, variantId: string, stacks: number?): PetMultipliers
 	local pet = ConfigLookup.GetPet(petId)
 	if pet == nil then
-		return { Coins = 1, Stink = 1 }
+		return { Stink = 1 }
 	end
 	local variant = ConfigLookup.GetVariant(variantId)
 	local bonus = if variant ~= nil then variant.Bonus else 1
+	local stackCount = math.clamp(math.floor(stacks or 0), 0, PetConfig.StackCap)
 	return {
-		Coins = pet.CoinMultiplier * bonus,
-		Stink = pet.StinkMultiplier * bonus,
+		Stink = pet.Stink * bonus * (1 + PetConfig.StackBonus * stackCount),
 	}
 end
 

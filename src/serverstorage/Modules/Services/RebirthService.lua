@@ -17,6 +17,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local DataService = require(ServerStorage.Modules.Services.DataService)
 local Outbound = require(ServerStorage.Modules.Remotes.Outbound)
 local ConfigLookup = require(ReplicatedStorage.Modules.Shared.ConfigLookup)
+local MapConfig = require(ReplicatedStorage.Modules.Config.MapConfig)
 local MessageConfig = require(ReplicatedStorage.Modules.Config.MessageConfig)
 local RebirthConfig = require(ReplicatedStorage.Modules.Config.RebirthConfig)
 local UpgradeConfig = require(ReplicatedStorage.Modules.Config.UpgradeConfig)
@@ -54,7 +55,7 @@ function RebirthService.Rebirth(plr: Player): boolean
 
 	if RebirthConfig.ResetUnlockedMaps then
 		data.UnlockedMaps = {
-			Zone1 = true,
+			[MapConfig.DefaultMapId] = true,
 		}
 	end
 
