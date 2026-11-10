@@ -17,6 +17,7 @@
 			Stagger: delay between two row buttons popping out (seconds)
 			Icon / OpenIcon: emoji on the centre button when closed / open (text)
 			Label: caption on the centre button (text)
+			Name: instance name of the centre MENU button (string)
 			Swatch / OpenSwatch: centre button colour when closed / open (UIConfig.Swatches key)
 			BadgeSize: diameter of the red notification dot (design pixels)
 			Items: one row per button, left to right
@@ -26,6 +27,7 @@
 				Swatch: button colour (UIConfig.Swatches key)
 				Route: LobbyState route the button opens (LobbyState.Routes key)
 				Big: true draws it larger with a sunburst (true/false)
+				Name: optional instance name the onboarding tutorial looks up (string)
 			BigScale: size of a Big button compared to ItemSize (multiplier)
 		Rays: rotating sunburst drawn behind highlighted buttons
 			Count: number of rays (count)
@@ -150,16 +152,41 @@ return {
 		Icon = "💩",
 		OpenIcon = "✖️",
 		Label = "MENU",
+		Name = "OnboardingMenuButton",
 		Swatch = "Orange",
 		OpenSwatch = "Red",
 		BadgeSize = 34,
 		BigScale = 1.25,
 		Items = {
 			{ Id = "Shop", Label = "SHOP", Icon = "🛒", Swatch = "Gold", Route = "Shop", Big = false },
-			{ Id = "Pets", Label = "PETS", Icon = "🐶", Swatch = "Blue", Route = "Pets", Big = false },
+			{
+				Id = "Pets",
+				Label = "PETS",
+				Icon = "🐶",
+				Swatch = "Blue",
+				Route = "Pets",
+				Big = false,
+				Name = "OnboardingPetsButton",
+			},
 			{ Id = "Skins", Label = "SKINS", Icon = "🎨", Swatch = "Purple", Route = "Skins", Big = false },
-			{ Id = "Play", Label = "PLAY", Icon = "▶️", Swatch = "Green", Route = "Play", Big = true },
-			{ Id = "Upgrades", Label = "UPGRADE", Icon = "⚡", Swatch = "Orange", Route = "Upgrades", Big = false },
+			{
+				Id = "Play",
+				Label = "PLAY",
+				Icon = "▶️",
+				Swatch = "Green",
+				Route = "Play",
+				Big = true,
+				Name = "OnboardingPlayButton",
+			},
+			{
+				Id = "Upgrades",
+				Label = "UPGRADE",
+				Icon = "⚡",
+				Swatch = "Orange",
+				Route = "Upgrades",
+				Big = false,
+				Name = "OnboardingUpgradesButton",
+			},
 			{ Id = "Daily", Label = "DAILY", Icon = "🎁", Swatch = "Pink", Route = "Daily", Big = false },
 			{ Id = "Rebirth", Label = "REBIRTH", Icon = "🌀", Swatch = "Teal", Route = "Rebirth", Big = false },
 		},
