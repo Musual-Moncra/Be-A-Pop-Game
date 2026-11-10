@@ -5,9 +5,9 @@
 	Centred lobby top bar: a level badge with a radial XP ring, glossy coin and gem pills with
 	a green plus that opens the shop, and the Stink chip. Hidden during runs by App.
 
-	Props: data (DataController state), ui (useUIScale result)
-	Dependencies: React, UIConfig, GameConfig, ConfigLookup, LobbyState, PetView, Primitives,
-		ChunkyButton, CountUp, Pill
+	Props: data (DataController state), ui (useUIScale result), covered (a window/overlay hides it)
+	Dependencies: React, UIConfig, UIConfig.Sparkle, GameConfig, ConfigLookup, LobbyState, PetView,
+		Primitives, ChunkyButton, CountUp, Pill
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -103,6 +103,8 @@ return function(props: any)
 	local plusSize = if mobile then Hud.MobilePlusSize else Hud.PlusSize
 	local gap = if mobile then Hud.MobileGap else Hud.Gap
 
+	local twinkleActive = props.covered ~= true
+
 	local function openShop(tab: string)
 		LobbyState.SetActive(Routes.Shop, tab)
 	end
@@ -136,10 +138,14 @@ return function(props: any)
 				openShop("Coins")
 			end,
 			plusSize = plusSize,
+			shine = true,
 			swatch = "Gold",
+			twinkle = true,
+			twinkleActive = twinkleActive,
 			valueElement = e(CountUp, {
 				compact = true,
 				color = Palette.Text,
+				flashColor = Palette.CoinFlash,
 				size = UDim2.fromScale(1, 1),
 				textSize = TextSizes.Header,
 				value = data.Coins,
@@ -155,10 +161,14 @@ return function(props: any)
 				openShop("Gems")
 			end,
 			plusSize = plusSize,
+			shine = true,
 			swatch = "Purple",
+			twinkle = true,
+			twinkleActive = twinkleActive,
 			valueElement = e(CountUp, {
 				compact = true,
 				color = Palette.Text,
+				flashColor = Palette.GemFlash,
 				size = UDim2.fromScale(1, 1),
 				textSize = TextSizes.Header,
 				value = data.Gems,
@@ -170,8 +180,11 @@ return function(props: any)
 			icon = Text.StinkIcon,
 			iconSize = stinkIcon,
 			layoutOrder = 4,
+			shine = true,
 			swatch = Hud.StinkSwatch,
 			textSize = TextSizes.Header,
+			twinkle = true,
+			twinkleActive = twinkleActive,
 			value = string.format(Text.StinkChipFormat, PetView.TotalStink(data)),
 			width = stinkWidth,
 		}),

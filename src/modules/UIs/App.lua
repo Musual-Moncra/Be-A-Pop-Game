@@ -142,7 +142,17 @@ local function App(props: any)
 			Size = UDim2.fromOffset(ui.width, ui.height),
 		}, {
 			Scale = e("UIScale", { Scale = ui.scale }),
-			Wallet = if not inRun then layer(ui, "Wallet", e(Wallet, { data = data, ui = ui })) else nil,
+			Wallet = if not inRun
+				then layer(
+					ui,
+					"Wallet",
+					e(Wallet, {
+						covered = lobbyWindow ~= nil or showResult or revealOpen,
+						data = data,
+						ui = ui,
+					})
+				)
+				else nil,
 			RunHud = layer(ui, "RunHud", if inRun then e(RunHud, { data = data, ui = ui }) else nil),
 			Juice = layer(ui, "Juice", if inRun then e(RunJuice, { ui = ui }) else nil),
 			Extras = layer(ui, "Extras", e(RunExtras, { data = data, inRun = inRun, ui = ui })),

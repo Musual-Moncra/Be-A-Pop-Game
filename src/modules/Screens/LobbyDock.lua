@@ -14,7 +14,6 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 
 local React = require(ReplicatedStorage.Packages.React)
 local UIConfig = require(ReplicatedStorage.Modules.Config.UIConfig)
@@ -30,9 +29,12 @@ local Format = require(Components.Format)
 local IconTile = require(Components.IconTile)
 local Pill = require(Components.Pill)
 local Primitives = require(Components.Primitives)
+local Twinkle = require(Components.Twinkle)
+local useBreathe = require(Components.useBreathe)
 
 local e = React.createElement
 local Dock = LobbyUIConfig.Dock
+local Sparkle = UIConfig.Sparkle
 local Routes = LobbyState.Routes
 
 local SECONDS_PER_MINUTE = 60
@@ -215,6 +217,8 @@ return function(props: any)
 				LobbyState.SetActive(item.Route, item.Tab)
 			end,
 			phase = index * 0.17,
+			popDelay = index * UIConfig.Animation.CardStagger,
+			popIn = true,
 			size = dock.TileSize,
 			swatch = item.Swatch,
 			zIndex = UIConfig.Layers.LobbyMenu,
@@ -222,22 +226,7 @@ return function(props: any)
 	end
 
 	local playScaleRef = React.useRef(nil)
-	React.useEffect(function()
-		local scale = playScaleRef.current
-		if scale == nil then
-			return
-		end
-		local tween = TweenService:Create(
-			scale,
-			TweenInfo.new(Dock.PlayPulseSeconds / 2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-			{ Scale = Dock.PlayPulseScale }
-		)
-		tween:Play()
-		return function()
-			tween:Cancel()
-		end
-	end, {})
-
+	useBreathe(playScaleRef, Dock.PlayPulseScale, Dock.PlayPulseSeconds, 0.2, true)
 	return e("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
@@ -272,12 +261,19 @@ return function(props: any)
 						Size = UDim2.fromScale(1, 1),
 					}),
 				}),
+				popIn = true,
+				rainbow = true,
 				shine = true,
 				size = UDim2.fromScale(1, 1),
 				swatch = Dock.PlaySwatch,
 				text = Dock.PlayLabel,
 				textSize = dock.PlayTextSize,
 				zIndex = UIConfig.Layers.LobbyMenu,
+			}),
+			Twinkle = e(Twinkle, {
+				color = Sparkle.TwinkleGold,
+				rate = Sparkle.PlayTwinkleRate,
+				zIndex = UIConfig.Layers.LobbyMenu + 1,
 			}),
 		}),
 		Timers = e(TimerColumn, { data = props.data, layout = layout.Timers, ui = props.ui }),
