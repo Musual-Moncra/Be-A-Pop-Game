@@ -40,9 +40,11 @@
 			LifespanToMeter: gap under the Lifespan pill, also the space the riding poop icon uses
 			MeterToCombo: gap under the map bar (also used by RunJuice)
 		Score: top-right score card
-			Width / MinHeight: card size (design pixels)
+			Width: card width (design pixels)
 			CaptionTextSize / ScoreTextSize: caption and score text (design pixels)
-			PunchScale / PunchTime: score punch on change (multiplier, seconds)
+			TwinkleRate / TwinkleSize: score-card sparkle stars (stars/second, design pixels)
+			FlashSwatch / FlashTime / FlashTransparency: gold flash behind the score on change
+				(UIConfig.Swatches key, seconds, 0 to 1)
 			StinkWidth / StinkHeight: Stink chip under the score (design pixels)
 			StinkIconSize / StinkTextSize: Stink chip icon and label (design pixels)
 		Quests: quest panel below the score card
@@ -77,6 +79,12 @@
 			NewBestText / NewBestSwatch / NewBestHeight: NEW BEST stamp (text, swatch, design pixels)
 			BadgeHeight / BadgesPerRow: result badge chips (design pixels, count)
 			ContinueHeight: bottom CONTINUE button (design pixels)
+			TwinkleRate / TwinkleSize: stars on the result banner (stars/second, design pixels)
+			NewBestTwinkleRate / NewBestBurstCount / NewBestOrigin: NEW BEST sparkle and confetti
+				(stars/second, pieces, UDim2 inside the screen)
+			CoinFly: coins and gems flying to the top-bar pills
+				Count / Duration: icons per flight and flight length (count, seconds)
+				CoinsFrom / CoinsTo / GemsFrom / GemsTo: arc start and end (UDim2 inside the screen)
 		Reveal: full-screen pet drop reveal
 			OverlayTransparency: dark overlay transparency (0 to 1)
 			CardWidth / CardHeight: flip card size (design pixels)
@@ -89,6 +97,11 @@
 			NameFormat / TraitFormat / StinkFormat / ConvertedFormat: card text (formats)
 			NewTag / NewRibbonRotation: NEW ribbon text and tilt (text, degrees)
 			CollectText / CollectWidth / CollectHeight / CollectSwatch: COLLECT button (text, design pixels, swatch)
+			TwinkleRate / TwinkleSize: stars around the card (stars/second, design pixels)
+			CollectBurstCount / CollectBurstOrigin: confetti on COLLECT (pieces, UDim2 inside the screen)
+			CollectDismissDelay: wait for the confetti before closing the reveal (seconds)
+			RainbowRarities: rarities that get the animated rainbow rim, keyed by rarity id (true/false)
+			RainbowThickness: rainbow rim width (design pixels)
 		Layouts: per UIConfig layout ("PC" / "Mobile"), AnchorPoint + Position of Event, Powerups,
 			Quests and Revive
 		NarrowWidth: safe widths below this move the Event banner to the bottom centre (design pixels)
@@ -153,11 +166,13 @@ return {
 
 	Score = {
 		Width = 260,
-		MinHeight = 110,
 		CaptionTextSize = 16,
 		ScoreTextSize = 64,
-		PunchScale = 1.25,
-		PunchTime = 0.25,
+		TwinkleRate = 0.5,
+		TwinkleSize = 18,
+		FlashSwatch = "Gold",
+		FlashTime = 0.3,
+		FlashTransparency = 0.3,
 		StinkWidth = 150,
 		StinkHeight = 36,
 		StinkIconSize = 18,
@@ -220,6 +235,19 @@ return {
 		BadgeHeight = 40,
 		BadgesPerRow = 2,
 		ContinueHeight = 84,
+		TwinkleRate = 1.5,
+		TwinkleSize = 24,
+		NewBestTwinkleRate = 2,
+		NewBestBurstCount = 18,
+		NewBestOrigin = UDim2.fromScale(0.7, 0.24),
+		CoinFly = {
+			Count = 8,
+			Duration = 0.7,
+			CoinsFrom = UDim2.fromScale(0.5, 0.63),
+			CoinsTo = UDim2.fromScale(0.39, 0.045),
+			GemsFrom = UDim2.fromScale(0.5, 0.68),
+			GemsTo = UDim2.fromScale(0.55, 0.045),
+		},
 	},
 
 	Reveal = {
@@ -250,6 +278,18 @@ return {
 		CollectWidth = 360,
 		CollectHeight = 72,
 		CollectSwatch = "Green",
+		TwinkleRate = 2,
+		TwinkleSize = 26,
+		CollectBurstCount = 18,
+		CollectBurstOrigin = UDim2.fromScale(0.5, 0.86),
+		CollectDismissDelay = 0.35,
+		RainbowRarities = {
+			Legendary = true,
+			Mythical = true,
+			Secret = true,
+			Darkness = true,
+		},
+		RainbowThickness = 6,
 	},
 
 	Layouts = {

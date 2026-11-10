@@ -3,10 +3,11 @@
 --[[
 	Toasts
 	Stack of notification toasts at the top centre (unlock results, purchases, quest
-	completions, level ups). Each toast is a coloured chunky bar that pops in.
+	completions, level ups). Each toast pops in with a squishy scale overshoot and a short
+	non-uniform squash, then settles. Motion tokens come from UIConfig.Animation.
 
 	Props: data (DataController state), ui (useUIScale result)
-	Dependencies: React, UIConfig, Primitives, ChunkyButton
+	Dependencies: React, TweenService, UIConfig, Primitives, ChunkyButton
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,17 +23,47 @@ local Animation = UIConfig.Animation
 local Sizes = UIConfig.Sizes.Toast
 
 local function Toast(props: any)
-	local scaleRef = React.useRef(nil)
+	local popRef = React.useRef(nil)
+	local bodyRef = React.useRef(nil)
 
 	React.useEffect(function()
-		local scale = scaleRef.current
-		if scale == nil then
+		local pop = popRef.current
+		local body = bodyRef.current
+		if pop == nil or body == nil then
 			return
 		end
-		scale.Scale = Animation.OpenFromScale
-		TweenService:Create(scale, TweenInfo.new(Animation.Open, Animation.SpringStyle, Animation.SpringDirection), {
-			Scale = 1,
-		}):Play()
+		pop.Scale = Animation.PopInStart
+		body.Size = UDim2.fromScale(Animation.PressSquashX, Animation.PressSquashY)
+		TweenService:Create(
+			body,
+			TweenInfo.new(Animation.PressSquashTime, Animation.SmoothStyle, Animation.SmoothDirection),
+			{ Size = UDim2.fromScale(1, 1) }
+		):Play()
+		local grow = TweenService:Create(
+			pop,
+			TweenInfo.new(Animation.PopInTime * 0.35, Animation.SpringStyle, Animation.SpringDirection),
+			{ Scale = Animation.PopInOver }
+		)
+		grow:Play()
+		local settle = task.delay(Animation.PopInTime * 0.35, function()
+			TweenService:Create(
+				pop,
+				TweenInfo.new(Animation.PopInTime * 0.3, Animation.SmoothStyle, Animation.SmoothDirection),
+				{ Scale = Animation.PopInUnder }
+			):Play()
+		end)
+		local finish = task.delay(Animation.PopInTime * 0.65, function()
+			TweenService:Create(
+				pop,
+				TweenInfo.new(Animation.PopInTime * 0.35, Animation.SpringStyle, Animation.SpringDirection),
+				{ Scale = 1 }
+			):Play()
+		end)
+		return function()
+			grow:Cancel()
+			task.cancel(settle)
+			task.cancel(finish)
+		end
 	end, {})
 
 	return e("Frame", {
@@ -40,12 +71,26 @@ local function Toast(props: any)
 		LayoutOrder = props.toast.Id,
 		Size = UDim2.fromOffset(Sizes.Width, Sizes.Height),
 	}, {
-		Scale = e("UIScale", { ref = scaleRef }),
-		Body = e(ChunkyButton, {
-			size = UDim2.fromScale(1, 1),
-			swatch = UIConfig.ToastSwatches[props.toast.Kind] or UIConfig.ToastSwatches.Info,
-			text = props.toast.Text,
-			textSize = UIConfig.TextSizes.Body,
+		Pop = e("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromScale(1, 1),
+		}, {
+			Scale = e("UIScale", { ref = popRef }),
+			Body = e("Frame", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				BackgroundTransparency = 1,
+				Position = UDim2.fromScale(0.5, 0.5),
+				Size = UDim2.fromScale(Animation.PressSquashX, Animation.PressSquashY),
+				ref = bodyRef,
+			}, {
+				Toast = e(ChunkyButton, {
+					gloss = true,
+					size = UDim2.fromScale(1, 1),
+					swatch = UIConfig.ToastSwatches[props.toast.Kind] or UIConfig.ToastSwatches.Info,
+					text = props.toast.Text,
+					textSize = UIConfig.TextSizes.Body,
+				}),
+			}),
 		}),
 	})
 end

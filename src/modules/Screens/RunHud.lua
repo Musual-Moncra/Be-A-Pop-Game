@@ -30,6 +30,7 @@ local CountUp = require(Components.CountUp)
 local Format = require(Components.Format)
 local Inset = require(Components.Inset)
 local Primitives = require(Components.Primitives)
+local Twinkle = require(Components.Twinkle)
 
 local e = React.createElement
 local Animation = UIConfig.Animation
@@ -300,6 +301,25 @@ local function ScoreCard(props: any)
 	local config = RunUIConfig.Score
 	local mode = ConfigLookup.GetMode(data.ModeId)
 	local target = if mode ~= nil then mode.TargetScore else 0
+	local flashRef = React.useRef(nil)
+	local lastScore = React.useRef(data.Score)
+
+	React.useEffect(function()
+		if data.Score == lastScore.current then
+			return
+		end
+		lastScore.current = data.Score
+		local flash = flashRef.current
+		if flash == nil then
+			return
+		end
+		flash.BackgroundTransparency = config.FlashTransparency
+		TweenService:Create(
+			flash,
+			TweenInfo.new(config.FlashTime, Animation.SmoothStyle, Animation.SmoothDirection),
+			{ BackgroundTransparency = 1 }
+		):Play()
+	end, { data.Score } :: { any })
 
 	local children: { [string]: any } = {
 		Layout = Primitives.list(Enum.FillDirection.Vertical, Gap / 3, Enum.HorizontalAlignment.Center),
@@ -311,13 +331,28 @@ local function ScoreCard(props: any)
 			Text = Text.ScoreLabel,
 			TextSize = config.CaptionTextSize,
 		}),
-		Score = e(CountUp, {
-			compact = true,
-			color = Palette.Sparkle,
-			layoutOrder = 2,
-			size = UDim2.new(1, 0, 0, config.ScoreTextSize + Shape.TextStroke * 2),
-			textSize = config.ScoreTextSize,
-			value = data.Score,
+		Score = e("Frame", {
+			BackgroundTransparency = 1,
+			LayoutOrder = 2,
+			Size = UDim2.new(1, 0, 0, config.ScoreTextSize + Shape.TextStroke * 2),
+		}, {
+			Flash = e("Frame", {
+				BackgroundColor3 = Primitives.swatch(config.FlashSwatch).Mid,
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Size = UDim2.fromScale(1, 1),
+				ZIndex = 1,
+				ref = flashRef,
+			}, { Corner = Primitives.corner(Shape.Radius) }),
+			Value = e(CountUp, {
+				compact = true,
+				color = Palette.Sparkle,
+				size = UDim2.fromScale(1, 1),
+				textSize = config.ScoreTextSize,
+				value = data.Score,
+				zIndex = 2,
+			}),
+			Twinkle = e(Twinkle, { rate = config.TwinkleRate, size = config.TwinkleSize, zIndex = 3 }),
 		}),
 		Stink = e(ChunkyButton, {
 			gloss = true,

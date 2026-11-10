@@ -3,12 +3,13 @@
 --[[
 	RunJuice
 	Run-only juice layers drawn over the HUD: the tilted combo meter under the map stain bar and
-	the stain milestone banners (25/50/75% and the full-screen MAP CLEARED! at 100%). Reads its
-	state from JuiceController signals, so it owns nothing the RunHud already shows.
+	the stain milestone banners (25/50/75% and the full-screen MAP CLEARED! at 100%). Motion is
+	scale only (zoom entrance, scale wobble, no element rotation). Reads its state from
+	JuiceController signals, so it owns nothing the RunHud already shows.
 
 	Props: ui (useUIScale result)
 	Dependencies: React, RunService, TweenService, UIConfig, RunUIConfig, JuiceConfig,
-		JuiceController, Primitives, Rays, Sparkle
+		JuiceController, Primitives, Rays, Sparkle, Twinkle
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -24,14 +25,14 @@ local Components = ReplicatedStorage.Modules.UIComponents
 local Primitives = require(Components.Primitives)
 local Rays = require(Components.Rays)
 local Sparkle = require(Components.Sparkle)
+local Twinkle = require(Components.Twinkle)
 
 local e = React.createElement
 local Palette = UIConfig.Palette
 local Shape = UIConfig.Shape
+local TAU = math.pi * 2
 
 local COMBO_PUNCH_INFO = TweenInfo.new(JuiceConfig.ComboPunchTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-
-local BANNER_PUNCH_INFO = TweenInfo.new(JuiceConfig.MilestonePunchTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
 local function comboLayout(ui: any): any
 	local mode = if ui.mobile then "Mobile" else "PC"
@@ -52,11 +53,13 @@ local function ComboMeter(props: any)
 	local ui = props.ui
 	local level, setLevel = React.useState(JuiceController.GetCombo())
 	local previousRef = React.useRef(level)
+	local wasVisibleRef = React.useRef(false)
+	local wobbleRef = React.useRef(nil)
 	local punchRef = React.useRef(nil)
-	local frameRef = React.useRef(nil)
 	local gradientRef = React.useRef(nil)
 	local maxLevel = #JuiceConfig.ComboColors
 	local isMax = level >= maxLevel
+	local visible = level >= JuiceConfig.ComboMinLevel
 	local shownLevel = math.clamp(level, 1, maxLevel)
 
 	React.useEffect(function()
@@ -68,32 +71,61 @@ local function ComboMeter(props: any)
 
 	React.useEffect(function()
 		local scale = punchRef.current
+		if scale == nil then
+			return
+		end
+		if not visible then
+			wasVisibleRef.current = false
+			scale.Scale = 1
+			return
+		end
+		if wasVisibleRef.current then
+			return
+		end
+		wasVisibleRef.current = true
+		scale.Scale = 0
+		TweenService:Create(
+			scale,
+			TweenInfo.new(JuiceConfig.ComboEntranceInTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Scale = JuiceConfig.ComboEntranceScale }
+		):Play()
+		local thread = task.delay(JuiceConfig.ComboEntranceInTime, function()
+			if scale.Parent ~= nil then
+				TweenService:Create(
+					scale,
+					TweenInfo.new(JuiceConfig.ComboEntranceOutTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+					{ Scale = 1 }
+				):Play()
+			end
+		end)
+		return function()
+			task.cancel(thread)
+		end
+	end, { visible } :: { any })
+
+	React.useEffect(function()
+		local scale = punchRef.current
 		local previous = previousRef.current
 		previousRef.current = level
-		if scale ~= nil and level > previous then
+		if scale ~= nil and level > previous and previous >= JuiceConfig.ComboMinLevel then
 			scale.Scale = JuiceConfig.ComboPunchScale
 			TweenService:Create(scale, COMBO_PUNCH_INFO, { Scale = 1 }):Play()
 		end
 	end, { level } :: { any })
 
 	React.useEffect(function()
-		local frame = frameRef.current
-		if frame == nil or level < JuiceConfig.ComboMinLevel then
-			if frame ~= nil then
-				frame.Rotation = JuiceConfig.ComboTiltDegrees
-			end
+		local scale = wobbleRef.current
+		if scale == nil or not visible then
 			return
 		end
-		local amplitude = if isMax then JuiceConfig.ComboShakeDegrees else JuiceConfig.ComboWobbleDegrees
-		local speed = if isMax then JuiceConfig.ComboShakeSpeed else JuiceConfig.ComboWobbleSpeed
 		local connection = RunService.Heartbeat:Connect(function()
-			frame.Rotation = JuiceConfig.ComboTiltDegrees + math.sin(os.clock() * speed) * amplitude
+			scale.Scale = 1 + math.sin(os.clock() * JuiceConfig.ComboWobbleSpeed * TAU) * JuiceConfig.ComboWobbleScale
 		end)
 		return function()
 			connection:Disconnect()
-			frame.Rotation = JuiceConfig.ComboTiltDegrees
+			scale.Scale = 1
 		end
-	end, { level, isMax } :: { any })
+	end, { visible } :: { any })
 
 	React.useEffect(function()
 		local gradient = gradientRef.current
@@ -139,18 +171,28 @@ local function ComboMeter(props: any)
 		Position = layout.Position,
 		Rotation = JuiceConfig.ComboTiltDegrees,
 		Size = UDim2.fromOffset(JuiceConfig.ComboWidth, JuiceConfig.ComboHeight),
-		Visible = level >= JuiceConfig.ComboMinLevel,
-		ref = frameRef,
+		Visible = visible,
 	}, {
-		Scale = e("UIScale", { ref = punchRef }),
-		Label = e("TextLabel", {
+		Wobble = e("Frame", {
 			BackgroundTransparency = 1,
-			FontFace = Primitives.displayFont(),
 			Size = UDim2.fromScale(1, 1),
-			Text = string.format(JuiceConfig.ComboFormat, level),
-			TextColor3 = JuiceConfig.ComboColors[shownLevel],
-			TextSize = JuiceConfig.ComboTextSize,
-		}, labelChildren),
+		}, {
+			Scale = e("UIScale", { ref = wobbleRef }),
+			Punch = e("Frame", {
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(1, 1),
+			}, {
+				Scale = e("UIScale", { ref = punchRef }),
+				Label = e("TextLabel", {
+					BackgroundTransparency = 1,
+					FontFace = Primitives.displayFont(),
+					Size = UDim2.fromScale(1, 1),
+					Text = string.format(JuiceConfig.ComboFormat, level),
+					TextColor3 = JuiceConfig.ComboColors[shownLevel],
+					TextSize = JuiceConfig.ComboTextSize,
+				}, labelChildren),
+			}),
+		}),
 	})
 end
 
@@ -194,8 +236,30 @@ local function MilestoneBanner()
 		if scale == nil then
 			return
 		end
-		scale.Scale = JuiceConfig.MilestonePunchScale
-		TweenService:Create(scale, BANNER_PUNCH_INFO, { Scale = 1 }):Play()
+		scale.Scale = 0
+		TweenService:Create(
+			scale,
+			TweenInfo.new(JuiceConfig.MilestoneEntranceInTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Scale = JuiceConfig.MilestoneEntranceScale }
+		):Play()
+		local thread = task.delay(JuiceConfig.MilestoneEntranceInTime, function()
+			if scale.Parent ~= nil then
+				TweenService
+					:Create(
+						scale,
+						TweenInfo.new(
+							JuiceConfig.MilestoneEntranceOutTime,
+							Enum.EasingStyle.Back,
+							Enum.EasingDirection.Out
+						),
+						{ Scale = 1 }
+					)
+					:Play()
+			end
+		end)
+		return function()
+			task.cancel(thread)
+		end
 	end, { milestoneId } :: { any })
 
 	if milestone == nil then
@@ -203,20 +267,28 @@ local function MilestoneBanner()
 	end
 
 	if milestone.Cleared then
-		local sparkles: { [string]: any } = {}
+		local sparkles: { [string]: any } = {
+			Twinkle = e(Twinkle, {
+				rate = JuiceConfig.MilestoneClearTwinkleRate,
+				size = JuiceConfig.MilestoneTwinkleSize,
+				zIndex = 2,
+			}),
+			Rays = e(Rays, { size = JuiceConfig.MilestoneClearRaysSize, zIndex = 1 }),
+		}
 		for index, star in JuiceConfig.MilestoneClearSparkles do
 			sparkles["Sparkle" .. index] = e(Sparkle, {
 				delay = index * JuiceConfig.MilestoneSparkleDelay,
 				position = UDim2.fromScale(star.X, star.Y),
 				size = star.Size,
+				zIndex = 2,
 			})
 		end
-		sparkles.Rays = e(Rays, { size = JuiceConfig.MilestoneClearRaysSize })
 		sparkles.Box = e("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundTransparency = 1,
 			Position = UDim2.fromScale(0.5, 0.5),
 			Size = UDim2.fromOffset(JuiceConfig.MilestoneClearWidth, JuiceConfig.MilestoneClearHeight),
+			ZIndex = 3,
 		}, {
 			Scale = e("UIScale", { ref = scaleRef }),
 			Label = Primitives.text({
@@ -224,6 +296,7 @@ local function MilestoneBanner()
 				Size = UDim2.fromScale(1, 1),
 				Text = JuiceConfig.MilestoneClearText,
 				TextSize = JuiceConfig.MilestoneClearTextSize,
+				ZIndex = 3,
 			}),
 		})
 		return e("Frame", {
@@ -238,12 +311,18 @@ local function MilestoneBanner()
 		Position = UDim2.fromScale(0.5, JuiceConfig.MilestoneBannerY),
 		Size = UDim2.fromOffset(JuiceConfig.MilestoneBannerWidth, JuiceConfig.MilestoneBannerHeight),
 	}, {
+		Twinkle = e(Twinkle, {
+			rate = JuiceConfig.MilestoneTwinkleRate,
+			size = JuiceConfig.MilestoneTwinkleSize,
+			zIndex = 2,
+		}),
 		Scale = e("UIScale", { ref = scaleRef }),
 		Label = Primitives.text({
 			Color = JuiceConfig.MilestoneColor,
 			Size = UDim2.fromScale(1, 1),
 			Text = string.format(JuiceConfig.MilestoneFormat, milestone.Percent),
 			TextSize = JuiceConfig.MilestoneTextSize,
+			ZIndex = 3,
 		}),
 	})
 end

@@ -8,7 +8,8 @@
 
 	Props: data (DataController state with LastRun), ui (useUIScale result)
 	Dependencies: React, RunService, UIConfig, RunUIConfig, DataController, PetView,
-		Components (Chip, ChunkyButton, Format, Primitives, Rays, Window, WindowSize)
+			Components (Burst, Chip, ChunkyButton, CoinFly, Format, Primitives, Rays, Twinkle, Window,
+			WindowSize)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,11 +21,14 @@ local RunUIConfig = require(ReplicatedStorage.Modules.Config.RunUIConfig)
 local DataController = require(ReplicatedStorage.Modules.Controllers.DataController)
 local PetView = require(ReplicatedStorage.Modules.UIs.PetView)
 local Components = ReplicatedStorage.Modules.UIComponents
+local Burst = require(Components.Burst)
 local Chip = require(Components.Chip)
+local CoinFly = require(Components.CoinFly)
 local ChunkyButton = require(Components.ChunkyButton)
 local Format = require(Components.Format)
 local Primitives = require(Components.Primitives)
 local Rays = require(Components.Rays)
+local Twinkle = require(Components.Twinkle)
 local Window = require(Components.Window)
 local WindowSize = require(Components.WindowSize)
 
@@ -83,6 +87,9 @@ return function(props: any)
 	local displayCoins, setDisplayCoins = React.useState(0)
 	local bestBefore = React.useRef(props.data.Stats.BestScore)
 	local newBest = summary ~= nil and summary.Score > bestBefore.current
+	local coinTrigger = if summary ~= nil and summary.Coins > 0 then summary else nil
+	local gemTrigger = if summary ~= nil and summary.Gems > 0 then summary else nil
+	local burstTrigger = if newBest then summary else nil
 
 	React.useEffect(function()
 		setDisplayScore(0)
@@ -206,6 +213,12 @@ return function(props: any)
 			TextSize = Config.ScoreTextSize,
 			ZIndex = 2,
 		}),
+		Twinkle = e(Twinkle, {
+			clip = true,
+			rate = if newBest then Config.NewBestTwinkleRate else Config.TwinkleRate,
+			size = Config.TwinkleSize,
+			zIndex = 2,
+		}),
 		NewBest = if newBest
 			then e("Frame", {
 				AnchorPoint = Vector2.new(1, 0),
@@ -239,7 +252,7 @@ return function(props: any)
 		Xp = rewardPill(3, Text.XpIcon, Text.ResultXp, Format.commas(summary.Xp), "Green"),
 	})
 
-	return e(Window, {
+	local window = e(Window, {
 		footer = e(ChunkyButton, {
 			gloss = true,
 			onActivated = DataController.DismissResult,
@@ -273,6 +286,37 @@ return function(props: any)
 				LayoutOrder = 4,
 				Size = UDim2.fromScale(1, 0),
 			}, badges),
+		}),
+	})
+
+	return e("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1),
+	}, {
+		Window = window,
+		Coins = e(CoinFly, {
+			trigger = coinTrigger,
+			from = Config.CoinFly.CoinsFrom,
+			to = Config.CoinFly.CoinsTo,
+			icon = Text.CoinIcon,
+			count = Config.CoinFly.Count,
+			duration = Config.CoinFly.Duration,
+			zIndex = 20,
+		}),
+		Gems = e(CoinFly, {
+			trigger = gemTrigger,
+			from = Config.CoinFly.GemsFrom,
+			to = Config.CoinFly.GemsTo,
+			icon = Text.GemIcon,
+			count = Config.CoinFly.Count,
+			duration = Config.CoinFly.Duration,
+			zIndex = 20,
+		}),
+		Burst = e(Burst, {
+			trigger = burstTrigger,
+			origin = Config.NewBestOrigin,
+			count = Config.NewBestBurstCount,
+			zIndex = 21,
 		}),
 	})
 end
