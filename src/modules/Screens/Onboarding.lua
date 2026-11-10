@@ -140,11 +140,25 @@ local function fallbackPoint(key: string?, ui: any): Vector2?
 	return Vector2.new(ui.safeWidth * fallback.X, ui.safeHeight * fallback.Y)
 end
 
-local function dockOffset(ui: any): number
+local function dockRowOpen(): boolean
+	return OnboardingController.FindTarget("Upgrades") ~= nil or OnboardingController.FindTarget("Pets") ~= nil
+end
+
+local function playTargetKey(): string
+	return if OnboardingController.FindTarget("Play") ~= nil then "Play" else "Menu"
+end
+
+local function dockOffset(ui: any, open: boolean): number
 	local layout = LobbyUIConfig.Layouts[if ui.mobile then "Mobile" else "PC"].Dock
 	local dock = LobbyUIConfig.Dock
-	local tallest = dock.ItemSize * dock.BigScale + dock.LabelHeight
-	return math.abs(layout.Position.Y.Offset) + dock.ButtonSize + dock.Lift + tallest + OnboardingConfig.PanelDockGap
+	local gap = OnboardingConfig.PanelDockGap
+	local lift = dock.Lift
+	if not open then
+		lift = dock.ButtonSize * LobbyUIConfig.Bounce.Scale
+	else
+		lift += dock.ItemSize * dock.BigScale + dock.LabelHeight
+	end
+	return math.abs(layout.Position.Y.Offset) + dock.ButtonSize + lift + gap
 end
 
 return function(props: any)
@@ -152,6 +166,8 @@ return function(props: any)
 	local ui = props.ui
 	local route = props.route
 	local _, setVersion = React.useState(0)
+	local dockOpen, setDockOpen = React.useState(dockRowOpen)
+	local playTarget, setPlayTarget = React.useState(playTargetKey)
 	local arrowRef = React.useRef(nil)
 	local ringRef = React.useRef(nil)
 	local ringScaleRef = React.useRef(nil)
@@ -159,6 +175,32 @@ return function(props: any)
 	React.useEffect(function()
 		local connection = OnboardingController.Changed:Connect(function()
 			setVersion(os.clock())
+		end)
+		return function()
+			connection:Disconnect()
+		end
+	end, {})
+
+	React.useEffect(function()
+		local lastOpen = dockRowOpen()
+		local lastTarget = playTargetKey()
+		local lastCheck = 0
+		local connection = RunService.Heartbeat:Connect(function()
+			local now = os.clock()
+			if now - lastCheck < OnboardingConfig.FollowUpdateSeconds then
+				return
+			end
+			lastCheck = now
+			local openNow = dockRowOpen()
+			if openNow ~= lastOpen then
+				lastOpen = openNow
+				setDockOpen(openNow)
+			end
+			local targetNow = playTargetKey()
+			if targetNow ~= lastTarget then
+				lastTarget = targetNow
+				setPlayTarget(targetNow)
+			end
 		end)
 		return function()
 			connection:Disconnect()
@@ -183,7 +225,7 @@ return function(props: any)
 	local panelBottom: number? = nil
 	if hint ~= nil then
 		if hint.Placement == "Dock" then
-			panelBottom = ui.safeHeight - dockOffset(ui)
+			panelBottom = ui.safeHeight - dockOffset(ui, dockOpen)
 			panelTop = panelBottom - OnboardingConfig.PanelHeight
 		elseif hint.Placement == "Result" then
 			panelBottom = ui.safeHeight * OnboardingConfig.PanelYResult + OnboardingConfig.PanelHeight / 2
@@ -265,7 +307,7 @@ return function(props: any)
 		return function()
 			connection:Disconnect()
 		end
-	end, { hintKey .. ":" .. layoutKey } :: { any })
+	end, { hintKey .. ":" .. layoutKey .. ":" .. tostring(dockOpen) } :: { any })
 
 	if hint == nil then
 		return nil
@@ -281,7 +323,7 @@ return function(props: any)
 	local panelPosition = UDim2.fromScale(OnboardingConfig.PanelX, OnboardingConfig.PanelYInRun)
 	if hint.Placement == "Dock" then
 		panelAnchor = Vector2.new(0.5, 1)
-		panelPosition = UDim2.new(OnboardingConfig.PanelX, 0, 1, -dockOffset(ui))
+		panelPosition = UDim2.new(OnboardingConfig.PanelX, 0, 1, -dockOffset(ui, dockOpen))
 	elseif hint.Placement == "Result" then
 		panelPosition = UDim2.fromScale(OnboardingConfig.PanelX, OnboardingConfig.PanelYResult)
 	end
@@ -308,18 +350,20 @@ return function(props: any)
 				Color = OnboardingConfig.TextColor,
 				Position = UDim2.fromOffset(padding + sideReserve, padding),
 				Size = UDim2.fromOffset(labelWidth, OnboardingConfig.PanelHeight - padding * 2),
-				Text = hint.Text,
+				Text = if step == OnboardingConfig.StepPlay and playTarget == "Menu"
+					then OnboardingConfig.Text.PlayMenu
+					else hint.Text,
 				TextSize = OnboardingConfig.TextSize,
 				Wrapped = true,
 				XAlign = Enum.TextXAlignment.Center,
 				YAlign = Enum.TextYAlignment.Center,
 			}),
 			Skip = e(ChunkyButton, {
-				AnchorPoint = Vector2.new(1, 0.5),
+				anchorPoint = Vector2.new(1, 0.5),
 				onActivated = function()
 					OnboardingController.Skip()
 				end,
-				Position = UDim2.new(1, -padding, 0.5, 0),
+				position = UDim2.new(1, -padding, 0.5, 0),
 				radius = OnboardingConfig.SkipRadius,
 				size = UDim2.fromOffset(skipWidth, OnboardingConfig.SkipHeight),
 				swatch = "Grey",
