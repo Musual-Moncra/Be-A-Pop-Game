@@ -144,6 +144,7 @@ local function MapMeter(props: any)
 	local percent = math.clamp(if progress ~= nil then tonumber(progress.Percent) or 0 else 0, 0, 100)
 	local best = (data.BestMapProgress or {})[data.MapId] or 0
 	local ratio = percent / 100
+	local swatch = Primitives.swatch(config.Swatch)
 	local tickRefs = React.useRef({})
 	local passedRef = React.useRef(0)
 
@@ -161,7 +162,7 @@ local function MapMeter(props: any)
 			BorderSizePixel = 0,
 			Position = UDim2.new(mark / 100, 0, 0.5, 0),
 			Size = UDim2.fromOffset(config.TickWidth, config.Height * config.TickHeightRatio),
-			ZIndex = 3,
+			ZIndex = 6,
 		}, {
 			Scale = e("UIScale", {
 				ref = function(instance: any)
@@ -194,27 +195,84 @@ local function MapMeter(props: any)
 		end
 	end, { passedCount } :: { any })
 
+	local fillGradient = e("UIGradient", {
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, swatch.Top),
+			ColorSequenceKeypoint.new(0.5, swatch.Mid or swatch.Bottom),
+			ColorSequenceKeypoint.new(1, swatch.Bottom),
+		}),
+		Rotation = Shape.GradientRotation,
+	})
+
 	local barChildren: { [string]: any } = {
-		Bar = e(Bar, {
-			ratio = ratio,
-			size = UDim2.fromOffset(config.Width, config.Height),
-			swatch = config.Swatch,
-			text = string.format(config.Format, percent),
-			textSize = TextSizes.Small,
+		Track = e("Frame", {
+			BackgroundColor3 = Palette.Ink,
+			BackgroundTransparency = config.TrackTransparency,
+			BorderSizePixel = 0,
+			Size = UDim2.fromScale(1, 1),
+			ZIndex = 1,
+		}, {
+			Corner = Primitives.corner("Round"),
+			Stroke = Primitives.stroke(Palette.Ink, Shape.Stroke),
 		}),
-		Poop = e("TextLabel", {
-			AnchorPoint = Vector2.new(0.5, 1),
+		Fill = e("Frame", {
+			BackgroundColor3 = Palette.Text,
+			BorderSizePixel = 0,
+			ClipsDescendants = true,
+			Size = UDim2.fromScale(ratio, 1),
+			Visible = ratio > 0,
+			ZIndex = 2,
+		}, {
+			Corner = Primitives.corner("Round"),
+			Gradient = fillGradient,
+			Gloss = e("Frame", {
+				BackgroundColor3 = Palette.Text,
+				BackgroundTransparency = Shape.GlossTransparency,
+				BorderSizePixel = 0,
+				Position = UDim2.fromOffset(Shape.GlossInset, Shape.GlossInset),
+				Size = UDim2.new(1, -Shape.GlossInset * 2, Shape.GlossHeightRatio, -Shape.GlossInset),
+				ZIndex = 3,
+			}, {
+				Corner = Primitives.corner("Round"),
+				Fade = e("UIGradient", {
+					Transparency = NumberSequence.new({
+						NumberSequenceKeypoint.new(0, Shape.GlossTransparency),
+						NumberSequenceKeypoint.new(1, 1),
+					}),
+				}),
+			}),
+		}),
+		Label = Primitives.text({
+			Color = Palette.Text,
+			Size = UDim2.fromScale(1, 1),
+			Text = string.format(config.Format, percent),
+			TextSize = config.TextSize,
+			ZIndex = 7,
+		}),
+		Rim = e("Frame", {
 			BackgroundTransparency = 1,
-			Position = UDim2.new(ratio, 0, 0, -config.PoopRise),
-			Size = UDim2.fromOffset(config.PoopTextSize + 8, config.PoopTextSize + 8),
-			Text = config.PoopIcon,
-			TextSize = config.PoopTextSize,
-			ZIndex = 4,
+			Size = UDim2.fromScale(1, 1),
+			ZIndex = 5,
+		}, {
+			Corner = Primitives.corner("Round"),
+			Stroke = Primitives.stroke(Palette.Ink, Shape.Stroke),
 		}),
+		Poop = if percent >= config.PoopMinPercent
+			then e("TextLabel", {
+				AnchorPoint = Vector2.new(0.5, 1),
+				BackgroundTransparency = 1,
+				Position = UDim2.new(ratio, 0, 0, -config.PoopRise),
+				Size = UDim2.fromOffset(config.PoopTextSize + 2, config.PoopTextSize + 2),
+				Text = config.PoopIcon,
+				TextSize = config.PoopTextSize,
+				ZIndex = 8,
+			})
+			else nil,
 	}
 	for key, tick in tickChildren do
 		barChildren[key] = tick
 	end
+
 	return e("Frame", {
 		AnchorPoint = props.layout.AnchorPoint,
 		BackgroundTransparency = 1,
@@ -261,9 +319,12 @@ local function ScoreCard(props: any)
 			textSize = config.ScoreTextSize,
 			value = data.Score,
 		}),
-		Stink = e(Chip, {
-			height = config.StinkHeight,
+		Stink = e(ChunkyButton, {
+			gloss = true,
+			icon = Text.StinkIcon,
+			iconSize = config.StinkIconSize,
 			layoutOrder = 3,
+			size = UDim2.fromOffset(config.StinkWidth, config.StinkHeight),
 			swatch = "Brown",
 			text = string.format(Text.StinkPillFormat, PetView.TotalStink(data)),
 			textSize = config.StinkTextSize,
@@ -398,7 +459,7 @@ local function PowerupSlots(props: any)
 				size = UDim2.new(1, 0, 0, config.TimerHeight),
 				swatch = config.TimerSwatch,
 				text = string.format(Text.PowerupTimer, math.ceil(left)),
-				textSize = TextSizes.Tiny,
+				textSize = config.TimerTextSize,
 			}),
 		})
 	end
