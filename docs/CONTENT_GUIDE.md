@@ -36,6 +36,8 @@ Khi nhấn Play trong Studio, Output in dòng `[ContentCheck]`: có `problems` >
 
 ### Thay model nhân vật
 
+`StarterCharacter` nằm trong place (Studio), không nằm trong repo: Rojo không chuyển được dữ liệu mesh của MeshPart, nhân vật sẽ vô hình. Sửa trực tiếp trong Studio rồi Save/Publish.
+
 `StarterCharacter` cần giữ ba thứ: `HumanoidRootPart`, `Humanoid`, và part `Collider` (quả cầu vô hình chạm vào thế giới, đáy sát mặt sàn). Sau khi thay model:
 
 1. Đặt `CharacterConfig.RootWidth` bằng `Size.X` của `HumanoidRootPart`. `[ContentCheck]` sẽ cảnh báo nếu lệch.
